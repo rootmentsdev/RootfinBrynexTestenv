@@ -794,6 +794,7 @@ const SalesInvoiceCreate = () => {
     "G-Perumbavoor": "703",
     "G.Perumbavoor": "703",
     "GPerumbavoor": "703",
+    "GPerumbavoorStore": "703",
     "G-Thrissur": "704",
     "G.Thrissur": "704",
     "GThrissur": "704",
