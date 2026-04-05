@@ -1,0 +1,312 @@
+@import "tailwindcss";
+
+/* Global Font - Poppins */
+@theme {
+  --font-family-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+* {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+/* Remove number input spinners (up/down arrows) */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Prevent mouse wheel from changing number input values */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input[type="number"]:focus {
+  -moz-appearance: textfield;
+}
+
+/* Additional protection against wheel events on number inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* Ensure number inputs don't respond to wheel events */
+input[type="number"] {
+  scroll-behavior: auto;
+}
+
+/* Button styles for Windows compatibility (excluding login button) */
+button:not([type="submit"]):not(.tax-dropdown-button) {
+  /* Ensure buttons are visible on older Windows versions */
+  appearance: button;
+  -webkit-appearance: button;
+  -moz-appearance: button;
+  
+  /* Basic button styling for compatibility */
+  border: 1px solid transparent;
+  outline: none;
+  
+  /* Ensure proper display */
+  display: inline-block;
+  vertical-align: middle;
+  
+  /* Font rendering for better visibility */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  
+  /* Cursor and interaction */
+  cursor: pointer;
+  user-select: none;
+  
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Ensure proper rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply blue background to ALL buttons for Windows compatibility */
+button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+  background-color: rgb(37, 99, 235) !important; /* Tailwind bg-blue-600 color */
+  color: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 6px 12px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  font-weight: 300 !important;
+  min-height: 16px !important;
+  min-width: 60px !important;
+}
+
+/* Exclude custom buttons from blue styling - Reset only interfering properties */
+button.no-blue-button,
+button.custom-button,
+button.tax-dropdown-button,
+button.gst-treatment-button,
+button.state-dropdown-button,
+a.no-blue-button {
+  /* Reset all properties to allow Tailwind classes to work */
+  all: unset !important;
+  display: inline-flex !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+.sidebar-button {
+  background-color: transparent !important;
+  color: inherit !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  padding: 0.5rem 0.75rem !important; /* match px-3 py-2 */
+  border-radius: 0.5rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+.table-link-button {
+  background-color: transparent !important;
+  color: #2563eb !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  min-width: unset !important;
+  min-height: unset !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  text-decoration: none !important;
+}
+
+.table-link-button:hover {
+  text-decoration: underline !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.table-action-button {
+  min-width: 24px !important;
+  min-height: 24px !important;
+  padding: 0 !important;
+  border-radius: 0.25rem !important;
+}
+
+
+/* Style input submit buttons for Windows compatibility */
+input[type="submit"] {
+  /* Ensure buttons are visible on older Windows versions */
+  appearance: button;
+  -webkit-appearance: button;
+  -moz-appearance: button;
+  
+  /* Basic button styling for compatibility */
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  outline: none;
+  
+  /* Ensure proper display */
+  display: inline-block;
+  vertical-align: middle;
+  
+  /* Font rendering for better visibility */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  
+  /* Cursor and interaction */
+  cursor: pointer;
+  user-select: none;
+  
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  
+  /* Ensure proper rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  background-color: rgb(37, 99, 235) !important; /* Blue color for submit inputs */
+  color: white !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover states for better interaction feedback */
+button:hover:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Override hover for no-blue buttons */
+button.no-blue-button:hover,
+button.custom-button:hover,
+button.gst-treatment-button:hover,
+button.state-dropdown-button:hover {
+  transform: none !important;
+}
+
+/* Active states */
+button:active:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Focus states for accessibility */
+button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Table header styles */
+.table-header {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Custom scrollbar for dropdown - light gray like Zoho Books */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 5px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+  border: 2px solid #f5f5f5;
+  min-height: 20px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ==================== PRINT STYLES ==================== */
+@media print {
+  /* Hide everything except printable content */
+  body > *:not(#root),
+  nav,
+  aside,
+  header:not(#printable-invoice header),
+  footer,
+  .ml-64,
+  .w-80,
+  .sidebar,
+  [class*="sidebar"],
+  button,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Reset body for print */
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Show only the printable invoice */
+  #printable-invoice {
+    display: block !important;
+    visibility: visible !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}
+
