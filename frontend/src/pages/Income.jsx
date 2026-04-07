@@ -14,7 +14,7 @@ const baseIncomeCats = [
 const Income = () => {
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
-  const cats = baseIncomeCats;
+  const cats = isAdmin ? baseIncomeCats : baseIncomeCats.filter(c => c.value !== "bank to cash");
 
   const [selectedCategory, setSelectedCategory] = useState(cats[0]);
   const [amount, setAmount] = useState("");
