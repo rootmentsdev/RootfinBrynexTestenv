@@ -73,6 +73,9 @@ export default function IncomeExpenseReport() {
   // TWS API only accepts a real locCode, not "all" — fall back to user's own store
   const twsLocCode = (locCode === "all" || !locCode) ? (user.locCode || "") : locCode;
 
+  // All store locCodes for fetching TWS data when "all" is selected
+  const ALL_LOC_CODES = STORE_LIST.map(s => s.locCode);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setIncomeRows([]);
@@ -81,17 +84,35 @@ export default function IncomeExpenseReport() {
     try {
       const API = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
-      const [bookingRes, rentoutRes, returnRes, cancelRes, mongoRes] = await Promise.all([
-        fetch(`${TWS_BASE}/GetBookingList?LocCode=${twsLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`),
-        fetch(`${TWS_BASE}/GetRentoutList?LocCode=${twsLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`),
-        fetch(`${TWS_BASE}/GetReturnList?LocCode=${twsLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`),
-        fetch(`${TWS_BASE}/GetDeleteList?LocCode=${twsLocCode}&DateFrom=${fromDate}&DateTo=${toDate}`),
-        fetch(`${API}/user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`),
-      ]);
+      // Fetch TWS APIs individually so one failure doesn't block the rest
+      const safeFetch = async (url) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) { console.warn(`TWS fetch failed (${res.status}): ${url}`); return {}; }
+          return await res.json();
+        } catch (e) { console.warn("TWS fetch error:", url, e.message); return {}; }
+      };
 
-      const [bookingData, rentoutData, returnData, cancelData, mongoJson] = await Promise.all([
-        bookingRes.json(), rentoutRes.json(), returnRes.json(), cancelRes.json(), mongoRes.json(),
-      ]);
+      // When "all stores" selected, fetch TWS for every store and merge results
+      const locCodesToFetch = (locCode === "all" || !locCode) ? ALL_LOC_CODES : [twsLocCode];
+
+      const twsResults = await Promise.all(
+        locCodesToFetch.map(lc => Promise.all([
+          safeFetch(`${TWS_BASE}/GetBookingList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
+          safeFetch(`${TWS_BASE}/GetRentoutList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
+          safeFetch(`${TWS_BASE}/GetReturnList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
+          safeFetch(`${TWS_BASE}/GetDeleteList?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`),
+        ]))
+      );
+
+      // Merge all store results into single arrays
+      const bookingData = { dataSet: { data: twsResults.flatMap(r => r[0]?.dataSet?.data || []) } };
+      const rentoutData = { dataSet: { data: twsResults.flatMap(r => r[1]?.dataSet?.data || []) } };
+      const returnData  = { dataSet: { data: twsResults.flatMap(r => r[2]?.dataSet?.data || []) } };
+      const cancelData  = { dataSet: { data: twsResults.flatMap(r => r[3]?.dataSet?.data || []) } };
+
+      const mongoRes  = await fetch(`${API}/user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`);
+      const mongoJson = mongoRes.ok ? await mongoRes.json() : {};
 
       // Booking -> Income
       const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
@@ -173,15 +194,20 @@ export default function IncomeExpenseReport() {
         const sub = (t.subCategory || "").toLowerCase().trim();
         const cat = (t.category || "").toLowerCase().trim();
         const inv = (t.invoiceNo || "").toUpperCase();
-        const isShoeOrShirtSale = sub === "shoe sales" || sub === "shirt sales" || sub === "mixed sales";
+        const isShoeOrShirtSale = sub === "shoe sales" || sub === "shirt sales" || sub === "mixed sales"
+          || cat === "shoe sales" || cat === "shirt sales" || cat === "mixed sales";
         if (!isShoeOrShirtSale && (inv.startsWith("INV-") || inv.startsWith("RTN-") || inv.startsWith("RET-"))) return;
+
+        // Normalize shoe/shirt/mixed sales into a single "Sales" category
+        const normalizedCategory = isShoeOrShirtSale ? "Sales" : (t.category || "Uncategorized");
+        const normalizedSubCategory = isShoeOrShirtSale ? (t.subCategory || t.category || "Sales") : (t.subCategory || t.category || "");
 
         const row = {
           date: (t.date || "").split("T")[0],
           invoiceNo: t.invoiceNo || t.locCode || "",
           customerName: t.customerName || "",
-          category: t.category || "Uncategorized",
-          subCategory: t.subCategory || t.category || "",
+          category: normalizedCategory,
+          subCategory: normalizedSubCategory,
           remark: t.remark || t.remarks || "",
           cash: Number(t.cash || 0),
           rbl:  Number(t.rbl || t.rblRazorPay || 0),

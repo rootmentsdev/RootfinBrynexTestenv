@@ -14,7 +14,7 @@
 
 
 const baseUrl = {
-     baseUrl:'http://localhost:7000/',
+     baseUrl:'https://rootfinbrynextestenv-45cz.onrender.com/',
 }
 export default baseUrl
 
