@@ -7,6 +7,7 @@ import { CSVLink } from "react-csv";
 import Headers from "../components/Header.jsx";
 import useFetch from "../hooks/useFetch.jsx";
 import openingBalanceMap from "../data/openingBalance.json";
+import baseUrl from "../api/api.js";
 
 /* ---------- CSV helpers ---------- */
 const csvHeaders = [
@@ -64,10 +65,13 @@ const Security = () => {
   const [fromDate, setFromDate] = useState("2025-01-01");
   const [toDate,   setToDate]   = useState(today);
   const [selectedStore, setSelectedStore] = useState("current"); // "current" | "all"
-  const [rentAll, setRentAll]     = useState([]); // all-store mode
+  const [rentAll, setRentAll]     = useState([]);
   const [returnAll, setReturnAll] = useState([]);
   const [openingCash, setOpeningCash] = useState(0);
-  const [allStoreOpenings, setAllStoreOpenings] = useState({}); // locCode -> opening balance
+  const [allStoreOpenings, setAllStoreOpenings] = useState({});
+  const [allStoreRows, setAllStoreRows] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
+  const [wasCached, setWasCached] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("rootfinuser"));
   const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
@@ -126,64 +130,29 @@ const Security = () => {
   const { data: retData  } = useFetch(selectedStore==="current"?apiRetCur :null, fetchOpts);
 
   /* ---------- handleFetch (all-store mode) ---------- */
-  const handleFetch = async () => {
+  const handleFetch = async (forceRefresh = false) => {
     if (selectedStore !== "all") { await calcOpeningCash(); return; }
 
-    const tmpRent=[], tmpRet=[];
-    const openingMap = {}; // locCode -> opening security balance
+    setIsFetching(true);
+    setRentAll([]); setReturnAll([]); setAllStoreOpenings({});
 
-    for (const s of AllLoation) {
-      const u1=`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-      const u2=`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-
-      // Calculate opening balance for this store (same logic as calcOpeningCash)
-      const manualOpen = getManualOpening(s.locCode, fromDate);
-      try {
-        if (manualOpen !== null) {
-          const monthStart = getMonthStart(fromDate);
-          if (fromDate === monthStart) {
-            openingMap[s.locCode] = manualOpen;
-          } else {
-            const [oR1, oR2] = await Promise.all([
-              fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
-              fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
-            ]);
-            const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
-            const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-            const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-            openingMap[s.locCode] = manualOpen + (oSecIn - oSecOut);
-          }
-        } else {
-          const [oR1, oR2] = await Promise.all([
-            fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
-            fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
-          ]);
-          const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
-          const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-          const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-          openingMap[s.locCode] = oSecIn - oSecOut;
-        }
-      } catch { openingMap[s.locCode] = 0; }
-
-      try {
-        const [r1,r2]=await Promise.all([fetch(u1),fetch(u2)]);
-        const [j1,j2]=await Promise.all([r1.json(),r2.json()]);
-        if(j1?.dataSet?.data) tmpRent.push(...j1.dataSet.data.map(d=>({...d,locCode:s.locCode,Category:"RentOut"})));
-        if(j2?.dataSet?.data) tmpRet .push(...j2.dataSet.data.map(d=>({...d,locCode:s.locCode,Category:"Return" })));
-      } catch(e){ console.error("Fetch err",e);}
+    try {
+      const API = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
+      const url = `${API}/api/tws/security-report/all-stores?fromDate=${fromDate}&toDate=${toDate}${forceRefresh ? "&refresh=1" : ""}`;
+      const res = await fetch(url);
+      const json = await res.json();
+      setAllStoreRows(json?.data || []);
+      setWasCached(json?.cached === true);
+    } catch (e) {
+      console.error("Security report fetch error:", e);
+    } finally {
+      setIsFetching(false);
     }
-
-    // Attach opening balances to the data so the table can use them
-    setRentAll(tmpRent.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
-    setReturnAll(tmpRet.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
-    // Store opening map for use in table building
-    setAllStoreOpenings(openingMap);
   };
 
   /* ---------- build rows ---------- */
   let tableRows=[];
-  if(selectedStore==="current"){
-    const rentList = rentData?.dataSet?.data || [];
+  if(selectedStore==="current"){    const rentList = rentData?.dataSet?.data || [];
     const retList  = retData?.dataSet?.data  || [];
 
     // Build a map keyed by invoiceNo for quick lookup
@@ -216,35 +185,8 @@ const Security = () => {
       };
     });
   } else {
-    const combined=[...rentAll,...returnAll];
-    const acc = {};
-
-    // First seed all stores that have an opening balance
-    for (const [lc, opening] of Object.entries(allStoreOpenings)) {
-      if (opening === 0) continue;
-      const name = getStoreName(lc);
-      if (!acc[name]) acc[name] = { store: name, locCode: lc, secIn: opening, secOutCash: 0, secOutRbl: 0 };
-    }
-
-    // Then add transaction data
-    combined.forEach(t => {
-      const name = getStoreName(t.locCode);
-      if (!acc[name]) acc[name] = {
-        store: name,
-        locCode: t.locCode,
-        secIn: allStoreOpenings[t.locCode] || 0,
-        secOutCash: 0,
-        secOutRbl: 0
-      };
-      if (t.Category === "Return") {
-        acc[name].secOutCash += +(t.returnCashAmount || 0);
-        acc[name].secOutRbl  += +(t.rblRazorPay || 0);
-      } else {
-        acc[name].secIn += +(t.securityAmount || 0);
-      }
-    });
-
-    tableRows = Object.values(acc).map(r => ({ ...r, diff: r.secIn - (r.secOutCash + r.secOutRbl) }));
+    // Use pre-built rows from backend endpoint
+    tableRows = allStoreRows;
   }
 
   const totIn      = tableRows.reduce((s,r)=>s+(r.secIn||0),0);
@@ -312,10 +254,34 @@ const Security = () => {
                 <option value="all">All Stores (Totals)</option>}
             </select>
           </div>
-          <button onClick={handleFetch}
-                  className="bg-blue-600 text-white px-10 h-[40px] mt-6 rounded-md">
-            Fetch
-          </button>
+          <div className="flex flex-col gap-1 mt-6">
+            <div className="flex gap-2">
+              <button onClick={() => handleFetch(false)} disabled={isFetching}
+                      className={`px-10 h-[40px] rounded-md text-white font-semibold flex items-center gap-2 transition-all ${
+                        isFetching ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 active:scale-95 cursor-pointer'
+                      }`}>
+                {isFetching ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                    </svg>
+                    Fetching...
+                  </>
+                ) : 'Fetch'}
+              </button>
+              {wasCached && selectedStore === "all" && !isFetching && (
+                <button onClick={() => handleFetch(true)}
+                        className="px-4 h-[40px] rounded-md text-sm text-blue-600 border border-blue-400 hover:bg-blue-50 cursor-pointer"
+                        title="Data is from cache. Click to force refresh.">
+                  ↻ Refresh
+                </button>
+              )}
+            </div>
+            {wasCached && selectedStore === "all" && !isFetching && (
+              <span className="text-xs text-gray-400">Showing cached data · click Refresh for latest</span>
+            )}
+          </div>
         </div>
 
         {/* report */}
