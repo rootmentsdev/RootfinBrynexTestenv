@@ -90,7 +90,11 @@ const DayBookInc = () => {
     // Filter states - moved up to fix initialization order
     const [selectedCategory, setSelectedCategory] = useState(categories[0]);
     const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
-    const [quantities, setQuantities] = useState(Array(denominations.length).fill(""));
+    const [quantities, setQuantities] = useState(() => {
+        // On load, restore saved denomination quantities if day is already closed
+        const saved = localStorage.getItem(`denominations_${new Date().toISOString().split("T")[0]}_${JSON.parse(localStorage.getItem("rootfinuser"))?.locCode}`);
+        return saved ? JSON.parse(saved) : Array(denominations.length).fill("");
+    });
 
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
     const showAction = (currentusers?.power || "").toLowerCase() === "admin";
@@ -567,9 +571,6 @@ const DayBookInc = () => {
     // console.log(savedData);
 
     const CreateCashBank = async () => {
-
-
-
         if (savedData.totalAmount === 0) {
             const confirmed = window.confirm(
                 'Physical cash count is 0. Are you sure you want to close the day with zero cash? Click OK to proceed or Cancel to go back and enter the denomination count.'
@@ -597,6 +598,9 @@ const DayBookInc = () => {
             const data = await response.json();
             console.log("Data saved successfully:", data);
 
+            // Save denomination quantities to localStorage so they show in print
+            localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
+
             alert("Data saved successfully");
             setLoading(false)
             window.location.reload();
@@ -605,7 +609,6 @@ const DayBookInc = () => {
             console.error("Error saving data:", error);
             alert("An unexpected error occurred.");
             setLoading(false)
-
         }
     };
 
@@ -1623,6 +1626,7 @@ const DayBookInc = () => {
                                                             onChange={(e) => handleChange(index, e.target.value)}
                                                             className="p-2 border rounded text-center text-sm"
                                                             min="0"
+                                                            readOnly={preOpen1 != null}
                                                         />
                                                         <div className="p-2 bg-gray-100 rounded text-sm text-right">
                                                             {quantities[index] ? (quantities[index] * denom.value).toLocaleString() : "-"}
