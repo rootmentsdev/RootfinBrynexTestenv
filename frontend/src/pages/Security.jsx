@@ -67,6 +67,7 @@ const Security = () => {
   const [rentAll, setRentAll]     = useState([]); // all-store mode
   const [returnAll, setReturnAll] = useState([]);
   const [openingCash, setOpeningCash] = useState(0);
+  const [allStoreOpenings, setAllStoreOpenings] = useState({}); // locCode -> opening balance
 
   const user = JSON.parse(localStorage.getItem("rootfinuser"));
   const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
@@ -129,9 +130,41 @@ const Security = () => {
     if (selectedStore !== "all") { await calcOpeningCash(); return; }
 
     const tmpRent=[], tmpRet=[];
+    const openingMap = {}; // locCode -> opening security balance
+
     for (const s of AllLoation) {
       const u1=`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const u2=`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+
+      // Calculate opening balance for this store (same logic as calcOpeningCash)
+      const manualOpen = getManualOpening(s.locCode, fromDate);
+      try {
+        if (manualOpen !== null) {
+          const monthStart = getMonthStart(fromDate);
+          if (fromDate === monthStart) {
+            openingMap[s.locCode] = manualOpen;
+          } else {
+            const [oR1, oR2] = await Promise.all([
+              fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
+              fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
+            ]);
+            const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
+            const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
+            const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
+            openingMap[s.locCode] = manualOpen + (oSecIn - oSecOut);
+          }
+        } else {
+          const [oR1, oR2] = await Promise.all([
+            fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
+            fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
+          ]);
+          const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
+          const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
+          const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
+          openingMap[s.locCode] = oSecIn - oSecOut;
+        }
+      } catch { openingMap[s.locCode] = 0; }
+
       try {
         const [r1,r2]=await Promise.all([fetch(u1),fetch(u2)]);
         const [j1,j2]=await Promise.all([r1.json(),r2.json()]);
@@ -139,7 +172,12 @@ const Security = () => {
         if(j2?.dataSet?.data) tmpRet .push(...j2.dataSet.data.map(d=>({...d,locCode:s.locCode,Category:"Return" })));
       } catch(e){ console.error("Fetch err",e);}
     }
-    setRentAll(tmpRent); setReturnAll(tmpRet);
+
+    // Attach opening balances to the data so the table can use them
+    setRentAll(tmpRent.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
+    setReturnAll(tmpRet.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
+    // Store opening map for use in table building
+    setAllStoreOpenings(openingMap);
   };
 
   /* ---------- build rows ---------- */
@@ -179,17 +217,34 @@ const Security = () => {
     });
   } else {
     const combined=[...rentAll,...returnAll];
-    tableRows=Object.values(combined.reduce((acc,t)=>{
-      const name=getStoreName(t.locCode);
-      if(!acc[name]) acc[name]={store:name,locCode:t.locCode,secIn:0,secOutCash:0,secOutRbl:0};
-      if(t.Category==="Return"){
-        acc[name].secOutCash += +(t.returnCashAmount||0);
-        acc[name].secOutRbl  += +(t.rblRazorPay||0);
+    const acc = {};
+
+    // First seed all stores that have an opening balance
+    for (const [lc, opening] of Object.entries(allStoreOpenings)) {
+      if (opening === 0) continue;
+      const name = getStoreName(lc);
+      if (!acc[name]) acc[name] = { store: name, locCode: lc, secIn: opening, secOutCash: 0, secOutRbl: 0 };
+    }
+
+    // Then add transaction data
+    combined.forEach(t => {
+      const name = getStoreName(t.locCode);
+      if (!acc[name]) acc[name] = {
+        store: name,
+        locCode: t.locCode,
+        secIn: allStoreOpenings[t.locCode] || 0,
+        secOutCash: 0,
+        secOutRbl: 0
+      };
+      if (t.Category === "Return") {
+        acc[name].secOutCash += +(t.returnCashAmount || 0);
+        acc[name].secOutRbl  += +(t.rblRazorPay || 0);
       } else {
-        acc[name].secIn += +(t.securityAmount||0);
+        acc[name].secIn += +(t.securityAmount || 0);
       }
-      return acc;
-    },{})).map(r=>({...r,diff:r.secIn-(r.secOutCash+r.secOutRbl)}));
+    });
+
+    tableRows = Object.values(acc).map(r => ({ ...r, diff: r.secIn - (r.secOutCash + r.secOutRbl) }));
   }
 
   const totIn      = tableRows.reduce((s,r)=>s+(r.secIn||0),0);
