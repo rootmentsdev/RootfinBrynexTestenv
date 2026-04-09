@@ -1007,9 +1007,9 @@ const DayBookInc = () => {
             <div>
                 <style>{`
                     @media print {
-                        @page { 
-                            size: tabloid landscape; 
-                            margin: 5mm; 
+                        @page {
+                            size: tabloid landscape;
+                            margin: 5mm;
                         }
                         
                         * {
@@ -1061,7 +1061,7 @@ const DayBookInc = () => {
                             width: 100% !important;
                         }
                         
-                        .shadow-md, .rounded-lg {
+                        .shadow-md, .rounded-sm {
                             box-shadow: none !important;
                             border-radius: 0 !important;
                         }
@@ -1241,25 +1241,26 @@ const DayBookInc = () => {
                 `}</style>
                 <Headers title={"Day Book"} />
                 <div className='ml-[240px]'>
-                    <div className="p-6 bg-gray-100 min-h-screen">
-                        {/* Dropdowns */}
-                        <div className="flex flex-wrap gap-4 mb-6 max-w-4xl no-print">
-                            <div className='w-full sm:w-[300px]'>
-                                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <div className="p-6 bg-slate-50 min-h-screen">
+
+                        {/* Filter Bar */}
+                        <div className="flex flex-wrap gap-4 mb-5 p-4 bg-white rounded border border-slate-200 shadow-sm no-print">
+                            <div className='w-full sm:w-[220px]'>
+                                <label htmlFor="category" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Category</label>
                                 <Select
                                     options={categories}
                                     value={selectedCategory}
                                     onChange={setSelectedCategory}
-                                    className="w-full"
+                                    className="w-full text-sm"
                                 />
                             </div>
-                            <div className='w-full sm:w-[300px]'>
-                                <label htmlFor="subcategory" className="block text-sm font-medium text-gray-700 mb-2">Sub Category</label>
+                            <div className='w-full sm:w-[220px]'>
+                                <label htmlFor="subcategory" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Sub Category</label>
                                 <Select
                                     options={subCategories}
                                     value={selectedSubCategory}
                                     onChange={setSelectedSubCategory}
-                                    className="w-full"
+                                    className="w-full text-sm"
                                 />
                             </div>
                         </div>
@@ -1267,45 +1268,45 @@ const DayBookInc = () => {
                         <div ref={printRef}>
                             <h2 className="print-title" style={{display: 'none'}}>Day Book Report - {currentDate}</h2>
 
-
-                            {/* Table */}
-                            <div className="bg-white p-4 shadow-md rounded-lg overflow-x-auto">
+                            {/* Main Table Card */}
+                            <div className="bg-white shadow-sm rounded border border-slate-200 overflow-x-auto">
                                 {!data && !data1 && !data2 && !data3 ? (
-                                    <div className="flex justify-center items-center py-8">
+                                    <div className="flex justify-center items-center py-12">
                                         <div className="flex items-center gap-3">
-                                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                                            <div className="text-gray-600">Loading transactions...</div>
+                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                            <span className="text-slate-500 text-sm">Loading transactions...</span>
                                         </div>
                                     </div>
                                 ) : (
-                                <table className="w-full border-collapse border rounded-md border-gray-300 min-w-full">
+                                <table className="w-full border-collapse min-w-full text-sm">
                                         <thead>
-                                            <tr className="bg-[#7C7C7C] text-white">
-                                                <th className="border p-2 text-left whitespace-nowrap">Date</th>
-                                                <th className="border p-2 text-left whitespace-nowrap">Invoice No.</th>
-                                                <th className="border p-2 text-left whitespace-nowrap">Customer Name</th>
-                                                <th className="border p-2 text-left whitespace-nowrap">Category</th>
-                                                <th className="border p-2 text-left whitespace-nowrap">Sub Category</th>
-                                                <th className="border p-2 text-left whitespace-nowrap">Remarks</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Amount</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Total Transaction</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Discount</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Bill Value</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Cash</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">RBL</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">Bank</th>
-                                                <th className="border p-2 text-right whitespace-nowrap">UPI</th>
-                                                {showAction && <th className="border p-2 text-center whitespace-nowrap">Action</th>}
+                                            <tr className="bg-slate-700 text-white text-xs uppercase tracking-wide">
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Date</th>
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Invoice No.</th>
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Customer Name</th>
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Category</th>
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Sub Category</th>
+                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Remarks</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Amount</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Total Txn</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Discount</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Bill Value</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Cash</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">RBL</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Bank</th>
+                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">UPI</th>
+                                                {showAction && <th className="px-2 py-1 text-center whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Action</th>}
                                             </tr>
                                         </thead>
-                                        <tbody>                                            {/* Opening Balance Row */}
-                                            <tr className="bg-gray-100 font-bold">
-                                                <td colSpan="10" className="border p-2 text-left">OPENING BALANCE</td>
-                                                <td className="border p-2 text-right">{preOpen?.cash ?? preOpen?.Closecash ?? 0}</td>
-                                                <td className="border p-2 text-right">{preOpen?.rbl ?? 0}</td>
-                                                <td className="border p-2 text-right">0</td>
-                                                <td className="border p-2 text-right">0</td>
-                                                {showAction && <td className="border p-2"></td>}
+                                        <tbody>
+                                            {/* Opening Balance Row */}
+                                            <tr className="bg-slate-50 font-semibold text-slate-600 border-b border-slate-200">
+                                                <td colSpan="10" className="px-3 py-2 text-left text-xs uppercase tracking-wide">Opening Balance</td>
+                                                <td className="px-3 py-2 text-right">{preOpen?.cash ?? preOpen?.Closecash ?? 0}</td>
+                                                <td className="px-3 py-2 text-right">{preOpen?.rbl ?? 0}</td>
+                                                <td className="px-3 py-2 text-right">0</td>
+                                                <td className="px-3 py-2 text-right">0</td>
+                                                {showAction && <td className="px-3 py-2"></td>}
                                             </tr>
 
                                             {/* Transaction Rows */}
@@ -1318,83 +1319,83 @@ const DayBookInc = () => {
                                                     <>
                                                         {transaction.Category === 'RentOut' ? (
                                                             <>
-                                                                <tr key={`${index}-1`}>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.date}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.invoiceNo}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.customerName}</td>
-                                                                    <td rowSpan="2" className="border p-2 text-left whitespace-nowrap">{transaction.Category}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.SubCategory}</td>
-                                                                    <td className="border p-2 text-left"></td>
-                                                                    <td className="border p-2 text-right">
+                                                                <tr key={`${index}-1`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
+                                                                    <td rowSpan="2" className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.Category}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory}</td>
+                                                                    <td className="px-3 py-2 text-left"></td>
+                                                                    <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.securityAmount}
                                                                                 onChange={(e) => handleInputChange("securityAmount", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : (transaction.securityAmount || 0)}
                                                                     </td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (editedTransaction.securityAmount + editedTransaction.Balance) : (transaction.securityAmount + transaction.Balance)}
                                                                     </td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">{transaction.discountAmount || 0}</td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">{transaction.invoiceAmount}</td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">{transaction.discountAmount || 0}</td>
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">{transaction.invoiceAmount}</td>
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.cash}
                                                                                 onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : (transaction.rentoutCashAmount || 0)}
                                                                     </td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.rbl}
                                                                                 onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : (transaction.rbl ?? 0)}
                                                                     </td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.bank}
                                                                                 onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : (parseInt(transaction.rentoutBankAmount) || 0)}
                                                                     </td>
-                                                                    <td rowSpan="2" className="border p-2 text-right">
+                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.upi}
                                                                                 onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : (parseInt(transaction.rentoutUPIAmount) || 0)}
                                                                     </td>
                                                                     {showAction && (
-                                                                        <td rowSpan="2" className="border p-2 text-center">
+                                                                        <td rowSpan="2" className="px-3 py-2 text-center border-r border-slate-100">
                                                                             {isSyncing && editingIndex === index ? (
-                                                                                <span className="text-gray-400">Syncing…</span>
+                                                                                <span className="text-slate-400 text-xs">Syncing…</span>
                                                                             ) : isEditing ? (
                                                                                 <button
                                                                                     onClick={handleSave}
-                                                                                    className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                                                                    className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
                                                                                 >
                                                                                     Save
                                                                                 </button>
                                                                             ) : (
                                                                                 <button
                                                                                     onClick={() => handleEditClick(transaction, index)}
-                                                                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                                                                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
                                                                                 >
                                                                                     Edit
                                                                                 </button>
@@ -1402,33 +1403,33 @@ const DayBookInc = () => {
                                                                         </td>
                                                                     )}
                                                                 </tr>
-                                                                <tr key={`${index}-2`}>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.rentOutDate || transaction.bookingDate}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.invoiceNo}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.customerName}</td>
-                                                                    <td className="border p-2 text-left whitespace-nowrap">{transaction.SubCategory1}</td>
-                                                                    <td className="border p-2 text-left"></td>
-                                                                    <td className="border p-2 text-right">
+                                                                <tr key={`${index}-2`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.rentOutDate || transaction.bookingDate}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
+                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory1}</td>
+                                                                    <td className="px-3 py-2 text-left"></td>
+                                                                    <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                         {isEditing ? (
                                                                             <input
                                                                                 type="number"
                                                                                 value={editedTransaction.Balance}
                                                                                 onChange={(e) => handleInputChange("Balance", e.target.value)}
-                                                                                className="w-20 p-1 border rounded"
+                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                             />
                                                                         ) : transaction.Balance}
                                                                     </td>
                                                                 </tr>
                                                             </>
                                                         ) : (
-                                                            <tr key={index}>
-                                                                <td className="border p-2 text-left whitespace-nowrap">{transaction.date}</td>
-                                                                <td className="border p-2 text-left whitespace-nowrap">{transaction.invoiceNo || transaction.locCode}</td>
-                                                                <td className="border p-2 text-left whitespace-nowrap">{transaction.customerName}</td>
-                                                                <td className="border p-2 text-left whitespace-nowrap">{transaction.Category || transaction.type || transaction.category}</td>
-                                                                <td className="border p-2 text-left whitespace-nowrap">{transaction.SubCategory || transaction.subCategory}</td>
-                                                                <td className="border p-2 text-left">{transaction.remark}</td>
-                                                                <td className="border p-2 text-right">
+                                                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo || transaction.locCode}</td>
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.Category || transaction.type || transaction.category}</td>
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory || transaction.subCategory}</td>
+                                                                <td className="px-3 py-2 text-left text-slate-600 border-r border-slate-100">{transaction.remark}</td>
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
                                                                         (parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) + parseInt(transaction.returnUPIAmount || 0)) :
                                                                         transaction.Category === 'Return' ?
@@ -1439,7 +1440,7 @@ const DayBookInc = () => {
                                                                         parseInt(transaction.bookingCashAmount || 0) + parseInt(transaction.bookingBankAmount || 0) + parseInt(transaction.bookingUPIAmount || 0) ||
                                                                         parseInt(transaction.amount || -(parseInt(transaction.advanceAmount || 0)) || 0)}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
                                                                         (parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) + parseInt(transaction.returnUPIAmount || 0) + parseInt(transaction.rblRazorPay || 0)) :
                                                                         transaction.Category === 'Return' ?
@@ -1451,19 +1452,19 @@ const DayBookInc = () => {
                                                                         parseInt(transaction.totalTransaction || 0) ||
                                                                         parseInt(transaction.amount || -(parseInt(transaction.deleteBankAmount || 0) + parseInt(transaction.deleteCashAmount || 0)) || 0)}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {transaction.discountAmount || 0}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {parseInt(transaction.billValue) || parseInt(transaction.invoiceAmount) || parseInt(transaction.amount) || 0}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {isEditing ? (
                                                                         <input
                                                                             type="number"
                                                                             value={editedTransaction.cash}
                                                                             onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                            className="w-20 p-1 border rounded"
+                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                         />
                                                                     ) : (
                                                                         transaction.Category === 'Cancel' ? 
@@ -1480,13 +1481,13 @@ const DayBookInc = () => {
                                                                          parseInt(transaction.cash1) || 0
                                                                     )}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {isEditing ? (
                                                                         <input
                                                                             type="number"
                                                                             value={editedTransaction.rbl}
                                                                             onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                            className="w-20 p-1 border rounded"
+                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                         />
                                                                     ) : (
                                                                         transaction.Category === 'Return' && transaction.returnRblAmount !== undefined ?
@@ -1494,13 +1495,13 @@ const DayBookInc = () => {
                                                                             (transaction.rbl ?? transaction.rblRazorPay ?? 0)
                                                                     )}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {isEditing ? (
                                                                         <input
                                                                             type="number"
                                                                             value={editedTransaction.bank}
                                                                             onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                            className="w-20 p-1 border rounded"
+                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                         />
                                                                     ) : (
                                                                         transaction.Category === 'Return' && transaction.returnBankAmount !== undefined ? 
@@ -1516,13 +1517,13 @@ const DayBookInc = () => {
                                                                             (parseInt(transaction.bank) || parseInt(transaction.bank1) || 0)
                                                                     )}
                                                                 </td>
-                                                                <td className="border p-2 text-right">
+                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {isEditing ? (
                                                                         <input
                                                                             type="number"
                                                                             value={editedTransaction.upi}
                                                                             onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                            className="w-20 p-1 border rounded"
+                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
                                                                         />
                                                                     ) : (
                                                                         transaction.Category === 'Return' && transaction.returnUPIAmount !== undefined ? 
@@ -1539,20 +1540,20 @@ const DayBookInc = () => {
                                                                     )}
                                                                 </td>
                                                                 {showAction && (
-                                                                    <td className="border p-2 text-center">
+                                                                    <td className="px-3 py-2 text-center border-r border-slate-100">
                                                                         {isSyncing && editingIndex === index ? (
-                                                                            <span className="text-gray-400">Syncing…</span>
+                                                                            <span className="text-slate-400 text-xs">Syncing…</span>
                                                                         ) : isEditing ? (
                                                                             <button
                                                                                 onClick={handleSave}
-                                                                                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+                                                                                className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
                                                                             >
                                                                                 Save
                                                                             </button>
                                                                         ) : (
                                                                             <button
                                                                                 onClick={() => handleEditClick(transaction, index)}
-                                                                                className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                                                                                className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
                                                                             >
                                                                                 Edit
                                                                             </button>
@@ -1565,15 +1566,15 @@ const DayBookInc = () => {
                                                 )})
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={showAction ? "15" : "14"} className="text-center border p-4">No transactions found</td>
+                                                    <td colSpan={showAction ? "15" : "14"} className="text-center py-8 text-slate-400 text-sm">No transactions found</td>
                                                 </tr>
                                             )}
                                         </tbody>
 
                                         <tfoot>
-                                            <tr className="bg-gray-50 font-semibold">
-                                                <td colSpan="10" className="border border-gray-300 px-4 py-2 text-left">Total:</td>
-                                                <td className="border border-gray-300 px-4 py-2 text-right">
+                                            <tr className="bg-slate-100 font-semibold border-t-2 border-slate-300">
+                                                <td colSpan="10" className="px-4 py-2.5 text-left text-slate-700 text-sm">Total</td>
+                                                <td className="px-4 py-2.5 text-right text-slate-800">
                                                     {(() => {
                                                         console.log('🔍 Total Row - Displaying totalCash:', {
                                                             totalCash: calculatedTotals.totalCash,
@@ -1585,114 +1586,103 @@ const DayBookInc = () => {
                                                         return calculatedTotals.totalCash;
                                                     })()}
                                                 </td>
-                                                <td className="border border-gray-300 px-4 py-2 text-right">{calculatedTotals.totalRblAmount}</td>
-                                                <td className="border border-gray-300 px-4 py-2 text-right">{calculatedTotals.totalBankAmount1}</td>
-                                                <td className="border border-gray-300 px-4 py-2 text-right">{calculatedTotals.totalBankAmountupi}</td>
-                                                {showAction && <td className="border border-gray-300 px-4 py-2"></td>}
+                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalRblAmount}</td>
+                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalBankAmount1}</td>
+                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalBankAmountupi}</td>
+                                                {showAction && <td className="px-4 py-2.5"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
                                 )}
                             </div>
 
-
-
-                            <div className="mt-8">
-                                <div className="p-6 bg-white relative shadow-md rounded-lg">
-                                    <div className='absolute top-4 right-4 no-print'>
-                                        <button
-                                            className='flex items-center gap-2 h-[40px] bg-blue-500 px-4 text-white rounded-md hover:bg-blue-800 cursor-pointer transition-colors'
-                                            onClick={() => window.location.reload()}
-                                        >
-                                            <FiRefreshCw size={18} />
-                                            Refresh Page
-                                        </button>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                            {/* Bottom Section: Denomination + Cash Summary */}
+                            <div className="mt-6">
+                                <div className="p-6 bg-white relative shadow-sm rounded border border-slate-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
                                         {/* Denomination Section */}
                                         <div className='w-full'>
-                                            <h3 className="text-lg font-semibold mb-4">Physical Cash Count</h3>
-                                            <div className="grid grid-cols-3 gap-3 border-b pb-4 mb-4">
-                                                <div className="font-bold text-sm">Denomination</div>
-                                                <div className="font-bold text-sm">Quantity</div>
-                                                <div className="font-bold text-sm">Amount</div>
+                                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Physical Cash Count</h3>
+                                            <div className="grid grid-cols-3 gap-2 border-b border-slate-200 pb-4 mb-4">
+                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Denomination</div>
+                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Quantity</div>
+                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Amount</div>
                                                 {denominations.map((denom, index) => (
                                                     <React.Fragment key={index}>
-                                                        <div className="p-2 bg-gray-100 rounded text-sm">{denom.label}</div>
+                                                        <div className="px-2 py-1.5 bg-slate-50 rounded text-sm text-slate-700 font-medium">{denom.label}</div>
                                                         <input
                                                             type="number"
                                                             value={quantities[index]}
                                                             onChange={(e) => handleChange(index, e.target.value)}
-                                                            className="p-2 border rounded text-center text-sm"
+                                                            className="px-2 py-1.5 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                                                             min="0"
                                                             readOnly={preOpen1 != null}
                                                         />
-                                                        <div className="p-2 bg-gray-100 rounded text-sm text-right">
+                                                        <div className="px-2 py-1.5 bg-slate-50 rounded text-sm text-right text-slate-700">
                                                             {quantities[index] ? (quantities[index] * denom.value).toLocaleString() : "-"}
                                                         </div>
                                                     </React.Fragment>
                                                 ))}
                                             </div>
 
-                                            <div className="flex justify-between mt-4 text-lg font-semibold border-t pt-4">
-                                                <span>TOTAL</span>
+                                            <div className="flex justify-between mt-3 text-sm font-semibold text-slate-800 border-t border-slate-200 pt-3">
+                                                <span>Total</span>
                                                 <span>{preOpen1?.Closecash ? preOpen1?.Closecash.toLocaleString() : totalAmount.toLocaleString()}</span>
                                             </div>
                                         </div>
 
                                         {/* Closing Cash Section */}
                                         <div className='w-full'>
-                                            <h3 className="text-lg font-semibold mb-4">Cash Summary</h3>
-                                            <div className="border p-4 rounded-md space-y-3">
+                                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Cash Summary</h3>
+                                            <div className="border border-slate-200 rounded-sm p-4 space-y-3 bg-slate-50">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-gray-700">Closing Cash</span>
-                                                    <span className="font-bold text-lg">{calculatedTotals.totalCash.toLocaleString()}</span>
+                                                    <span className="text-sm text-slate-600">Closing Cash</span>
+                                                    <span className="font-semibold text-slate-800">{calculatedTotals.totalCash.toLocaleString()}</span>
                                                 </div>
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-gray-700">Physical Cash</span>
-                                                    <span className="font-bold text-lg">{preOpen1?.Closecash ? preOpen1?.Closecash?.toLocaleString() : totalAmount.toLocaleString()}</span>
+                                                    <span className="text-sm text-slate-600">Physical Cash</span>
+                                                    <span className="font-semibold text-slate-800">{preOpen1?.Closecash ? preOpen1?.Closecash?.toLocaleString() : totalAmount.toLocaleString()}</span>
                                                 </div>
-                                                <div className="flex justify-between items-center pt-3 border-t">
-                                                    <span className="text-red-600 font-semibold">Differences</span>
-                                                    <span className="font-bold text-lg text-red-600">
+                                                <div className="flex justify-between items-center pt-3 border-t border-slate-200">
+                                                    <span className="text-sm font-semibold text-red-600">Difference</span>
+                                                    <span className="font-semibold text-red-600">
                                                         {preOpen1?.Closecash ? ((calculatedTotals.totalCash - preOpen1?.Closecash) * -1).toLocaleString() : ((calculatedTotals.totalCash - totalAmount) * -1).toLocaleString()}
                                                     </span>
                                                 </div>
                                             </div>
-                                            
-                                            <div className='flex flex-wrap gap-2 mt-4'>
+
+                                            <div className='flex flex-wrap gap-2 mt-4 no-print'>
                                                 {loading ? (
                                                     preOpen1 == null && (
-                                                        <button className="w-full sm:w-auto flex-1 cursor-pointer bg-yellow-400 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors no-print">
-                                                            <span>🔃 Loading...!</span>
+                                                        <button className="flex-1 cursor-pointer bg-amber-500 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors">
+                                                            <span>Loading...</span>
                                                         </button>
                                                     )
                                                 ) : (
                                                     preOpen1 == null && (
-                                                        <button 
-                                                            onClick={CreateCashBank} 
-                                                            className="w-full sm:w-auto flex-1 cursor-pointer bg-yellow-400 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-yellow-500 transition-colors no-print"
+                                                        <button
+                                                            onClick={CreateCashBank}
+                                                            className="flex-1 cursor-pointer bg-amber-500 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors"
                                                         >
-                                                            <span>💾 Save</span>
+                                                            <span>Save Day</span>
                                                         </button>
                                                     )
                                                 )}
                                                 {!loading && preOpen1 != null && (
-                                                    <button 
-                                                        onClick={handlePrint} 
-                                                        className="w-full sm:w-auto flex-1 cursor-pointer bg-blue-600 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors no-print"
+                                                    <button
+                                                        onClick={handlePrint}
+                                                        className="flex-1 cursor-pointer bg-blue-600 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
                                                     >
-                                                        <span>📥 Take PDF</span>
+                                                        <span>Print PDF</span>
                                                     </button>
                                                 )}
-                                                <CSVLink 
-                                                    data={csvData} 
-                                                    headers={headers} 
+                                                <CSVLink
+                                                    data={csvData}
+                                                    headers={headers}
                                                     filename={`${currentDate} DayBook report.csv`}
-                                                    className="w-full sm:w-auto no-print"
+                                                    className="flex-1"
                                                 >
-                                                    <button className="w-full bg-blue-500 text-white h-10 px-4 rounded-lg hover:bg-blue-600 transition-colors no-print">
+                                                    <button className="w-full border border-blue-600 text-blue-600 py-2 px-4 rounded-sm text-sm font-medium hover:bg-blue-50 transition-colors">
                                                         Export CSV
                                                     </button>
                                                 </CSVLink>
@@ -1704,15 +1694,9 @@ const DayBookInc = () => {
 
                         </div>
 
-
-
                     </div>
-
                 </div>
-
-
             </div>
-
         </>
     );
 };

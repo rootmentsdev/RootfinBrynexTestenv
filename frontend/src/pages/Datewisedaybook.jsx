@@ -1106,241 +1106,292 @@ const Datewisedaybook = () => {
       <div>
         <Headers title={"Financial Summary Report"} />
         <div className='ml-[240px]'>
-          <div className="p-6 bg-gray-100 min-h-screen">
-            <div className="flex gap-4 mb-6 w-[800px]">
-              <div className='w-full flex flex-col'>
-                <label htmlFor="">From *</label>
-                <input
-                  type="date"
-                  id="fromDate"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                  max="2099-12-31"
-                  min="2000-01-01"
-                  className="border border-gray-300 py-2 px-3"
-                />
-              </div>
-              <div className='w-full flex flex-col'>
-                <label htmlFor="">To *</label>
-                <input
-                  type="date"
-                  id="toDate"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                  max="2099-12-31"
-                  min="2000-01-01"
-                  className="border border-gray-300 py-2 px-3"
-                />
-              </div>
-              <button
-                onClick={handleFetch}
-                disabled={isFetching}
-                className={`h-[40px] mt-6 rounded-md text-white px-10 transition duration-150 ${
-                  isFetching
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-500 hover:bg-blue-600 active:scale-95 active:bg-blue-700 hover:shadow-lg cursor-pointer'
-                }`}
-              >
-                {isFetching ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Fetching...</span>
-                  </div>
-                ) : (
-                  'Fetch'
-                )}
-              </button>
+          <div className="p-6 bg-slate-50 min-h-screen">
+            <style>{`
+              @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-4px); }
+                to   { opacity: 1; transform: translateY(0); }
+              }
+              @keyframes shimmer {
+                0%   { background-position: -400px 0; }
+                100% { background-position: 400px 0; }
+              }
+              .shimmer {
+                background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+                background-size: 400px 100%;
+                animation: shimmer 1.4s infinite;
+                border-radius: 6px;
+              }
+            `}</style>
 
-              <div className='w-full flex flex-col'>
-                <label htmlFor="">Category</label>
-                <Select
-                  options={categories}
-                  value={selectedCategory}
-                  onChange={setSelectedCategory}
-                  menuPortalTarget={document.body}
-                  styles={{
-                    control: base => ({
-                      ...base,
-                      minHeight: '40px',
-                      height: '40px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      boxShadow: 'none',
-                      '&:hover': {
-                        border: '1px solid #d1d5db'
-                      }
-                    }),
-                    valueContainer: base => ({
-                      ...base,
-                      height: '38px',
-                      padding: '0 8px'
-                    }),
-                    input: base => ({
-                      ...base,
-                      margin: '0px',
-                      padding: '0px'
-                    }),
-                    indicatorSeparator: base => ({
-                      ...base,
-                      display: 'none'
-                    }),
-                    dropdownIndicator: base => ({
-                      ...base,
-                      padding: '0 8px'
-                    }),
-                    menuPortal: base => ({ ...base, zIndex: 9999 }),
-                    menu: base => ({ ...base, zIndex: 9999 }),
-                  }}
-                />
-              </div>
-              <div className='w-full flex flex-col'>
-                <label htmlFor="">Sub Category</label>
-                <Select
-                  options={subCategories}
-                  value={selectedSubCategory}
-                  onChange={setSelectedSubCategory}
-                  menuPortalTarget={document.body}
-                  styles={{
-                    control: base => ({
-                      ...base,
-                      minHeight: '40px',
-                      height: '40px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      boxShadow: 'none',
-                      '&:hover': {
-                        border: '1px solid #d1d5db'
-                      }
-                    }),
-                    valueContainer: base => ({
-                      ...base,
-                      height: '38px',
-                      padding: '0 8px'
-                    }),
-                    input: base => ({
-                      ...base,
-                      margin: '0px',
-                      padding: '0px'
-                    }),
-                    indicatorSeparator: base => ({
-                      ...base,
-                      display: 'none'
-                    }),
-                    dropdownIndicator: base => ({
-                      ...base,
-                      padding: '0 8px'
-                    }),
-                    menuPortal: base => ({ ...base, zIndex: 9999 }),
-                    menu: base => ({ ...base, zIndex: 9999 }),
-                  }}
-                />
-              </div>
-            </div>
-           
-            <div className="flex justify-end mb-6 w-[800px]">
-              <div className='w-48 flex flex-col'>
-                <label>Store</label>
-                <select
-                  value={selectedStore}
-                  onChange={e => setSelectedStore(e.target.value)}
-                  className="border border-gray-300 py-2 px-3"
+            {/* Filter Bar */}
+            <div className="flex flex-wrap items-end gap-4 mb-5 p-4 bg-white rounded border border-slate-200 shadow-sm no-print">
+              {/* Date range group */}
+              <div className="flex items-end gap-3">
+                <div className='flex flex-col'>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">From</label>
+                  <input
+                    type="date"
+                    id="fromDate"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    max="2099-12-31"
+                    min="2000-01-01"
+                    style={{ height: '36px' }}
+                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
+                  />
+                </div>
+                <div className='flex flex-col'>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">To</label>
+                  <input
+                    type="date"
+                    id="toDate"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    max="2099-12-31"
+                    min="2000-01-01"
+                    style={{ height: '36px' }}
+                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
+                  />
+                </div>
+                <button
+                  onClick={handleFetch}
+                  disabled={isFetching}
+                  style={{ height: '36px' }}
+                  className={`rounded-sm text-white px-6 text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm ${
+                    isFetching
+                      ? 'bg-blue-400 cursor-not-allowed scale-95'
+                      : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md active:scale-95 cursor-pointer'
+                  }`}
                 >
-                  <option value="current">Current Store ({currentusers.locCode})</option>
-                  {((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager) && (
-                    <option value="all">All Stores (Totals)</option>
-                  )}
-                </select>
+                  {isFetching ? (
+                    <>
+                      <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                      <span>Fetching...</span>
+                    </>
+                  ) : 'Fetch'}
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px self-stretch bg-slate-200 mx-1" />
+
+              {/* Filter group */}
+              <div className="flex items-end gap-3">
+                <div className='flex flex-col w-40'>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Category</label>
+                  <Select
+                    options={categories}
+                    value={selectedCategory}
+                    onChange={setSelectedCategory}
+                    menuPortalTarget={document.body}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: '36px',
+                        height: '36px',
+                        border: state.isFocused ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+                        borderRadius: '2px',
+                        boxShadow: state.isFocused ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
+                        fontSize: '0.875rem',
+                        transition: 'all 0.15s ease',
+                        '&:hover': { border: '1px solid #94a3b8' }
+                      }),
+                      valueContainer: base => ({ ...base, height: '34px', padding: '0 8px' }),
+                      input: base => ({ ...base, margin: '0px', padding: '0px' }),
+                      indicatorSeparator: base => ({ ...base, display: 'none' }),
+                      dropdownIndicator: (base, state) => ({
+                        ...base,
+                        padding: '0 8px',
+                        transition: 'transform 0.2s ease',
+                        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        zIndex: 9999,
+                        borderRadius: '2px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                        animation: 'fadeIn 0.15s ease',
+                      }),
+                      menuPortal: base => ({ ...base, zIndex: 9999 }),
+                      option: (base, state) => ({
+                        ...base,
+                        fontSize: '0.875rem',
+                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+                        color: state.isSelected ? 'white' : '#374151',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+                <div className='flex flex-col w-44'>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Sub Category</label>
+                  <Select
+                    options={subCategories}
+                    value={selectedSubCategory}
+                    onChange={setSelectedSubCategory}
+                    menuPortalTarget={document.body}
+                    styles={{
+                      control: (base, state) => ({
+                        ...base,
+                        minHeight: '36px',
+                        height: '36px',
+                        border: state.isFocused ? '1px solid #3b82f6' : '1px solid #cbd5e1',
+                        borderRadius: '2px',
+                        boxShadow: state.isFocused ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
+                        fontSize: '0.875rem',
+                        transition: 'all 0.15s ease',
+                        '&:hover': { border: '1px solid #94a3b8' }
+                      }),
+                      valueContainer: base => ({ ...base, height: '34px', padding: '0 8px' }),
+                      input: base => ({ ...base, margin: '0px', padding: '0px' }),
+                      indicatorSeparator: base => ({ ...base, display: 'none' }),
+                      dropdownIndicator: (base, state) => ({
+                        ...base,
+                        padding: '0 8px',
+                        transition: 'transform 0.2s ease',
+                        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      }),
+                      menu: base => ({
+                        ...base,
+                        zIndex: 9999,
+                        borderRadius: '2px',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+                        animation: 'fadeIn 0.15s ease',
+                      }),
+                      menuPortal: base => ({ ...base, zIndex: 9999 }),
+                      option: (base, state) => ({
+                        ...base,
+                        fontSize: '0.875rem',
+                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
+                        color: state.isSelected ? 'white' : '#374151',
+                        cursor: 'pointer',
+                      }),
+                    }}
+                  />
+                </div>
+                <div className='flex flex-col w-44'>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Store</label>
+                  <select
+                    value={selectedStore}
+                    onChange={e => setSelectedStore(e.target.value)}
+                    style={{ height: '36px' }}
+                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
+                  >
+                    <option value="current">Current Store ({currentusers.locCode})</option>
+                    {((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager) && (
+                      <option value="all">All Stores (Totals)</option>
+                    )}
+                  </select>
+                </div>
               </div>
             </div>
 
             <div ref={printRef}>
-              {selectedStore === "all" ? (
-                <div className="bg-white p-4 shadow-md rounded-lg">
-                  <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                    <table className="w-full border-collapse border rounded-md border-gray-300">
-                      <thead style={{ position: "sticky", top: 0, background: "#7C7C7C", color: "white", zIndex: 2 }}>
-                        <tr>
-                          <th className="border p-2 align-middle">Store</th>
-                          <th className="border p-2 align-middle">LocCode</th>
-                          <th className="border p-2 text-right align-middle">Cash</th>
-                          <th className="border p-2 text-right align-middle">RBL</th> {/* ✅ Added RBL column */}
-                          <th className="border p-2 text-right align-middle">Bank</th>
-                          <th className="border p-2 text-right align-middle">UPI</th>
-                          <th className="border p-2 text-right align-middle">Total Amount</th>
+              {/* Loading skeleton */}
+              {isFetching && (
+                <div className="bg-white shadow-sm rounded border border-slate-200 overflow-hidden p-4">
+                  <div className="shimmer h-8 w-full mb-2 rounded" />
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex gap-2 mb-2">
+                      <div className="shimmer h-6 rounded" style={{ width: '10%' }} />
+                      <div className="shimmer h-6 rounded" style={{ width: '14%' }} />
+                      <div className="shimmer h-6 rounded" style={{ width: '16%' }} />
+                      <div className="shimmer h-6 rounded" style={{ width: '8%' }} />
+                      <div className="shimmer h-6 rounded" style={{ width: '10%' }} />
+                      <div className="shimmer h-6 rounded flex-1" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {!isFetching && selectedStore === "all" ? (
+                <div className="bg-white shadow-sm rounded border border-slate-200 overflow-hidden">
+                  <div style={{ maxHeight: "500px", overflowY: "auto" }}>
+                    <table className="w-full border-collapse min-w-full text-sm">
+                      <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                        <tr className="bg-slate-700 text-white text-xs uppercase tracking-wide">
+                          <th className="px-2 py-2 text-left font-semibold text-xs">Store</th>
+                          <th className="px-2 py-2 text-left font-semibold text-xs">LocCode</th>
+                          <th className="px-2 py-2 text-right font-semibold text-xs">Cash</th>
+                          <th className="px-2 py-2 text-right font-semibold text-xs">RBL</th>
+                          <th className="px-2 py-2 text-right font-semibold text-xs">Bank</th>
+                          <th className="px-2 py-2 text-right font-semibold text-xs">UPI</th>
+                          <th className="px-2 py-2 text-right font-semibold text-xs">Total Amount</th>
                         </tr>
                       </thead>
                       <tbody>
                         {allStoresSummary.map((s, idx) => (
-                          <tr key={s.locCode}>
-                            <td className="border p-2 align-middle">{s.store}</td>
-                            <td className="border p-2 align-middle">{s.locCode}</td>
-                            <td className="border p-2 text-right align-middle">{Number(s.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="border p-2 text-right align-middle">{Number(s.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td> {/* ✅ Added RBL cell */}
-                            <td className="border p-2 text-right align-middle">{Number(s.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="border p-2 text-right align-middle">{Number(s.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="border p-2 text-right align-middle">{Number(s.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <tr key={s.locCode} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{s.store}</td>
+                            <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{s.locCode}</td>
+                            <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Number(s.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                            <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Number(s.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                            <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Number(s.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                            <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Number(s.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                            <td className="px-3 py-2 text-right font-medium text-slate-800">{Number(s.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className="font-bold bg-gray-100">
-                          <td className="border p-2 align-middle" colSpan={2}>Totals</td>
-                          <td className="border p-2 text-right align-middle">{Number(allStoresTotals.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="border p-2 text-right align-middle">{Number(allStoresTotals.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td> {/* ✅ Added RBL total */}
-                          <td className="border p-2 text-right align-middle">{Number(allStoresTotals.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="border p-2 text-right align-middle">{Number(allStoresTotals.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="border p-2 text-right align-middle">{Number(allStoresTotals.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <tr className="bg-slate-100 font-semibold border-t-2 border-slate-300">
+                          <td className="px-3 py-2.5 text-slate-700" colSpan={2}>Totals</td>
+                          <td className="px-3 py-2.5 text-right text-slate-800">{Number(allStoresTotals.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-800">{Number(allStoresTotals.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-800">{Number(allStoresTotals.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-800">{Number(allStoresTotals.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <td className="px-3 py-2.5 text-right text-slate-800">{Number(allStoresTotals.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
                         </tr>
                       </tfoot>
                     </table>
                   </div>
                 </div>
               ) : (
-                <div className="bg-white p-4 shadow-md rounded-lg">
-                  <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                    <table className="w-full border-collapse border rounded-md border-gray-300">
+                !isFetching && <div className="bg-white shadow-sm rounded border border-slate-200 overflow-hidden">
+                  <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
+                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1200px' }}>
                       <thead
                         style={{
                           position: "sticky",
                           top: 0,
-                          background: "#7C7C7C",
-                          color: "white",
                           zIndex: 2,
                         }}
                       >
-                        <tr>
-                          <th className="border p-2">Date</th>
-                          <th className="border p-2">Invoice No.</th>
-                          <th className="border p-2">Customer Name</th>
-                          <th className="border p-2">Quantity</th>
-                          <th className="border p-2">Category</th>
-                          <th className="border p-2">Sub Category</th>
-                          <th className="border p-2">Remarks</th>
-                          <th className="border p-2">Amount</th>
-                          <th className="border p-2">Total Transaction</th>
-                          <th className="border p-2">Discount</th>
-                          <th className="border p-2">Bill Value</th>
-                          <th className="border p-2">Cash</th>
-                          <th className="border p-2">RBL</th> {/* ✅ Added RBL header */}
-                          <th className="border p-2">Bank</th>
-                          <th className="border p-2">UPI</th>
-                          <th className="border p-2">Attachment</th>
-                          {showAction && <th className="border p-2">Action</th>}
+                        <tr className="bg-slate-700 text-white text-xs uppercase tracking-wide">
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Date</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Invoice No.</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Customer Name</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Qty</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Category</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Sub Category</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Remarks</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Amount</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Total Txn</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Discount</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Bill Value</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Cash</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">RBL</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Bank</th>
+                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">UPI</th>
+                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Attachment</th>
+                          {showAction && <th className="px-2 py-1 text-center font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Action</th>}
                         </tr>
                       </thead>
 
                       <tbody>
-                        <tr className="font-bold bg-gray-100">
-                          <td colSpan="10" className="border p-2">
-                            OPENING BALANCE
+                        <tr className="bg-slate-50 font-semibold text-slate-600 border-b border-slate-200">
+                          <td colSpan="10" className="px-2 py-1.5 text-xs uppercase tracking-wide">
+                            Opening Balance
                           </td>
-                          <td className="border p-2"></td> {/* Bill Value - empty */}
-                          <td className="border p-2">{preOpen.cash || 0}</td> {/* Cash */}
-                          <td className="border p-2">{preOpen.rbl ?? 0}</td> {/* RBL */}
-                          <td className="border p-2">0</td> {/* Bank */}
-                          <td className="border p-2">0</td> {/* UPI */}
-                          <td className="border p-2"></td> {/* Attachment */}
-                          {showAction && <td className="border p-2"></td>}
+                          <td className="px-2 py-1.5"></td>
+                          <td className="px-2 py-1.5 text-right">{preOpen.cash || 0}</td>
+                          <td className="px-2 py-1.5 text-right">{preOpen.rbl ?? 0}</td>
+                          <td className="px-2 py-1.5 text-right">0</td>
+                          <td className="px-2 py-1.5 text-right">0</td>
+                          <td className="px-2 py-1.5"></td>
+                          {showAction && <td className="px-2 py-1.5"></td>}
                         </tr>
 
                         {mergedTransactions
@@ -1365,13 +1416,13 @@ const Datewisedaybook = () => {
                             if (t.Category === "RentOut") {
                               return (
                                 <>
-                                  <tr key={`${index}-sec`}>
-                                    <td className="border p-2">{t.date}</td>
-                                    <td className="border p-2">{t.invoiceNo || t.locCode}</td>
-                                    <td className="border p-2">
+                                  <tr key={`${index}-sec`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                       {t.customerName || t.customer || t.name || "-"}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -1379,18 +1430,18 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("quantity", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.quantity
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                       {t.Category}
                                     </td>
-                                    <td className="border p-2">{t.SubCategory}</td>
-                                    <td className="border p-2">{t.remark}</td>
-                                    <td className="border p-2">
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory}</td>
+                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
+                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -1398,22 +1449,22 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("securityAmount", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.securityAmount
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {t.totalTransaction}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {t.discountAmount || 0}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {t.billValue}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -1422,13 +1473,13 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("cash", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.cash
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -1436,13 +1487,13 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("rbl", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.rbl ?? 0
                                       )}
-                                    </td> {/* ✅ Added RBL edit cell */}
-                                    <td rowSpan="2" className="border p-2">
+                                    </td>
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -1451,13 +1502,13 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("bank", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.bank
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -1466,18 +1517,19 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("upi", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.upi
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="border p-2">
+                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
                                       {t.hasAttachment && t._id ? (
                                         <a
                                           href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`}
                                           target="_blank"
                                           rel="noopener noreferrer"
+                                          className="text-blue-600 hover:underline text-xs"
                                         >
                                           View
                                         </a>
@@ -1487,20 +1539,20 @@ const Datewisedaybook = () => {
                                     </td>
 
                                     {showAction && (
-                                      <td rowSpan="2" className="border p-2">
+                                      <td rowSpan="2" className="px-2 py-1.5 text-center border-r border-slate-100 text-xs">
                                         {isSyncing && editingIndex === index ? (
-                                          <span className="text-gray-400">Syncing…</span>
+                                          <span className="text-slate-400 text-xs">Syncing…</span>
                                         ) : isEditing ? (
                                           <button
                                             onClick={handleSave}
-                                            className="bg-green-600 text-white px-3 py-1 rounded"
+                                            className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
                                           >
                                             Save
                                           </button>
                                         ) : (
                                           <button
                                             onClick={() => handleEditClick(transaction, index)}
-                                            className="bg-blue-500 text-white px-3 py-1 rounded"
+                                            className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
                                           >
                                             Edit
                                           </button>
@@ -1509,15 +1561,15 @@ const Datewisedaybook = () => {
                                     )}
                                   </tr>
 
-                                  <tr key={`${index}-bal`}>
-                                    <td className="border p-2">{t.date}</td>
-                                    <td className="border p-2">{t.invoiceNo || t.locCode}</td>
-                                    <td className="border p-2">
+                                  <tr key={`${index}-bal`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                       {t.customerName || t.customer || t.name || "-"}
                                     </td>
-                                    <td className="border p-2">{t.SubCategory1}</td>
-                                    <td className="border p-2">{t.remark}</td>
-                                    <td className="border p-2">
+                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory1}</td>
+                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
+                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -1525,7 +1577,7 @@ const Datewisedaybook = () => {
                                           onChange={(e) =>
                                             handleInputChange("Balance", e.target.value)
                                           }
-                                          className="w-full"
+                                          className="w-full border border-slate-300 rounded p-1 text-sm"
                                         />
                                       ) : (
                                         t.Balance
@@ -1541,13 +1593,14 @@ const Datewisedaybook = () => {
                                 key={`${t.invoiceNo || t._id || t.locCode}-${new Date(
                                   t.date
                                 ).toISOString().split("T")[0]}-${index}`}
+                                className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                               >
-                                <td className="border p-2">{t.date}</td>
-                                <td className="border p-2">{t.invoiceNo || t.locCode}</td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                   {t.customerName || t.customer || t.name || "-"}
                                 </td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                   {isEditing ? (
                                     <input
                                       type="number"
@@ -1555,14 +1608,14 @@ const Datewisedaybook = () => {
                                       onChange={(e) =>
                                         handleInputChange("quantity", e.target.value)
                                       }
-                                      className="w-full"
+                                      className="w-full border border-slate-300 rounded p-1 text-sm"
                                     />
                                   ) : (
                                     t.quantity
                                   )}
                                 </td>
-                                <td className="border p-2">{t.Category || t.type}</td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.Category || t.type}</td>
+                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
                                   {[t.SubCategory]
                                     .concat(
                                       t.Category === "RentOut" ? [t.SubCategory1 || t.subCategory1] : []
@@ -1570,24 +1623,24 @@ const Datewisedaybook = () => {
                                     .filter(Boolean)
                                     .join(" + ") || "-"}
                                 </td>
-                                <td className="border p-2">{t.remark}</td>
-                                <td className="border p-2">{Math.round(Number(t.amount)).toLocaleString()}</td>
-                                <td className="border p-2">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
-                                <td className="border p-2">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
-                                <td className="border p-2">{Math.round(Number(t.billValue)).toLocaleString()}</td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.amount)).toLocaleString()}</td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.billValue)).toLocaleString()}</td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
                                       value={editedTransaction.cash}
                                       onChange={(e) => handleInputChange("cash", e.target.value)}
-                                      className="w-full"
+                                      className="w-full border border-slate-300 rounded p-1 text-sm"
                                     />
                                   ) : (
                                     t.cash
                                   )}
                                 </td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                   {isEditing &&
                                     editedTransaction._id &&
                                     t.SubCategory !== "Cash to Bank" ? (
@@ -1595,45 +1648,45 @@ const Datewisedaybook = () => {
                                       type="number"
                                       value={editedTransaction.rbl}
                                       onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                      className="w-full"
+                                      className="w-full border border-slate-300 rounded p-1 text-sm"
                                     />
                                   ) : (
                                     t.rbl ?? 0
                                   )}
-                                </td> {/* ✅ Added RBL edit for regular rows */}
-                                <td className="border p-2">
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
                                       value={editedTransaction.bank}
                                       onChange={(e) => handleInputChange("bank", e.target.value)}
-                                      className="w-full"
+                                      className="w-full border border-slate-300 rounded p-1 text-sm"
                                     />
                                   ) : (
                                     t.bank
                                   )}
                                 </td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
                                       value={editedTransaction.upi}
                                       onChange={(e) => handleInputChange("upi", e.target.value)}
-                                      className="w-full"
+                                      className="w-full border border-slate-300 rounded p-1 text-sm"
                                     />
                                   ) : (
                                     t.upi
                                   )}
                                 </td>
-                                <td className="border p-2">
+                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
                                   {t.hasAttachment && t._id ? (
                                     <a
                                       href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="flex items-center gap-1 text-blue-600 hover:underline"
+                                      className="flex items-center gap-1 text-blue-600 hover:underline text-xs"
                                     >
-                                      <FiDownload size={18} />
+                                      <FiDownload size={14} />
                                       Download
                                     </a>
                                   ) : (
@@ -1642,20 +1695,20 @@ const Datewisedaybook = () => {
                                 </td>
 
                                 {showAction && (
-                                  <td className="border p-2">
+                                  <td className="px-2 py-1.5 text-center border-r border-slate-100 text-xs">
                                     {isSyncing && editingIndex === index ? (
-                                      <span className="text-gray-400">Syncing…</span>
+                                      <span className="text-slate-400 text-xs">Syncing…</span>
                                     ) : isEditing ? (
                                       <button
                                         onClick={handleSave}
-                                        className="bg-green-600 text-white px-3 py-1 rounded"
+                                        className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
                                       >
                                         Save
                                       </button>
                                     ) : (
                                       <button
                                         onClick={() => handleEditClick(transaction, index)}
-                                        className="bg-blue-500 text-white px-3 py-1 rounded"
+                                        className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
                                       >
                                         Edit
                                       </button>
@@ -1668,7 +1721,7 @@ const Datewisedaybook = () => {
 
                         {mergedTransactions.length === 0 && (
                           <tr>
-                            <td colSpan={showAction ? 17 : 16} className="text-center border p-4"> {/* ✅ Updated colspan for RBL */}
+                            <td colSpan={showAction ? 17 : 16} className="text-center py-8 text-slate-400 text-sm">
                               No transactions found
                             </td>
                           </tr>
@@ -1677,19 +1730,19 @@ const Datewisedaybook = () => {
 
                       <tfoot>
                         <tr
-                          className="bg-white text-center font-semibold"
-                          style={{ position: "sticky", bottom: 0, background: "#ffffff", zIndex: 2 }}
+                          className="bg-slate-100 font-semibold border-t-2 border-slate-300"
+                          style={{ position: "sticky", bottom: 0, zIndex: 2 }}
                         >
-                          <td colSpan="10" className="border px-4 py-2 text-left">
-                            Total:
+                          <td colSpan="10" className="px-2 py-1.5 text-left text-slate-700 text-xs font-semibold">
+                            Total
                           </td>
-                          <td className="border px-4 py-2"></td> {/* Empty Discount column */}
-                          <td className="border px-4 py-2 text-right align-middle">{Math.round(Number(totalCash)).toLocaleString()}</td>
-                          <td className="border px-4 py-2 text-right align-middle">{Math.round(Number(totalRblAmount)).toLocaleString()}</td> {/* ✅ Added RBL total */}
-                          <td className="border px-4 py-2 text-right align-middle">{Math.round(Number(totalBankAmount)).toLocaleString()}</td>
-                          <td className="border px-4 py-2 text-right align-middle">{Math.round(Number(totalUpiAmount)).toLocaleString()}</td>
-                          <td className="border px-4 py-2"></td>
-                          {showAction && <td className="border px-4 py-2"></td>}
+                          <td className="px-2 py-1.5"></td>
+                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalCash)).toLocaleString()}</td>
+                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalRblAmount)).toLocaleString()}</td>
+                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalBankAmount)).toLocaleString()}</td>
+                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalUpiAmount)).toLocaleString()}</td>
+                          <td className="px-2 py-1.5"></td>
+                          {showAction && <td className="px-2 py-1.5"></td>}
                         </tr>
                       </tfoot>
                     </table>
@@ -1698,17 +1751,22 @@ const Datewisedaybook = () => {
               )}
             </div>
 
-            <button type='button' onClick={handlePrint} className="mt-6 w-[200px] float-right cursor-pointer bg-blue-600 text-white py-2 rounded-lg flex items-center justify-center gap-2">
-              <span>📥 Take pdf</span>
-            </button>
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-3 mt-5 no-print">
+              <CSVLink
+                data={selectedStore === "all" ? allStoresSummary : exportData}
+                headers={selectedStore === "all" ? allStoresCsvHeaders : headers}
+                filename={`${fromDate} to ${toDate} report.csv`}
+              >
+                <button className="border border-blue-600 text-blue-600 py-2 px-5 rounded-sm text-sm font-medium hover:bg-blue-50 transition-colors">
+                  Export CSV
+                </button>
+              </CSVLink>
+              <button type='button' onClick={handlePrint} className="bg-blue-600 text-white py-2 px-5 rounded-sm text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer">
+                Print PDF
+              </button>
+            </div>
 
-            <CSVLink
-              data={selectedStore === "all" ? allStoresSummary : exportData}
-              headers={selectedStore === "all" ? allStoresCsvHeaders : headers}
-              filename={`${fromDate} to ${toDate} report.csv`}
-            >
-              <button className="mt-6 w-[200px] float-right cursor-pointer bg-blue-600 text-white py-2 rounded-lg mr-[30px] flex items-center justify-center gap-2">Export CSV</button>
-            </CSVLink>
           </div>
         </div>
       </div>
