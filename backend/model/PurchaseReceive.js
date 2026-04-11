@@ -48,6 +48,12 @@ const purchaseReceiveSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexes for faster queries
+purchaseReceiveSchema.index({ userId: 1, receivedDate: -1 });
+purchaseReceiveSchema.index({ purchaseOrderId: 1 });
+purchaseReceiveSchema.index({ locCode: 1, receivedDate: -1 });
+purchaseReceiveSchema.index({ status: 1 });
+
 const PurchaseReceive = mongoose.model("PurchaseReceive", purchaseReceiveSchema);
 export default PurchaseReceive;
 

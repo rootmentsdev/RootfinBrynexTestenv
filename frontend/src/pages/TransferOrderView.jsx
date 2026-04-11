@@ -188,121 +188,18 @@ const TransferOrderView = () => {
     }, 100); // 100ms timeout - scanners are typically faster than this
   };
 
-  // Initialize scanner
+  // Initialize scanner - external barcode scanner only
   const startScanner = async () => {
-    // Open the modal first
     setShowScanner(true);
     setScanError("");
     setScanSuccess("");
     scannedCodeBufferRef.current = "";
-    
-    // Wait for DOM to update so the modal is visible
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Focus on external scanner input field for keyboard wedge devices
+
+    // Wait for modal DOM to render, then focus the input
+    await new Promise(resolve => setTimeout(resolve, 100));
     if (externalScannerInputRef.current) {
       externalScannerInputRef.current.focus();
-    }
-    
-    try {
-      // Check if camera permissions are available
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        // Stop the stream immediately - we just needed to check permissions
-        stream.getTracks().forEach(track => track.stop());
-      } catch (permErr) {
-        // Camera failed, but external scanner will still work
-        if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
-          setScanError("⚠️ Camera permission denied. You can still use an external barcode scanner - see the input field below.");
-        } else if (permErr.name === "NotFoundError" || permErr.name === "DevicesNotFoundError") {
-          setScanError("⚠️ No camera found. You can still use an external barcode scanner - see the input field below.");
-        } else {
-          setScanError(`⚠️ Camera access error: ${permErr.message}. You can still use an external barcode scanner - see the input field below.`);
-        }
-        // Don't return - allow external scanner to work even if camera fails
-      }
-      
-      // Wait a bit more for the DOM element to be ready
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Check if the element exists
-      const readerElement = document.getElementById("qr-reader");
-      if (!readerElement) {
-        setScanError("Scanner element not found. Please try again.");
-        return;
-      }
-      
-      const html5QrCode = new Html5Qrcode("qr-reader");
-      html5QrCodeRef.current = html5QrCode;
-      
-      // Try back camera first, then fallback to any available camera
-      try {
-        await html5QrCode.start(
-          { facingMode: "environment" }, // Use back camera
-          {
-            fps: 10,
-            qrbox: { width: 200, height: 200 },
-          },
-          (decodedText, decodedResult) => {
-            handleScannedCode(decodedText);
-          },
-          (errorMessage) => {
-            // Ignore scanning errors (they happen frequently)
-          }
-        );
-        // Clear any previous errors if scanner starts successfully
-        setScanError("");
-      } catch (cameraErr) {
-        console.log("Back camera not available, trying any camera...", cameraErr);
-        // If back camera fails, try any available camera
-        try {
-          await html5QrCode.start(
-            { facingMode: "user" }, // Use front camera as fallback
-            {
-              fps: 10,
-              qrbox: { width: 200, height: 200 },
-            },
-            (decodedText, decodedResult) => {
-              handleScannedCode(decodedText);
-            },
-            (errorMessage) => {
-              // Ignore scanning errors (they happen frequently)
-            }
-          );
-          // Clear any previous errors if scanner starts successfully
-          setScanError("");
-        } catch (fallbackErr) {
-          console.error("Both cameras failed:", fallbackErr);
-          let errorMessage = "⚠️ Camera scanner unavailable. ";
-          
-          if (fallbackErr.name === "NotAllowedError" || fallbackErr.name === "PermissionDeniedError") {
-            errorMessage += "Camera permission denied. ";
-          } else if (fallbackErr.name === "NotFoundError" || fallbackErr.name === "DevicesNotFoundError") {
-            errorMessage += "No camera found. ";
-          } else if (fallbackErr.message) {
-            errorMessage += `Camera error: ${fallbackErr.message}. `;
-          }
-          
-          errorMessage += "You can still use an external barcode scanner - see the input field below.";
-          setScanError(errorMessage);
-          // Keep modal open so user can use external scanner
-        }
-      }
-    } catch (err) {
-      console.error("Error starting scanner:", err);
-      let errorMessage = "⚠️ Camera scanner unavailable. ";
-      
-      if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
-        errorMessage += "Camera permission denied. ";
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-        errorMessage += "No camera found. ";
-      } else if (err.message) {
-        errorMessage += `Camera error: ${err.message}. `;
-      }
-      
-      errorMessage += "You can still use an external barcode scanner - see the input field below.";
-      setScanError(errorMessage);
-      // Keep modal open so user can use external scanner
+      externalScannerInputRef.current.value = "";
     }
   };
   

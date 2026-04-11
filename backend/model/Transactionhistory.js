@@ -38,5 +38,9 @@ const transactionHistorySchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+transactionHistorySchema.index({ invoiceNo: 1 });
+transactionHistorySchema.index({ originalTransactionId: 1 });
+transactionHistorySchema.index({ changedAt: -1 });
+
 const TransactionHistory = mongoose.model('TransactionHistory', transactionHistorySchema);
 export default TransactionHistory;

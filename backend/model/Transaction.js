@@ -150,6 +150,10 @@ const transactionSchema = new mongoose.Schema(
 transactionSchema.index({ locCode: 1, date: -1 });
 // Date-only index for admin queries across all stores
 transactionSchema.index({ date: -1 });
+// Index for getEditedTransactions query (locCode + date + editedBy exists)
+transactionSchema.index({ locCode: 1, date: -1, editedBy: 1 });
+// Index for invoice lookups
+transactionSchema.index({ invoiceNo: 1 });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);
 export default Transaction;
