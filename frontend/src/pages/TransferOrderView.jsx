@@ -229,16 +229,18 @@ const TransferOrderView = () => {
   
   // Handle scanned code
   const handleScannedCode = (scannedCode) => {
-    console.log(`📱 Scanned code: "${scannedCode}"`);
+    // Clean the scanned code — strip any trailing CR/LF/whitespace that scanners add
+    const cleaned = scannedCode.replace(/[\r\n\t]/g, "").trim();
+    console.log(`📱 Scanned code raw: "${scannedCode}" → cleaned: "${cleaned}"`);
     
     // Debounce: Ignore scans within 500ms of the same code
     const now = Date.now();
-    if (scannedCode === lastScannedCodeRef.current && now - lastScanTimeRef.current < 500) {
+    if (cleaned === lastScannedCodeRef.current && now - lastScanTimeRef.current < 500) {
       console.log(`⏭️ Ignoring duplicate scan (debounced)`);
       return;
     }
     
-    lastScannedCodeRef.current = scannedCode;
+    lastScannedCodeRef.current = cleaned;
     lastScanTimeRef.current = now;
     
     if (!transferOrder || !transferOrder.items) {
@@ -246,22 +248,25 @@ const TransferOrderView = () => {
       return;
     }
     
-    // Find matching item by SKU or itemId
+    // Find matching item — exact, case-insensitive, or partial contains match
     const matchedItem = transferOrder.items.find(item => {
       const itemSku = (item.itemSku || "").toString().trim();
-      const itemId = (item.itemId || "").toString().trim();
-      const scannedCodeTrimmed = scannedCode.trim();
-      
-      return itemSku === scannedCodeTrimmed || 
-             itemId === scannedCodeTrimmed ||
-             itemSku.toLowerCase() === scannedCodeTrimmed.toLowerCase() ||
-             itemId.toLowerCase() === scannedCodeTrimmed.toLowerCase();
+      const itemId  = (item.itemId  || "").toString().trim();
+      const c = cleaned.toLowerCase();
+      return itemSku.toLowerCase() === c ||
+             itemId.toLowerCase()  === c ||
+             itemSku.toLowerCase().includes(c) ||
+             c.includes(itemSku.toLowerCase()) ||
+             itemId.toLowerCase().includes(c) ||
+             c.includes(itemId.toLowerCase());
     });
     
     if (!matchedItem) {
-      setScanError(`Item not found in transfer order: ${scannedCode}`);
-      setTimeout(() => setScanError(""), 3000);
-      console.log(`❌ Item not found: "${scannedCode}"`);
+      // Show what we scanned vs what's available to help debug
+      const availableSkus = transferOrder.items.map(i => i.itemSku || i.itemId || "?").join(", ");
+      setScanError(`Not found: "${cleaned}" — Available SKUs: ${availableSkus}`);
+      setTimeout(() => setScanError(""), 6000);
+      console.log(`❌ Item not found: "${cleaned}" | Available: ${availableSkus}`);
       return;
     }
     
