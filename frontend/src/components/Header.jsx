@@ -51,8 +51,8 @@ const Header = (prop) => {
         { "locName": "G-Kannur", "locCode": "716" },
         { "locName": "G-Mg Road", "locCode": "718" },
         { "locName": "Production", "locCode": "101" },
-        { "locName": "Office", "locCode": "102" },
-        {"locName":"WAREHOUSE MAIN", "locode":"103"}
+        { "locName": "Office", "locCode": "102" }
+        
     ];
 
     const [AllLoation, setAllLoation] = useState(fallbackLocations);
