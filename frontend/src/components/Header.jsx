@@ -51,7 +51,8 @@ const Header = (prop) => {
         { "locName": "G-Kannur", "locCode": "716" },
         { "locName": "G-Mg Road", "locCode": "718" },
         { "locName": "Production", "locCode": "101" },
-        { "locName": "Office", "locCode": "102" }
+        { "locName": "Office", "locCode": "102" },
+              { "locName": "WAREHOUSE", "locCode": "103" }
         
     ];
 
