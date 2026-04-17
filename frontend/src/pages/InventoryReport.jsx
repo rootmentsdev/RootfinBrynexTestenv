@@ -2451,13 +2451,13 @@ const InventoryReport = () => {
                                 padding: "16px 20px", 
                                 textAlign: "right",
                                 color: "#6c757d"
-                              }}>₹{item.costPrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                              }}>₹{(item.costPrice || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                               <td style={{ 
                                 padding: "16px 20px", 
                                 textAlign: "right",
                                 fontWeight: "700",
                                 color: "#28a745"
-                              }}>₹{item.stockValue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                              }}>₹{(item.stockValue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                             </tr>
                           ))
                         )}
