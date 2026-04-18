@@ -513,8 +513,8 @@ const SalesInvoiceDetail = () => {
         adjustmentAmount: returnAdjustmentAmount,
         finalTotal: totalReturnAmount + totalTax - (returnTdsAmount * -1) + returnAdjustmentAmount, // Include TDS + adjustment
         userId: user?.email,
-        warehouse: invoice.warehouse,
-        locCode: user?.locCode,
+        warehouse: invoice.warehouse || invoice.locCode,
+        locCode: invoice.locCode || user?.locCode,
         originalInvoiceId: invoice._id,
         originalInvoiceNumber: invoice.invoiceNumber,
       };

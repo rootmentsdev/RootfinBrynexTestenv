@@ -145,6 +145,8 @@ const SalesReport = () => {
         userId: currentUser?.email || currentUser?.userId
       });
 
+      console.log("🔍 Fetching report - Store:", selectedStore, "ReportType:", reportType);
+
       const response = await fetch(`${baseUrl.baseUrl}${endpoint}?${params}`);
       
       if (!response.ok) {
@@ -157,6 +159,7 @@ const SalesReport = () => {
       const result = await response.json();
 
       if (result.success) {
+        console.log("✅ Report data received");
         setReportData(result.data);
         prepareCsvData(result.data, reportType);
       } else {
@@ -327,7 +330,10 @@ const SalesReport = () => {
                 <Select
                   options={storeOptions}
                   value={storeOptions.find(s => s.value === selectedStore)}
-                  onChange={(opt) => setSelectedStore(opt.value)}
+                  onChange={(opt) => {
+                    console.log("🏪 Store changed to:", opt.value);
+                    setSelectedStore(opt.value);
+                  }}
                   isSearchable
                   placeholder="Select Store..."
                   styles={{

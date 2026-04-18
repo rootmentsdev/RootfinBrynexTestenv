@@ -623,8 +623,12 @@ export const getSalesByItem = async (req, res) => {
 // Get Sales Return Summary
 export const getSalesReturnSummary = async (req, res) => {
   try {
-    const { dateFrom, dateTo, locCode, warehouse } = req.query;
+    const { dateFrom, dateTo, locCode } = req.query;
     const userId = req.query.userId || req.body.userId;
+
+    console.log("\n=== RETURN SUMMARY REQUEST ===");
+    console.log("locCode received:", locCode);
+    console.log("locCode type:", typeof locCode);
 
     if (!dateFrom || !dateTo) {
       return res.status(400).json({ message: "dateFrom and dateTo are required" });
@@ -635,34 +639,30 @@ export const getSalesReturnSummary = async (req, res) => {
     fromDate.setUTCHours(0, 0, 0, 0);
     toDate.setUTCHours(23, 59, 59, 999);
 
-    // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
-    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
-    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
-
-    let query = {
-      invoiceDate: { $gte: fromDate, $lte: toDate },
-      category: "Return"
-    };
-
-    // For store users (non-admin), filter by their locCode
-    if (!isAdmin && locCode && locCode !== '858' && locCode !== '103') {
-      query.$or = [
-        { warehouse: locCode },
-        { branch: locCode },
-        { locCode: locCode }
-      ];
+    let query;
+    
+    // Filter by store if locCode is provided and not "all"
+    if (locCode && locCode !== "all") {
+      console.log("✅ APPLYING STORE FILTER for locCode:", locCode);
+      query = {
+        invoiceDate: { $gte: fromDate, $lte: toDate },
+        category: "Return",
+        $or: [
+          { warehouse: locCode },
+          { branch: locCode },
+          { locCode: locCode }
+        ]
+      };
+    } else {
+      console.log("❌ NO STORE FILTER - returning all");
+      query = {
+        invoiceDate: { $gte: fromDate, $lte: toDate },
+        category: "Return"
+      };
     }
-    // For admin users, filter by selected warehouse if specified and not "All Stores"
-    else if (isAdmin && warehouse && warehouse !== "All Stores") {
-      query.$or = [
-        { warehouse: warehouse },
-        { branch: warehouse },
-        { locCode: warehouse }
-      ];
-    }
-
+    
     const returns = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
+    console.log("Returns found:", returns.length);
 
     let totalReturns = 0;
     let totalReturnAmount = 0;
@@ -701,12 +701,14 @@ export const getSalesReturnSummary = async (req, res) => {
           customer: ret.customer,
           amount: Math.abs(ret.finalTotal),
           reason: ret.remark,
-          branch: ret.branch || ret.warehouse
+          branch: ret.branch || ret.warehouse,
+          warehouse: ret.warehouse,
+          locCode: ret.locCode
         }))
       }
     });
   } catch (error) {
-    console.error("Get sales return summary error:", error);
+    console.error("❌ Get sales return summary error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
