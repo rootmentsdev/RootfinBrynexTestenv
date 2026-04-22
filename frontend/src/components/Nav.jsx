@@ -24,7 +24,10 @@ import {
     Users,
     PackageCheck,
     AlertTriangle,
-    ShoppingBasket
+    ShoppingBasket,
+    UserPlus,
+    UserCog,
+    KeyRound
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 
@@ -62,6 +65,9 @@ const Nav = () => {
         if (activePath.startsWith("/purchase")) {
             return "purchase";
         }
+        if (activePath.startsWith("/manage-users")) {
+            return "manageUsers";
+        }
         return null;
     }, [activePath]);
 
@@ -75,6 +81,7 @@ const Nav = () => {
     const isInventoryOpen = openSection === "inventory";
     const isSalesOpen = openSection === "sales";
     const isPurchaseOpen = openSection === "purchase";
+    const isManageUsersOpen = openSection === "manageUsers";
 
     const inventoryLinks = [
         { to: "/shoe-sales/items", label: "Items", Icon: List },
@@ -109,6 +116,14 @@ const Nav = () => {
         { to: "/purchase/vendors", label: "Vendors", Icon: Users },
     ];
     const isPurchaseActive = purchaseLinks.some((link) => link.to === activePath);
+    
+    const manageUsersLinks = [
+        { to: "/manage-users/add-store", label: "Add New Store", Icon: Store },
+        { to: "/manage-users/add-user", label: "Add New User", Icon: UserPlus },
+        { to: "/manage-users/existing-users", label: "Existing Users", Icon: UserCog },
+        { to: "/manage-users/reset-password", label: "Reset Password", Icon: KeyRound },
+    ];
+    const isManageUsersActive = manageUsersLinks.some((link) => link.to === activePath);
 
     const isReportsActive = [
         "/securityReport", 
@@ -299,7 +314,24 @@ const Nav = () => {
                                 <>
                                     <Link to="/CloseReport" className={singleLinkClasses("/CloseReport")}><FolderClosed size={18} /><span>Close Report</span></Link>
                                     <Link to="/AdminClose" className={singleLinkClasses("/AdminClose")}><Notebook size={18} /><span>Admin Close</span></Link>
-                                    <Link to="/ManageStores" className={singleLinkClasses("/ManageStores")}><Store size={18} /><span>Manage Stores</span></Link>
+                                    
+                                    {/* Manage Users */}
+                                    <div>
+                                        <button onClick={() => setOpenSection(isManageUsersOpen ? null : "manageUsers")} className={groupButtonClasses(isManageUsersActive || isManageUsersOpen)}>
+                                            <div className="flex w-full items-center gap-3">
+                                                <Users size={18} className="shrink-0" />
+                                                <span className="flex-1 text-left">Manage Users</span>
+                                                <ChevronDown size={16} className={`shrink-0 transition-transform ${isManageUsersOpen ? "rotate-180" : "rotate-0"}`} />
+                                            </div>
+                                        </button>
+                                        {isManageUsersOpen && (
+                                            <div className="mt-2 space-y-1 border-l border-[#1b233a]/70 pl-3">
+                                                {manageUsersLinks.map(({ to, label, Icon }) => (
+                                                    <Link key={to} to={to} className={subLinkClasses(to)}><Icon size={16} /><span>{label}</span></Link>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </>
                             )}
                         </>

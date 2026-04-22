@@ -85,7 +85,7 @@ button:not([type="submit"]):not(.tax-dropdown-button) {
 }
 
 /* Apply blue background to ALL buttons for Windows compatibility */
-button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn) {
   background-color: rgb(37, 99, 235) !important; /* Tailwind bg-blue-600 color */
   color: white !important;
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -193,7 +193,7 @@ input[type="submit"] {
 }
 
 /* Hover states for better interaction feedback */
-button:hover:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+button:hover:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn) {
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease-in-out;
@@ -208,7 +208,7 @@ button.state-dropdown-button:hover {
 }
 
 /* Active states */
-button:active:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button) {
+button:active:not(.no-blue-button):not(.custom-button):not(.sidebar-button):not(.select-option):not(.table-link-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn) {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -257,7 +257,55 @@ button:disabled {
   background: #94a3b8;
 }
 
-/* ==================== PRINT STYLES ==================== */
+/* Edit/Delete action buttons for ExistingUsers panel */
+button.action-edit-btn {
+  background-color: #e8eaf0 !important;
+  color: #1a1a1a !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  flex: 1 !important;
+  min-height: unset !important;
+  min-width: unset !important;
+}
+
+button.action-edit-btn:hover {
+  background-color: #d8dce6 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+button.action-delete-btn {
+  background-color: #fff0f0 !important;
+  color: #e53e3e !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  width: 52px !important;
+  height: 52px !important;
+  min-height: unset !important;
+  min-width: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+
+button.action-delete-btn:hover {
+  background-color: #ffe0e0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
 @media print {
   /* Hide everything except printable content */
   body > *:not(#root),

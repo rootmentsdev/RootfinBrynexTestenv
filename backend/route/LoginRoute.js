@@ -1,5 +1,5 @@
 import express from 'express';
-import { Login, SignUp, GetAllStores, GetAllUsers, UpdateUser, ResetPassword } from '../controllers/LoginAndSignup.js';
+import { Login, SignUp, GetAllStores, GetAllUsers, UpdateUser, ResetPassword, DeleteUser } from '../controllers/LoginAndSignup.js';
 import { CreatePayment, GetPayment } from '../controllers/TransactionController.js';
 import { CloseController, GetAllCloseData, GetCloseController, getFinancialSummaryWithEdit } from '../controllers/CloseController.js';
 import { editTransaction} from '../controllers/EditController.js';
@@ -117,6 +117,7 @@ router.get('/getAllUsers', GetAllUsers)
  *         description: Internal server error.
  */
 router.put('/updateUser/:id', UpdateUser)
+router.delete('/deleteUser/:id', DeleteUser)
 
 /**
  * @swagger
