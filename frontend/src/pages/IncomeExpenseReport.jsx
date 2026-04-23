@@ -110,7 +110,10 @@ export default function IncomeExpenseReport() {
   const twsLocCode = (locCode === "all" || !locCode) ? (user.locCode || "") : locCode;
 
   // All store locCodes for fetching TWS data when "all" is selected
-  const ALL_LOC_CODES = STORE_LIST.map(s => s.locCode);
+  // For cluster managers, restrict to their assigned stores only
+  const ALL_LOC_CODES = isClusterManager
+    ? clusterAllowedLocCodes
+    : STORE_LIST.map(s => s.locCode);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -148,7 +151,20 @@ export default function IncomeExpenseReport() {
       const cancelData  = { dataSet: { data: twsResults.flatMap(r => r[3]?.dataSet?.data || []) } };
 
       const mongoRes  = await fetch(`${API}/user/Getpayment?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`);
-      const mongoJson = mongoRes.ok ? await mongoRes.json() : {};
+      let mongoJson = mongoRes.ok ? await mongoRes.json() : {};
+
+      // For cluster managers viewing "all stores", fetch mongo data per allowed store and merge
+      if (isClusterManager && (locCode === "all" || !locCode)) {
+        const mongoResults = await Promise.all(
+          clusterAllowedLocCodes.map(lc =>
+            fetch(`${API}/user/Getpayment?LocCode=${lc}&DateFrom=${fromDate}&DateTo=${toDate}`)
+              .then(r => r.ok ? r.json() : {})
+              .catch(() => ({}))
+          )
+        );
+        const merged = mongoResults.flatMap(r => Array.isArray(r) ? r : (r?.data || []));
+        mongoJson = { data: merged };
+      }
 
       // Booking -> Income
       const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
