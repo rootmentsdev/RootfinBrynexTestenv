@@ -56,6 +56,37 @@ const subCategories = [
   { value: "bulk amount transfer", label: "Bulk Amount Transfer" }
 ];
 
+// Maps raw DB category/subCategory values → human-readable labels
+const CATEGORY_LABEL_MAP = {
+  "dry cleaning":         "Dry Cleaning",
+  "altration":            "Altration",
+  "material":             "Material",
+  "courier charges":      "Courier Charges",
+  "maintenance expenses": "Repairs & Maintenance",
+  "travel exp":           "Travel Exp",
+  "fuel exp":             "Fuel Exp",
+  "petty expenses":       "Office Expense",
+  "telephone internet":   "Internet Expense",
+  "utility bill":         "Electricity Charges",
+  "waste management":     "Waste Management",
+  "water charges":        "Water Charges",
+  "salary":               "Salary / Salary Advance",
+  "printing stationary":  "Printing & Stationary",
+  "staff welfare":        "Staff Welfare",
+  "staff reimbursement":  "Staff Accommodation",
+  "rent":                 "Rent",
+  "asset purchase":       "Asset Purchase",
+  "incentive":            "Incentive",
+  "spot incentive":       "Incentive",
+  "other expenses":       "Refund",
+  "bulk amount transfer": "Cash to Bank",
+  "write off":            "Write Off",
+  "promotion_services":   "Promotion / Services",
+  "shoe sales return":    "Shoe Sales Return",
+  "shirt sales return":   "Shirt Sales Return",
+};
+const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()] || val;
+
 const AllLoation = [
   { locName: "Z-Edapally1", locCode: "144" },
   { locName: "Warehouse", locCode: "858" },
@@ -300,7 +331,7 @@ const Datewisedaybook = () => {
           SubCategory: subCatLabel,
           SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
           customerName: tx.customerName || "",
-          remark: subCatLabel || tx.remark || tx.remarks || "",
+          remark: tx.remark || tx.remarks || "",
           billValue: Number(tx.billValue || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)),
           cash: Number(tx.cash),
           rbl: rbl, // ✅ Added RBL
@@ -553,7 +584,7 @@ const Datewisedaybook = () => {
           SubCategory: subCatLabel,
           SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
           customerName: tx.customerName || "",
-          remark: subCatLabel || tx.remark || tx.remarks || "",
+          remark: tx.remark || tx.remarks || "",
           discountAmount: Number(tx.discountAmount || 0),
           billValue: Number(tx.billValue || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)),
           cash: Number(tx.cash),
@@ -1621,6 +1652,7 @@ const Datewisedaybook = () => {
                                       t.Category === "RentOut" ? [t.SubCategory1 || t.subCategory1] : []
                                     )
                                     .filter(Boolean)
+                                    .map(getCatLabel)
                                     .join(" + ") || "-"}
                                 </td>
                                 <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>

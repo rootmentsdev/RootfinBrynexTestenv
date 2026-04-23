@@ -61,6 +61,37 @@ const subCategories = [
 
 
 
+// Maps raw DB category/subCategory values → human-readable labels
+const CATEGORY_LABEL_MAP = {
+  "dry cleaning":         "Dry Cleaning",
+  "altration":            "Altration",
+  "material":             "Material",
+  "courier charges":      "Courier Charges",
+  "maintenance expenses": "Repairs & Maintenance",
+  "travel exp":           "Travel Exp",
+  "fuel exp":             "Fuel Exp",
+  "petty expenses":       "Office Expense",
+  "telephone internet":   "Internet Expense",
+  "utility bill":         "Electricity Charges",
+  "waste management":     "Waste Management",
+  "water charges":        "Water Charges",
+  "salary":               "Salary / Salary Advance",
+  "printing stationary":  "Printing & Stationary",
+  "staff welfare":        "Staff Welfare",
+  "staff reimbursement":  "Staff Accommodation",
+  "rent":                 "Rent",
+  "asset purchase":       "Asset Purchase",
+  "incentive":            "Incentive",
+  "spot incentive":       "Incentive",
+  "other expenses":       "Refund",
+  "bulk amount transfer": "Cash to Bank",
+  "write off":            "Write Off",
+  "promotion_services":   "Promotion / Services",
+  "shoe sales return":    "Shoe Sales Return",
+  "shirt sales return":   "Shirt Sales Return",
+};
+const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()] || val;
+
 const denominations = [
     { label: "500", value: 500 },
     { label: "200", value: 200 },
@@ -401,7 +432,7 @@ const DayBookInc = () => {
             upi: transaction.upi !== undefined ? transaction.upi : transaction.Tupi,
             amount: transaction.amount || 0,
             totalTransaction: transaction.totalTransaction || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
-            remark: subCatLabel || transaction.remark || transaction.remarks || ""
+            remark: transaction.remark || transaction.remarks || ""
         };});
 
         return {
@@ -1427,7 +1458,7 @@ const DayBookInc = () => {
                                                                 <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo || transaction.locCode}</td>
                                                                 <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
                                                                 <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.Category || transaction.type || transaction.category}</td>
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory || transaction.subCategory}</td>
+                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{getCatLabel(transaction.SubCategory || transaction.subCategory)}</td>
                                                                 <td className="px-3 py-2 text-left text-slate-600 border-r border-slate-100">{transaction.remark}</td>
                                                                 <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
                                                                     {transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
