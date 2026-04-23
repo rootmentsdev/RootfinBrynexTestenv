@@ -237,8 +237,14 @@ export default function IncomeExpenseReport() {
   const buildGrouped = (rows) => {
     const map = {};
     rows.forEach(t => {
-      const cat = t.category || "Uncategorized";
-      const sub = t.subCategory || cat;
+      const rawCat = (t.category || "Uncategorized").toLowerCase().trim();
+      // Normalize all incentive variants ("spot incentive", "weekly incentive", etc.) → "incentive"
+      const isIncentiveCat = rawCat.includes("incentive");
+      const cat = isIncentiveCat ? "incentive" : (t.category || "Uncategorized");
+      // Use the remark as the sub-category label so spot vs weekly appear as separate sub-rows
+      const sub = isIncentiveCat
+        ? (t.remark || t.subCategory || t.category || "incentive")
+        : (t.subCategory || t.category || "Uncategorized");
       if (filterCategory !== "All Categories" && filterCategory !== cat) return;
       if (!map[cat]) map[cat] = { subCategories: {}, cash: 0, rbl: 0, bank: 0, upi: 0 };
       if (!map[cat].subCategories[sub]) map[cat].subCategories[sub] = { transactions: [], cash: 0, rbl: 0, bank: 0, upi: 0 };
@@ -344,12 +350,17 @@ export default function IncomeExpenseReport() {
                 ? new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" })
                 : "-";
               const isRentOut = cat === "RentOut";
+              const isIncentiveCat = cat.toLowerCase() === "incentive";
               const tCash = isRentOut ? (t.amount || 0) : (t.cash || 0);
               return (
                 <tr key={`${subKey}-${i}`} style={{ background: "#faf5ff" }}>
                   <td className="px-3 py-2 text-xs text-gray-400 pl-12">{dateStr}</td>
-                  <td className="px-3 py-2 text-xs text-gray-600">{t.invoiceNo || t.remark || t.customerName || "-"}</td>
-                  <td className="px-3 py-2 text-xs text-gray-500">{t.customerName || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-gray-600">{t.invoiceNo || t.customerName || "-"}</td>
+                  <td className="px-3 py-2 text-xs text-gray-500">
+                    {isIncentiveCat
+                      ? (t.remark || t.customerName || "-")
+                      : (t.customerName || "-")}
+                  </td>
                   <td className="px-3 py-2 text-right text-xs text-gray-700">{tCash !== 0 ? fmt(tCash) : "-"}</td>
                   <td className="px-3 py-2 text-right text-xs text-gray-700">{!isRentOut && t.rbl  !== 0 ? fmt(t.rbl)  : "-"}</td>
                   <td className="px-3 py-2 text-right text-xs text-gray-700">{!isRentOut && t.bank !== 0 ? fmt(t.bank) : "-"}</td>
