@@ -342,39 +342,6 @@ const ManageStores = () => {
                                 />
                             </div>
 
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">
-                                    User Type *
-                                </label>
-                                <select
-                                    value={power}
-                                    onChange={(e) => setPower(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
-                                    required
-                                >
-                                    <option value="normal">Normal</option>
-                                    <option value="admin">Admin</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block mb-2 font-semibold text-gray-700">
-                                    Role
-                                </label>
-                                <select
-                                    value={role}
-                                    onChange={(e) => { setRole(e.target.value); setAllowedLocCodes([]); }}
-                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#016E5B] focus:border-none outline-none"
-                                >
-                                    <option value="">— None —</option>
-                                    <option value="store_user">Store User</option>
-                                    <option value="store_manager">Store Manager</option>
-                                    <option value="cluster_manager">Cluster Manager</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="superadmin">Super Admin</option>
-                                </select>
-                            </div>
-
                             {role === "cluster_manager" && (
                                 <div>
                                     <label className="block mb-2 font-semibold text-gray-700">

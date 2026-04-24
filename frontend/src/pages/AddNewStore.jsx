@@ -167,27 +167,8 @@ const AddNewStore = () => {
             {/* Form Section */}
             <div className="bg-white px-8 py-8">
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Row 1: Role, Store Name, User Type */}
-                    <div className="grid grid-cols-3 gap-8">
-                        <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-600 uppercase">
-                                User Role *
-                            </label>
-                            <select
-                                value={role}
-                                onChange={(e) => { setRole(e.target.value); setAllowedLocCodes([]); }}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-700"
-                                required
-                            >
-                                <option value="">Select Role</option>
-                                <option value="store_user">Store User</option>
-                                <option value="store_manager">Store Manager</option>
-                                <option value="cluster_manager">Cluster Manager</option>
-                                <option value="admin">Admin</option>
-                                <option value="superadmin">Super Admin</option>
-                            </select>
-                        </div>
-
+                    {/* Row 1: Store Name */}
+                    <div className="grid grid-cols-1 gap-8">
                         <div>
                             <label className="block mb-2 text-sm font-medium text-gray-600 uppercase">
                                 Store Name *
@@ -200,21 +181,6 @@ const AddNewStore = () => {
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
                                 required
                             />
-                        </div>
-
-                        <div>
-                            <label className="block mb-2 text-sm font-medium text-gray-600 uppercase">
-                                User Type *
-                            </label>
-                            <select
-                                value={power}
-                                onChange={(e) => setPower(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white text-gray-700"
-                                required
-                            >
-                                <option value="normal">Normal</option>
-                                <option value="admin">Admin</option>
-                            </select>
                         </div>
                     </div>
 

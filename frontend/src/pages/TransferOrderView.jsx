@@ -246,16 +246,41 @@ const TransferOrderView = () => {
       return;
     }
     
-    // Find matching item by SKU or itemId
+    // Find matching item by SKU or itemId — with fallback fuzzy matching
     const matchedItem = transferOrder.items.find(item => {
       const itemSku = (item.itemSku || "").toString().trim();
       const itemId = (item.itemId || "").toString().trim();
+      const itemName = (item.itemName || "").toString().trim();
       const scannedCodeTrimmed = scannedCode.trim();
-      
-      return itemSku === scannedCodeTrimmed || 
-             itemId === scannedCodeTrimmed ||
-             itemSku.toLowerCase() === scannedCodeTrimmed.toLowerCase() ||
-             itemId.toLowerCase() === scannedCodeTrimmed.toLowerCase();
+      const scannedLower = scannedCodeTrimmed.toLowerCase();
+
+      // 1. Exact match on SKU or itemId
+      if (itemSku === scannedCodeTrimmed || itemId === scannedCodeTrimmed) return true;
+      if (itemSku.toLowerCase() === scannedLower || itemId.toLowerCase() === scannedLower) return true;
+
+      // 2. SKU contains scanned code or scanned code contains SKU
+      if (itemSku && (itemSku.toLowerCase().includes(scannedLower) || scannedLower.includes(itemSku.toLowerCase()))) return true;
+
+      // 3. Match against item name — check if scanned code parts appear in the name
+      // e.g. scanned "BRL8/1410" → model "1410", color "BL"=BLACK, size "8"
+      if (itemName) {
+        const nameLower = itemName.toLowerCase();
+        // Extract model number from scanned code (digits after /)
+        const modelMatch = scannedCodeTrimmed.match(/\/(\d+)$/);
+        const sizeMatch = scannedCodeTrimmed.match(/([A-Z]+)(\d+)\//);
+        if (modelMatch && sizeMatch) {
+          const model = modelMatch[1];
+          const size = sizeMatch[2];
+          if (nameLower.includes(model) && nameLower.includes(`/${size}`)) return true;
+          if (nameLower.includes(model) && nameLower.endsWith(`/${size}`)) return true;
+        }
+        // Also try: scanned code without separators vs name without separators
+        const scannedNorm = scannedLower.replace(/[^a-z0-9]/g, "");
+        const nameNorm = nameLower.replace(/[^a-z0-9]/g, "");
+        if (scannedNorm.length > 3 && nameNorm.includes(scannedNorm)) return true;
+      }
+
+      return false;
     });
     
     if (!matchedItem) {

@@ -60,8 +60,10 @@ const dayBefore = (iso) => {
 };
 
 const Security = () => {
-  const today = new Date().toISOString().split("T")[0];
-  const [fromDate, setFromDate] = useState("2025-01-01");
+  const _now = new Date();
+  const today = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
+  const firstOfMonth = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-01`;
+  const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate,   setToDate]   = useState(today);
   const [selectedStore, setSelectedStore] = useState("current"); // "current" | "all"
   const [rentAll, setRentAll]     = useState([]); // all-store mode

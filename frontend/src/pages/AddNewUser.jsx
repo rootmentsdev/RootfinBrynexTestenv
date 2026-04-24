@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
 import baseUrl from "../api/api";
@@ -16,6 +16,23 @@ const AddNewUser = () => {
     const [loading, setLoading] = useState(false);
     const [showStoreDropdown, setShowStoreDropdown] = useState(false);
     const [storeSearchTerm, setStoreSearchTerm] = useState("");
+    const [takenLocCodes, setTakenLocCodes] = useState(new Set());
+
+    // Fetch all cluster managers to know which stores are already taken
+    useEffect(() => {
+        fetch(`${baseUrl.baseUrl}user/getAllUsers`)
+            .then(r => r.ok ? r.json() : {})
+            .then(data => {
+                const taken = new Set();
+                (data.users || []).forEach(u => {
+                    if ((u.role || "").toLowerCase() === "cluster_manager") {
+                        (u.allowedLocCodes || []).forEach(c => taken.add(c));
+                    }
+                });
+                setTakenLocCodes(taken);
+            })
+            .catch(() => {});
+    }, []);
 
     const availableStores = [
         { locName: "Z-Edapally", locCode: "144" },
@@ -49,6 +66,7 @@ const AddNewUser = () => {
     );
 
     const handleStoreSelect = (locCode) => {
+        if (takenLocCodes.has(locCode)) return; // block taken stores
         if (!allowedLocCodes.includes(locCode)) {
             setAllowedLocCodes([...allowedLocCodes, locCode]);
         }
@@ -236,15 +254,23 @@ const AddNewUser = () => {
                                     {/* Dropdown */}
                                     {showStoreDropdown && filteredStores.length > 0 && (
                                         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                            {filteredStores.map((store) => (
-                                                <div
-                                                    key={store.locCode}
-                                                    onClick={() => handleStoreSelect(store.locCode)}
-                                                    className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700"
-                                                >
-                                                    {store.locName}
-                                                </div>
-                                            ))}
+                                            {filteredStores.map((store) => {
+                                                const isTaken = takenLocCodes.has(store.locCode);
+                                                return (
+                                                    <div
+                                                        key={store.locCode}
+                                                        onClick={() => !isTaken && handleStoreSelect(store.locCode)}
+                                                        className={`px-4 py-2 text-sm flex items-center justify-between ${
+                                                            isTaken
+                                                                ? "text-gray-400 bg-gray-50 cursor-not-allowed"
+                                                                : "hover:bg-blue-50 cursor-pointer text-gray-700"
+                                                        }`}
+                                                    >
+                                                        <span>{store.locName}</span>
+                                                        {isTaken && <span className="text-xs text-red-400 ml-2">Already assigned</span>}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>

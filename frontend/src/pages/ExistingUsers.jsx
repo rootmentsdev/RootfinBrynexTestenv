@@ -24,6 +24,7 @@ const ExistingUsers = () => {
     const [editLoading, setEditLoading] = useState(false);
     const [editStoreSearch, setEditStoreSearch] = useState("");
     const [showEditStoreDropdown, setShowEditStoreDropdown] = useState(false);
+    const [takenLocCodes, setTakenLocCodes] = useState(new Set());
 
     const navigate = useNavigate();
 
@@ -92,6 +93,16 @@ const ExistingUsers = () => {
         setEditPower(selectedUser.power);
         setEditRole(selectedUser.role || "");
         setEditAllowedLocCodes(selectedUser.allowedLocCodes || []);
+
+        // Compute taken locCodes from all OTHER cluster managers
+        const taken = new Set();
+        stores.forEach(u => {
+            if (u._id !== selectedUser._id && (u.role || "").toLowerCase() === "cluster_manager") {
+                (u.allowedLocCodes || []).forEach(c => taken.add(c));
+            }
+        });
+        setTakenLocCodes(taken);
+
         setShowEditModal(true);
     };
 
@@ -417,22 +428,31 @@ const ExistingUsers = () => {
                                         />
                                         {showEditStoreDropdown && editFilteredStores.length > 0 && (
                                             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                                                {editFilteredStores.map((store) => (
-                                                    <div
-                                                        key={store.locCode}
-                                                        onMouseDown={(e) => {
-                                                            e.preventDefault();
-                                                            if (!editAllowedLocCodes.includes(store.locCode)) {
-                                                                setEditAllowedLocCodes([...editAllowedLocCodes, store.locCode]);
-                                                            }
-                                                            setEditStoreSearch("");
-                                                            setShowEditStoreDropdown(false);
-                                                        }}
-                                                        className="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700"
-                                                    >
-                                                        {store.locName} ({store.locCode})
-                                                    </div>
-                                                ))}
+                                                {editFilteredStores.map((store) => {
+                                                    const isTaken = takenLocCodes.has(store.locCode);
+                                                    return (
+                                                        <div
+                                                            key={store.locCode}
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                if (isTaken) return;
+                                                                if (!editAllowedLocCodes.includes(store.locCode)) {
+                                                                    setEditAllowedLocCodes([...editAllowedLocCodes, store.locCode]);
+                                                                }
+                                                                setEditStoreSearch("");
+                                                                setShowEditStoreDropdown(false);
+                                                            }}
+                                                            className={`px-3 py-2 text-sm flex items-center justify-between ${
+                                                                isTaken
+                                                                    ? "text-gray-400 bg-gray-50 cursor-not-allowed"
+                                                                    : "hover:bg-blue-50 cursor-pointer text-gray-700"
+                                                            }`}
+                                                        >
+                                                            <span>{store.locName} ({store.locCode})</span>
+                                                            {isTaken && <span className="text-xs text-red-400 ml-2">Already assigned</span>}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         )}
                                     </div>
