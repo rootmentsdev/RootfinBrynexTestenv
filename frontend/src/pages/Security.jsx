@@ -74,6 +74,8 @@ const Security = () => {
   const user = JSON.parse(localStorage.getItem("rootfinuser"));
   const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
 
+  const [loading, setLoading] = useState(false);
+
   /* ---------- hybrid opening-balance calc ---------- */
   const calcOpeningCash = async () => {
     if (selectedStore !== "current") return;
@@ -131,55 +133,55 @@ const Security = () => {
   const handleFetch = async () => {
     if (selectedStore !== "all") { await calcOpeningCash(); return; }
 
+    setLoading(true);
     const tmpRent=[], tmpRet=[];
     const openingMap = {}; // locCode -> opening security balance
 
-    for (const s of AllLoation) {
-      const u1=`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-      const u2=`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+    for (const store of AllLoation) {
+      const u1=`${baseAPI}/GetRentoutList?LocCode=${store.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+      const u2=`${baseAPI}/GetReturnList?LocCode=${store.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
       // Calculate opening balance for this store (same logic as calcOpeningCash)
-      const manualOpen = getManualOpening(s.locCode, fromDate);
+      const manualOpen = getManualOpening(store.locCode, fromDate);
       try {
         if (manualOpen !== null) {
           const monthStart = getMonthStart(fromDate);
           if (fromDate === monthStart) {
-            openingMap[s.locCode] = manualOpen;
+            openingMap[store.locCode] = manualOpen;
           } else {
             const [oR1, oR2] = await Promise.all([
-              fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
-              fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
+              fetch(`${baseAPI}/GetRentoutList?LocCode=${store.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
+              fetch(`${baseAPI}/GetReturnList?LocCode=${store.locCode}&DateFrom=${monthStart}&DateTo=${dayBefore(fromDate)}`),
             ]);
             const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
-            const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-            const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-            openingMap[s.locCode] = manualOpen + (oSecIn - oSecOut);
+            const oSecIn  = (oj1?.dataSet?.data || []).reduce((acc,t)=>acc + +(t.securityAmount||0),0);
+            const oSecOut = (oj2?.dataSet?.data || []).reduce((acc,t)=>acc + +(t.securityAmount||0),0);
+            openingMap[store.locCode] = manualOpen + (oSecIn - oSecOut);
           }
         } else {
           const [oR1, oR2] = await Promise.all([
-            fetch(`${baseAPI}/GetRentoutList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
-            fetch(`${baseAPI}/GetReturnList?LocCode=${s.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
+            fetch(`${baseAPI}/GetRentoutList?LocCode=${store.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
+            fetch(`${baseAPI}/GetReturnList?LocCode=${store.locCode}&DateFrom=2025-01-01&DateTo=${dayBefore(fromDate)}`),
           ]);
           const [oj1, oj2] = await Promise.all([oR1.json(), oR2.json()]);
-          const oSecIn  = (oj1?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-          const oSecOut = (oj2?.dataSet?.data || []).reduce((s,t)=>s + +(t.securityAmount||0),0);
-          openingMap[s.locCode] = oSecIn - oSecOut;
+          const oSecIn  = (oj1?.dataSet?.data || []).reduce((acc,t)=>acc + +(t.securityAmount||0),0);
+          const oSecOut = (oj2?.dataSet?.data || []).reduce((acc,t)=>acc + +(t.securityAmount||0),0);
+          openingMap[store.locCode] = oSecIn - oSecOut;
         }
-      } catch { openingMap[s.locCode] = 0; }
+      } catch { openingMap[store.locCode] = 0; }
 
       try {
         const [r1,r2]=await Promise.all([fetch(u1),fetch(u2)]);
         const [j1,j2]=await Promise.all([r1.json(),r2.json()]);
-        if(j1?.dataSet?.data) tmpRent.push(...j1.dataSet.data.map(d=>({...d,locCode:s.locCode,Category:"RentOut"})));
-        if(j2?.dataSet?.data) tmpRet .push(...j2.dataSet.data.map(d=>({...d,locCode:s.locCode,Category:"Return" })));
+        if(j1?.dataSet?.data) tmpRent.push(...j1.dataSet.data.map(d=>({...d,locCode:store.locCode,Category:"RentOut"})));
+        if(j2?.dataSet?.data) tmpRet .push(...j2.dataSet.data.map(d=>({...d,locCode:store.locCode,Category:"Return" })));
       } catch(e){ console.error("Fetch err",e);}
     }
 
-    // Attach opening balances to the data so the table can use them
     setRentAll(tmpRent.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
     setReturnAll(tmpRet.map(d => ({ ...d, _openingForStore: openingMap[d.locCode] || 0 })));
-    // Store opening map for use in table building
     setAllStoreOpenings(openingMap);
+    setLoading(false);
   };
 
   /* ---------- build rows ---------- */
@@ -314,9 +316,14 @@ const Security = () => {
                 <option value="all">All Stores (Totals)</option>}
             </select>
           </div>
-          <button onClick={handleFetch}
-                  className="bg-blue-600 text-white px-10 h-[40px] mt-6 rounded-md">
-            Fetch
+          <button onClick={handleFetch} disabled={loading}
+                  className="bg-blue-600 text-white px-10 h-[40px] mt-6 rounded-md disabled:opacity-70 flex items-center gap-2">
+            {loading ? (
+              <><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+              </svg>Fetching...</>
+            ) : "Fetch"}
           </button>
         </div>
 
