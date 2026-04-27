@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
 import baseUrl from "../api/api";
@@ -17,9 +17,9 @@ const AddNewUser = () => {
     const [showStoreDropdown, setShowStoreDropdown] = useState(false);
     const [storeSearchTerm, setStoreSearchTerm] = useState("");
     const [takenLocCodes, setTakenLocCodes] = useState(new Set());
+    const dropdownRef = useRef(null);
 
-    // Fetch all cluster managers to know which stores are already taken
-    useEffect(() => {
+    const fetchTakenStores = () => {
         fetch(`${baseUrl.baseUrl}user/getAllUsers`)
             .then(r => r.ok ? r.json() : {})
             .then(data => {
@@ -32,6 +32,22 @@ const AddNewUser = () => {
                 setTakenLocCodes(taken);
             })
             .catch(() => {});
+    };
+
+    // Fetch all cluster managers to know which stores are already taken
+    useEffect(() => {
+        fetchTakenStores();
+    }, []);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowStoreDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const availableStores = [
@@ -151,6 +167,8 @@ const AddNewUser = () => {
                 setRole("");
                 setAllowedLocCodes([]);
                 setStoreSearchTerm("");
+                // Refresh taken stores so newly assigned ones show immediately
+                fetchTakenStores();
             } else {
                 alert(data.message || "Failed to create user. Please try again.");
             }
@@ -238,7 +256,7 @@ const AddNewUser = () => {
                                 <label className="block mb-2 text-sm font-medium text-gray-600 uppercase">
                                     Assign Stores *
                                 </label>
-                                <div className="relative">
+                                <div className="relative" ref={dropdownRef}>
                                     <input
                                         type="text"
                                         value={storeSearchTerm}

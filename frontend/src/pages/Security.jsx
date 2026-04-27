@@ -65,13 +65,17 @@ const Security = () => {
   const firstOfMonth = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-01`;
   const [fromDate, setFromDate] = useState(firstOfMonth);
   const [toDate,   setToDate]   = useState(today);
-  const [selectedStore, setSelectedStore] = useState("current"); // "current" | "all"
+  const [selectedStore, setSelectedStore] = useState("current"); // "current" | "all" | "cluster"
   const [rentAll, setRentAll]     = useState([]); // all-store mode
   const [returnAll, setReturnAll] = useState([]);
   const [openingCash, setOpeningCash] = useState(0);
   const [allStoreOpenings, setAllStoreOpenings] = useState({}); // locCode -> opening balance
 
   const user = JSON.parse(localStorage.getItem("rootfinuser"));
+  const isClusterManager = (user?.role || "").toLowerCase() === "cluster_manager";
+  const clusterStores = isClusterManager
+    ? AllLoation.filter(s => (user.allowedLocCodes || []).includes(s.locCode))
+    : [];
   const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
 
   const [loading, setLoading] = useState(false);
@@ -129,15 +133,16 @@ const Security = () => {
   const { data: rentData } = useFetch(selectedStore==="current"?apiRentCur:null, fetchOpts);
   const { data: retData  } = useFetch(selectedStore==="current"?apiRetCur :null, fetchOpts);
 
-  /* ---------- handleFetch (all-store mode) ---------- */
+  /* ---------- handleFetch (all-store / cluster mode) ---------- */
   const handleFetch = async () => {
-    if (selectedStore !== "all") { await calcOpeningCash(); return; }
+    if (selectedStore !== "all" && selectedStore !== "cluster") { await calcOpeningCash(); return; }
 
     setLoading(true);
+    const storesToFetch = selectedStore === "cluster" ? clusterStores : AllLoation;
     const tmpRent=[], tmpRet=[];
-    const openingMap = {}; // locCode -> opening security balance
+    const openingMap = {};
 
-    for (const store of AllLoation) {
+    for (const store of storesToFetch) {
       const u1=`${baseAPI}/GetRentoutList?LocCode=${store.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const u2=`${baseAPI}/GetReturnList?LocCode=${store.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
@@ -258,7 +263,7 @@ const Security = () => {
   const adjIn = selectedStore==="current" ? totIn + openingCash : totIn;
 
   /* ---------- CSV data ---------- */
-  const csvData = selectedStore==="all"
+  const csvData = (selectedStore==="all"||selectedStore==="cluster")
     ? tableRows.map(r=>({store:r.store,locCode:r.locCode,secIn:r.secIn,secOutCash:r.secOutCash,secOutRbl:r.secOutRbl,difference:r.diff}))
     : [
         ...(selectedStore==="current"?[{
@@ -312,6 +317,8 @@ const Security = () => {
               <option value="current">
                 Current Store ({getStoreName(user.locCode)})
               </option>
+              {isClusterManager && clusterStores.length > 0 &&
+                <option value="cluster">My Stores (All Assigned)</option>}
               {(user.power||"").toLowerCase()==="admin" &&
                 <option value="all">All Stores (Totals)</option>}
             </select>
@@ -332,7 +339,7 @@ const Security = () => {
           <div className="max-h-[420px] overflow-y-auto relative">
             <table className="w-full border-collapse">
               <thead className="sticky top-0 bg-gray-500 text-white z-20">
-                {selectedStore==="all"?(
+                {(selectedStore==="all"||selectedStore==="cluster")?(
                   <tr>
                     <th className="border p-2">Store</th>
                     <th className="border p-2">LocCode</th>
@@ -369,7 +376,7 @@ const Security = () => {
                 )}
 
                 {tableRows.length ? tableRows.map((r,i)=>(
-                  selectedStore==="all"?(
+                  (selectedStore==="all"||selectedStore==="cluster")?(
                     <tr key={i}>
                       <td className="border p-2">{r.store}</td>
                       <td className="border p-2">{r.locCode}</td>
@@ -397,14 +404,14 @@ const Security = () => {
                     </tr>
                   )
                 )):(
-                  <tr><td colSpan={selectedStore==="all"?6:9}
+                  <tr><td colSpan={(selectedStore==="all"||selectedStore==="cluster")?6:9}
                           className="text-center p-4">No data found</td></tr>
                 )}
               </tbody>
 
               <tfoot className="sticky bottom-0 bg-white z-20">
                 <tr className="font-semibold">
-                  <td colSpan={selectedStore==="all"?2:5}
+                  <td colSpan={(selectedStore==="all"||selectedStore==="cluster")?2:5}
                       className="border p-2 text-left">Totals</td>
                   <td className="border p-2">{adjIn}</td>
                   <td className="border p-2">{totOutCash}</td>
@@ -421,7 +428,7 @@ const Security = () => {
                 className="mt-6 w-[200px] float-right bg-blue-600 text-white py-2 rounded-lg">
           📄 Print / PDF
         </button>
-        <CSVLink headers={selectedStore==="all"?csvHeadersAllStores:csvHeaders}
+        <CSVLink headers={(selectedStore==="all"||selectedStore==="cluster")?csvHeadersAllStores:csvHeaders}
                  data={csvData}
                  filename={`${fromDate}_to_${toDate}_security_report.csv`}>
           <button className="mt-6 me-4 w-[200px] float-right bg-green-600 text-white py-2 rounded-lg">
