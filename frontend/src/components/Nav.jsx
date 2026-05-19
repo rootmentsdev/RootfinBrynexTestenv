@@ -27,7 +27,8 @@ import {
     ShoppingBasket,
     UserPlus,
     UserCog,
-    KeyRound
+    KeyRound,
+    Pencil
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 
@@ -68,6 +69,9 @@ const Nav = () => {
         if (activePath.startsWith("/manage-users")) {
             return "manageUsers";
         }
+        if (activePath.startsWith("/dsr")) {
+            return "dsr";
+        }
         return null;
     }, [activePath]);
 
@@ -82,6 +86,7 @@ const Nav = () => {
     const isSalesOpen = openSection === "sales";
     const isPurchaseOpen = openSection === "purchase";
     const isManageUsersOpen = openSection === "manageUsers";
+    const isDsrOpen = openSection === "dsr";
 
     const inventoryLinks = [
         { to: "/shoe-sales/items", label: "Items", Icon: List },
@@ -124,6 +129,14 @@ const Nav = () => {
         { to: "/manage-users/reset-password", label: "Reset Password", Icon: KeyRound },
     ];
     const isManageUsersActive = manageUsersLinks.some((link) => link.to === activePath);
+
+    const dsrLinks = [
+        { to: "/dsr/sale",           label: "DSR-Sale",           Icon: Pencil },
+        { to: "/dsr/rental",         label: "DSR-Rental",         Icon: Pencil },
+        { to: "/dsr/sale-report",    label: "DSR-Sale Report",    Icon: Pencil },
+        { to: "/dsr/rental-report",  label: "DSR-Rental Report",  Icon: Pencil },
+    ];
+    const isDsrActive = dsrLinks.some((link) => link.to === activePath);
 
     const isReportsActive = [
         "/securityReport", 
@@ -303,6 +316,24 @@ const Nav = () => {
                                             </>
                                         )}
                                         <Link to="/reports/income-expense" className={subLinkClasses('/reports/income-expense')}><LineChart size={16} /><span>Income &amp; Expense</span></Link>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* DSR */}
+                            <div>
+                                <button onClick={() => setOpenSection(isDsrOpen ? null : "dsr")} className={groupButtonClasses(isDsrActive || isDsrOpen)}>
+                                    <div className="flex w-full items-center gap-3">
+                                        <Pencil size={18} className="shrink-0" />
+                                        <span className="flex-1 text-left">DSR</span>
+                                        <ChevronDown size={16} className={`shrink-0 transition-transform ${isDsrOpen ? "rotate-180" : "rotate-0"}`} />
+                                    </div>
+                                </button>
+                                {isDsrOpen && (
+                                    <div className="mt-2 space-y-1 border-l border-[#1b233a]/70 pl-3">
+                                        {dsrLinks.map(({ to, label, Icon }) => (
+                                            <Link key={to} to={to} className={subLinkClasses(to)}><Icon size={16} /><span>{label}</span></Link>
+                                        ))}
                                     </div>
                                 )}
                             </div>

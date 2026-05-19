@@ -75,6 +75,10 @@ import ReorderAlerts from "./pages/ReorderAlerts.jsx";
 import Income from "./pages/Income.jsx";
 import Expenses from "./pages/Expenses.jsx";
 import IncomeExpenseReport from "./pages/IncomeExpenseReport.jsx";
+import DsrSale from "./pages/DsrSale.jsx";
+import DsrRental from "./pages/DsrRental.jsx";
+import DsrSaleReport from "./pages/DsrSaleReport.jsx";
+import DsrRentalReport from "./pages/DsrRentalReport.jsx";
 
 const App = () => {
   const location = useLocation();
@@ -267,6 +271,12 @@ const App = () => {
           
           {/* Reorder Alerts */}
           <Route path="/inventory/reorder-alerts" element={currentuser ? <ReorderAlerts /> : <Navigate to="/login" />} />
+
+          {/* DSR */}
+          <Route path="/dsr/sale" element={currentuser ? <DsrSale /> : <Navigate to="/login" />} />
+          <Route path="/dsr/rental" element={currentuser ? <DsrRental /> : <Navigate to="/login" />} />
+          <Route path="/dsr/sale-report" element={currentuser ? <DsrSaleReport /> : <Navigate to="/login" />} />
+          <Route path="/dsr/rental-report" element={currentuser ? <DsrRentalReport /> : <Navigate to="/login" />} />
 
         </Routes>
       </div>

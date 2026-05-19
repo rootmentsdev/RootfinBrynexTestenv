@@ -29,6 +29,8 @@ import InventoryReportRoutes from "./route/InventoryReportRoutes.js";
 import ReorderAlertRoutes from "./route/ReorderAlertRoutes.js";
 import ManufacturerRoutes from "./route/ManufacturerRoutes.js";
 import BrandRoutes from "./route/BrandRoutes.js";
+import DsrSaleRoutes from "./route/DsrSaleRoutes.js";
+import DsrRentalRoutes from "./route/DsrRentalRoutes.js";
 import setupSwagger   from "./swagger.js";
 
 const env     = process.env.NODE_ENV || "development";
@@ -95,6 +97,8 @@ app.use("/api/reports/inventory", InventoryReportRoutes);
 app.use("/api",     ReorderAlertRoutes);
 app.use("/api",     ManufacturerRoutes);
 app.use("/api",     BrandRoutes);
+app.use("/api",     DsrSaleRoutes);
+app.use("/api",     DsrRentalRoutes);
 
 // Test route to verify server is running
 app.get("/api/test", (_req, res) => {
