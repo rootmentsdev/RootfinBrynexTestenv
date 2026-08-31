@@ -534,8 +534,12 @@ const DayBookInc = () => {
     const openingCash = parseInt(preOpen?.cash ?? preOpen?.Closecash ?? 0, 10);
 
     // Memoized totals calculation
+    // ⚠️ IMPORTANT: Use dedupedTransactions (ALL transactions, unfiltered) for cash/bank totals
+    // that get saved to the DB. filteredTransactions only affects the display table.
+    // Using filteredTransactions here caused a bug where the saved closing cash was wrong
+    // whenever the user had a category filter active at save time.
     const calculatedTotals = useMemo(() => {
-        const bankAmount = filteredTransactions?.reduce((sum, item) =>
+        const bankAmount = dedupedTransactions?.reduce((sum, item) =>
             sum +
             (parseInt(item.bookingBankAmount, 10) || 0) +
             (parseInt(item.rentoutBankAmount, 10) || 0) +
@@ -547,22 +551,22 @@ const DayBookInc = () => {
             0
         ) || 0;
 
-        const bankAmount1 = filteredTransactions?.reduce((sum, item) =>
+        const bankAmount1 = dedupedTransactions?.reduce((sum, item) =>
             sum + (parseInt(item.bank, 10) || 0),
             0
         ) || 0;
 
-        const bankAmountupi = filteredTransactions?.reduce((sum, item) =>
+        const bankAmountupi = dedupedTransactions?.reduce((sum, item) =>
             sum + (parseInt(item.upi, 10) || 0),
             0
         ) || 0;
 
-        const rblAmount = filteredTransactions?.reduce((sum, item) =>
+        const rblAmount = dedupedTransactions?.reduce((sum, item) =>
             sum + (parseInt(item.rbl, 10) || 0),
             0
         ) || 0;
 
-        const dayCashTransactions = filteredTransactions?.reduce((sum, item) =>
+        const dayCashTransactions = dedupedTransactions?.reduce((sum, item) =>
             sum + (parseInt(item.cash, 10) || 0),
             0
         ) || 0;
@@ -577,7 +581,7 @@ const DayBookInc = () => {
             dayCashTransactions,
             totalCash
         };
-    }, [filteredTransactions, openingCash]);
+    }, [dedupedTransactions, openingCash]);
 
     const handleChange = useCallback((index, value) => {
         const newQuantities = [...quantities];
