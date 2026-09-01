@@ -1,5 +1,6 @@
 import CloseTransaction from "../model/Closing.js";
 import Transaction from "../model/Transaction.js";
+import { propagateCashDiff } from "../utils/cashPropagation.js";
 
 export const CloseController = async (req, res) => {
     try {
@@ -53,6 +54,10 @@ export const CloseController = async (req, res) => {
         const existingClose = await CloseTransaction.findOne({ locCode, date: formattedDate });
 
         if (existingClose) {
+            const oldCash = Number(existingClose.cash) || 0;
+            const newCash = Number(cash) || 0;
+            const cashDiff = newCash - oldCash;
+
             // Update existing document
             existingClose.bank = bank;
             existingClose.cash = cash;
@@ -60,6 +65,11 @@ export const CloseController = async (req, res) => {
             existingClose.email = email;
 
             await existingClose.save();
+
+            // Propagate difference to next day and beyond
+            if (cashDiff !== 0) {
+                await propagateCashDiff(locCode, formattedDate, cashDiff, false);
+            }
 
             return res.status(200).json({
                 message: "Cash and bank details updated successfully",
@@ -77,6 +87,9 @@ export const CloseController = async (req, res) => {
             });
 
             await CloseCashBank.save();
+
+            // Propagate calculated cash to next day and beyond
+            await propagateCashDiff(locCode, formattedDate, cash, false);
 
             return res.status(201).json({
                 message: "Cash and bank details saved successfully",

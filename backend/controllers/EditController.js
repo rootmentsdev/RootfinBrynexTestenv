@@ -3,6 +3,7 @@
 import Transaction from "../model/Transaction.js";
 import TransactionHistory from "../model/Transactionhistory.js";
 import CloseTransaction from "../model/Closing.js";
+import { propagateCashDiff, calculateTotalCashForDate } from "../utils/cashPropagation.js";
 
 
 
@@ -235,6 +236,17 @@ export const editTransaction = async (req, res) => {
       { new: true }
     );
 
+    // ✅ Propagate cash difference to all CloseTransaction documents on or after transaction date
+    const oldCash = Number(originalTransaction.cash) || 0;
+    const newCash = Number(updates.cash) || 0;
+    const cashDiff = newCash - oldCash;
+
+    if (cashDiff !== 0) {
+      const targetLocCode = updates.locCode || originalTransaction.locCode;
+      const txDateRaw = updates.date || originalTransaction.date;
+      await propagateCashDiff(targetLocCode, txDateRaw, cashDiff, true);
+    }
+
     return res.status(200).json({
       message: "Transaction updated successfully",
       data: updatedTransaction,
@@ -322,49 +334,39 @@ export const getsaveCashBank = async (req, res) => {
       return res.status(400).json({ message: "locCode and date are required" });
     }
 
-    let formattedDate;
-
-    // ✅ Universal date parsing
-    if (date.includes("-")) {
-      const parts = date.split("-");
-      if (parts[0].length === 4) {
-        // yyyy-mm-dd
-        formattedDate = new Date(date);
-      } else if (parts[2]?.length === 4) {
-        // dd-mm-yyyy
-        const [dd, mm, yyyy] = parts;
-        formattedDate = new Date(`${yyyy}-${mm}-${dd}`);
-      } else {
-        return res.status(400).json({ message: "Unrecognized date format." });
-      }
-    } else if (!isNaN(Date.parse(date))) {
-      // Fallback for valid parseable formats
-      formattedDate = new Date(date);
-    } else {
-      return res.status(400).json({ message: "Invalid date input." });
-    }
-
-    // ✅ Validate final result
-    if (isNaN(formattedDate.getTime())) {
+    const calc = await calculateTotalCashForDate(locCode, date);
+    if (!calc) {
       return res.status(400).json({ message: "Invalid date format." });
     }
 
-    // ✅ Match full day
-    const startOfDay = new Date(formattedDate);
-    startOfDay.setHours(0, 0, 0, 0);
-
-    const endOfDay = new Date(formattedDate);
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const result = await CloseTransaction.findOne({
+    let result = await CloseTransaction.findOne({
       locCode,
-      date: { $gte: startOfDay, $lte: endOfDay },
+      date: { $gte: calc.startOfDay, $lte: calc.endOfDay },
     });
 
-    // ✅ Add debug logging to trace 500 errors
-    if (!result) {
-      console.warn(`⚠️ No closing balance found for locCode=${locCode} on ${formattedDate.toISOString()}`);
-      return res.status(404).json({ message: "No closing balance found for this date." });
+    if (result) {
+      // ✅ If stored cash differs from actual total calculated cash (due to edits/external TWS updates), update stored doc!
+      if (Number(result.cash) !== calc.totalCalculatedCash) {
+        const oldCashVal = Number(result.cash) || 0;
+        const diff = calc.totalCalculatedCash - oldCashVal;
+        console.log(`🔄 Updating stored CloseTransaction cash for ${locCode} on ${date}: old=${result.cash} ➔ new=${calc.totalCalculatedCash} (diff=${diff})`);
+        result.cash = calc.totalCalculatedCash;
+        await result.save();
+
+        if (diff !== 0) {
+          await propagateCashDiff(locCode, calc.startOfDay, diff, false);
+        }
+      }
+    } else {
+      // Fallback object if day was never explicitly closed
+      result = {
+        _id: `temp-${locCode}-${calc.dateStr}`,
+        locCode,
+        date: calc.startOfDay,
+        cash: calc.totalCalculatedCash,
+        Closecash: calc.totalCalculatedCash,
+        bank: 0
+      };
     }
 
     res.status(200).json({ data: result });

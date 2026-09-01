@@ -4,6 +4,8 @@ import { CreatePayment, GetPayment } from '../controllers/TransactionController.
 import { CloseController, GetAllCloseData, GetCloseController, getFinancialSummaryWithEdit } from '../controllers/CloseController.js';
 import { editTransaction} from '../controllers/EditController.js';
 import Transaction from '../model/Transaction.js';
+import CloseTransaction from '../model/Closing.js';
+import { propagateCashDiff } from '../utils/cashPropagation.js';
 import {DownloadAttachment} from "../controllers/TransactionController.js";
 
 
@@ -297,10 +299,23 @@ router.post('/syncTransaction', async (req, res) => {
       type: req.body.type,
     };
 
+    const existingTx = await Transaction.findOne(filter);
+    // If existingTx is null, this is an initial sync of a TWS transaction.
+    // The TWS cash amount is already included in the day's total cash, so cashDiff should be 0.
+    const oldCash = existingTx ? (Number(existingTx.cash) || 0) : (Number(req.body.cash) || 0);
+    const newCash = Number(req.body.cash) || 0;
+    const cashDiff = newCash - oldCash;
+
     const updateData = {
       ...req.body,
       editedBy: req.body.editedBy || "sync",
       editedAt: new Date()
+    };
+
+    const propagateCloseDiff = async () => {
+      if (cashDiff !== 0 && req.body.locCode && req.body.date) {
+        await propagateCashDiff(req.body.locCode, req.body.date, cashDiff, true);
+      }
     };
 
     // Try atomic upsert first (compound key: invoiceNo + locCode + type)
@@ -310,6 +325,7 @@ router.post('/syncTransaction', async (req, res) => {
         { $set: updateData },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
+      await propagateCloseDiff();
       const status = result ? 200 : 201;
       return res.status(status).json({ message: "Synced", data: result });
     } catch (upsertErr) {
@@ -322,6 +338,7 @@ router.post('/syncTransaction', async (req, res) => {
           { new: true }
         );
         if (fallback) {
+          await propagateCloseDiff();
           return res.status(200).json({ message: "Updated (fallback)", data: fallback });
         }
         // If still not found, return the error

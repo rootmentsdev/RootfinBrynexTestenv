@@ -1,5 +1,7 @@
 // backend/cont/TransactionController.js
 import Transaction from "../model/Transaction.js";
+import CloseTransaction from "../model/Closing.js";
+import { propagateCashDiff } from "../utils/cashPropagation.js";
 import { getCachedData, setCachedData, generateCacheKey } from "../utils/cacheManager.js";
 
 // Optimized function to get transactions with caching and better queries
@@ -168,6 +170,12 @@ export const CreatePayment = async (req, res) => {
       invoiceNo: finalInvoice,
       attachment: attachmentObj                     // 🔺 ADDED
     });
+
+    // ✅ Propagate cash to CloseTransaction for date >= txDate
+    const cashAmount = Number(cash) || 0;
+    if (cashAmount !== 0 && locCode && date) {
+      await propagateCashDiff(locCode, date, cashAmount, true);
+    }
 
     res.status(201).json(newTx);
 
