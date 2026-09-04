@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaEdit, FaTrash } from "react-icons/fa";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const ManageStores = () => {
+  const isSidebarOpen = useSidebar();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

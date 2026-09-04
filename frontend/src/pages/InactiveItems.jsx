@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 
 const InactiveItems = () => {
+  const isSidebarOpen = useSidebar();
   const [loading, setLoading] = useState(true);
   const [groups, setGroups] = useState([]);
   const [items, setItems] = useState([]);
@@ -395,7 +397,7 @@ const InactiveItems = () => {
 
   if (loading) {
     return (
-      <div className="ml-64 flex min-h-screen items-center justify-center bg-[#f5f7fb] p-6">
+      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="space-y-3 text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#cbd5f5] border-t-[#3762f9]" />
           <p className="text-sm font-medium text-[#475569]">Loading…</p>
@@ -406,14 +408,14 @@ const InactiveItems = () => {
 
   if (error) {
     return (
-      <div className="ml-64 p-6">
+      <div className={`transition-all duration-300 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-xl border border-red-200 bg-white p-4 text-red-700">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6 space-y-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 space-y-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#1f2937]">Inactive Items Management</h1>
         <p className="text-sm text-[#64748b] mt-1">Manage and activate inactive items, groups, and vendors</p>

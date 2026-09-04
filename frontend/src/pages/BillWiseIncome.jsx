@@ -6,6 +6,7 @@ import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
 import { FiRefreshCw } from "react-icons/fi";
 import { useEnterToSave } from "../hooks/useEnterToSave";
+import useSidebar from "../hooks/useSidebar";
 
 
 
@@ -105,6 +106,17 @@ const denominations = [
 // const opening = [{ cash: "60000", bank: "54000" }];
 
 const DayBookInc = () => {
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+    useEffect(() => {
+        const handleSidebarChange = (e) => {
+            if (e.detail && typeof e.detail.isOpen === "boolean") {
+                setIsSidebarOpen(e.detail.isOpen);
+            }
+        };
+        window.addEventListener("sidebar-changed", handleSidebarChange);
+        return () => window.removeEventListener("sidebar-changed", handleSidebarChange);
+    }, []);
 
     const [preOpen, setPreOpen] = useState([])
     const [preOpen1, setPreOpen1] = useState(null)
@@ -1275,7 +1287,7 @@ const DayBookInc = () => {
                     }
                 `}</style>
                 <Headers title={"Day Book"} />
-                <div className='ml-[240px]'>
+                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
                     <div className="p-6 bg-slate-50 min-h-screen">
 
                         {/* Filter Bar */}
@@ -1351,9 +1363,9 @@ const DayBookInc = () => {
                                                     const t = isEditing ? editedTransaction : transaction;
                                                     
                                                     return (
-                                                    <>
+                                                    <React.Fragment key={transaction._id || `tx-${transaction.invoiceNo || index}`}>
                                                         {transaction.Category === 'RentOut' ? (
-                                                            <>
+                                                            <React.Fragment key={`rentout-${index}`}>
                                                                 <tr key={`${index}-1`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                                                     <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
                                                                     <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo}</td>
@@ -1455,7 +1467,7 @@ const DayBookInc = () => {
                                                                         ) : transaction.Balance}
                                                                     </td>
                                                                 </tr>
-                                                            </>
+                                                            </React.Fragment>
                                                         ) : (
                                                             <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                                                 <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
@@ -1597,7 +1609,7 @@ const DayBookInc = () => {
                                                                 )}
                                                             </tr>
                                                         )}
-                                                    </>
+                                                    </React.Fragment>
                                                 )})
                                             ) : (
                                                 <tr>

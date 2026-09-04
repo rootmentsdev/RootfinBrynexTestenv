@@ -2,19 +2,33 @@
 
 /* CACHE BUST v2.0 - Invoice page NO BLUE buttons - Updated 2026-04-25 */
 
-/* Global Font - Poppins */
+/* Global Font - Instrument Sans */
 @theme {
-  --font-family-sans: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --font-family-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 * {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 html, body {
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 100%;
+  letter-spacing: 0%;
+}
+
+/* Hide scrollbar for sidebar navigation */
+nav::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+}
+nav {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Remove number input spinners (up/down arrows) */
@@ -86,19 +100,7 @@ button:not([type="submit"]):not(.tax-dropdown-button) {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Apply blue background to ALL buttons for Windows compatibility - EXCLUDES invoice page */
-body:not(:has(.invoice-page-wrapper)):not(:has(.close-report-wrapper)) button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn):not(.branch-select-btn) {
-  background-color: rgb(37, 99, 235) !important;
-  color: white !important;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  padding: 6px 12px !important;
-  border-radius: 4px !important;
-  font-size: 11px !important;
-  font-weight: 300 !important;
-  min-height: 16px !important;
-  min-width: 60px !important;
-}
+/* Remove universal blue button override rule so components can use custom colors like #9B48D7 */
 
 /* Invoice page specific styles - NO BLUE - HIGHEST PRIORITY */
 .invoice-page-wrapper button,
@@ -554,5 +556,34 @@ button.action-delete-btn:hover {
 .invoice-page-wrapper .payment-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* High-specificity Global Sidebar responsive margin rules for Header and all Page Containers */
+html body.sidebar-closed nav.bg-white,
+html body.sidebar-closed div[class*="ml-"],
+html body.sidebar-closed .ml-64,
+html body.sidebar-closed .ml-\\[240px\\],
+html body.sidebar-closed .ml-\\[290px\\] {
+  margin-left: 0 !important;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html body.sidebar-open nav.bg-white,
+html body.sidebar-open div[class*="ml-64"],
+html body.sidebar-open .ml-64 {
+  margin-left: 16rem !important;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html body.sidebar-open div[class*="ml-[240px]"],
+html body.sidebar-open .ml-\\[240px\\] {
+  margin-left: 240px !important;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+html body.sidebar-open div[class*="ml-[290px]"],
+html body.sidebar-open .ml-\\[290px\\] {
+  margin-left: 290px !important;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 

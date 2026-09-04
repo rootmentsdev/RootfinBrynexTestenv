@@ -3,8 +3,10 @@ import Header from "../components/Header";
 import SingleImageUpload from "../components/SingleImageUpload";
 import baseUrl from "../api/api";
 import { useEnterToSave } from "../hooks/useEnterToSave";
+import useSidebar from "../hooks/useSidebar";
 
 const SecurityPending = () => {
+  const isSidebarOpen = useSidebar();
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
 
     const [selectedOption, setSelectedOption] = useState("radioDefault01");

@@ -5,6 +5,7 @@ import { ArrowLeft, ChevronDown, Search, Check, Settings, X, Package, DollarSign
 import Head from "../components/Head";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -15,6 +16,7 @@ const STORAGE_KEYS = {
 };
 
 const loadStoredList = (key) => {
+  const isSidebarOpen = useSidebar();
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(key);
@@ -959,7 +961,7 @@ const handleCheckboxChange = (field) => (event) => {
   // Early return for loading state - AFTER all hooks
   if (loadingGroup) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
           <p className="text-lg font-medium text-[#475569]">Loading item group...</p>
         </div>
@@ -995,7 +997,7 @@ const handleCheckboxChange = (field) => (event) => {
     : null;
 
   return (
-    <div className="ml-64 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+    <div className={`transition-all duration-300 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Enhanced Header */}
       <div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="px-4 sm:px-8 py-4 sm:py-6">

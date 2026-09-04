@@ -6,6 +6,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { Search, ChevronDown, X, Info } from "lucide-react";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const Input = ({ label, placeholder = "", hint, type = "text", right, ...props }) => (
   <label className="flex w-full flex-col gap-1 text-base text-[#475569]">
@@ -473,6 +474,7 @@ const TDS_OPTIONS = [
 
 // GST Treatment Dropdown Component
 const GSTTreatmentDropdown = ({ value, onChange, ...props }) => {
+  const isSidebarOpen = useSidebar();
   const buttonRef = useRef(null);
   const dropdownRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -2074,14 +2076,14 @@ const PurchaseVendorCreate = () => {
 
   if (loading) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center py-12">Loading vendor data...</div>
       </div>
     );
   }
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={isEditMode ? "Edit Vendor" : "New Vendor"}
         description=""

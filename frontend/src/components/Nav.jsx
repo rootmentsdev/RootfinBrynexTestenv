@@ -27,7 +27,9 @@ import {
     ShoppingBasket,
     UserPlus,
     UserCog,
-    KeyRound
+    KeyRound,
+    Menu,
+    ChevronLeft
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 
@@ -48,6 +50,27 @@ const Nav = () => {
     const activePath = location.pathname;
 
     const [isOpen, setIsOpen] = useState(true);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.classList.add("sidebar-open");
+            document.body.classList.remove("sidebar-closed");
+        } else {
+            document.body.classList.add("sidebar-closed");
+            document.body.classList.remove("sidebar-open");
+        }
+        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen } }));
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleToggle = () => setIsOpen((prev) => !prev);
+        window.addEventListener("toggle-sidebar", handleToggle);
+        return () => window.removeEventListener("toggle-sidebar", handleToggle);
+    }, []);
+    const [isHovered, setIsHovered] = useState(false);
+    const [isPinned, setIsPinned] = useState(() => localStorage.getItem("rootfin_sidebar_pinned") !== "false");
+
+    const showSidebar = isPinned || isHovered;
 
     const getInitialSection = useMemo(() => {
         if (activePath === "/reports/sales" || activePath === "/reports/sales-by-invoice" || activePath === "/reports/inventory" || activePath === "/reports/income-expense" || activePath === "/securityReport" || activePath === "/Revenuereport" || activePath === "/BookingReport" || activePath === "/RentOutReport" || activePath === "/reports/sales-by-group") {
@@ -159,19 +182,45 @@ const Nav = () => {
 
     return (
         <div className={`flex ${location.pathname === "/login" ? "hidden" : "block"}`}>
+            {/* Floating button to open sidebar when closed */}
+            {!isOpen && (
+                <button
+                    onClick={() => {
+                        setIsOpen(true);
+                        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen: true } }));
+                    }}
+                    title="Open Sidebar Menu"
+                    className="fixed top-3 left-3 z-[99999] p-2 rounded-xl bg-white text-[#1e293b] border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-md flex items-center justify-center cursor-pointer active:scale-95 no-print"
+                >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#1e293b]">
+                        <line x1="5" y1="4" x2="5" y2="20"/>
+                        <line x1="10" y1="4" x2="10" y2="20"/>
+                        <path d="M15 8l4 4-4 4"/>
+                    </svg>
+                </button>
+            )}
+
+
             {/* Sidebar */}
             <div
-                className={`fixed top-0 left-0 h-full ${sidebarWidth} transform flex flex-col justify-between bg-[#18181b] text-white transition-transform duration-300 ${
+                className={`fixed top-0 left-0 h-full ${sidebarWidth} z-[99999] transform flex flex-col justify-between bg-[#18181b] text-white transition-transform duration-300 shadow-2xl ${
                     isOpen ? "translate-x-0" : sidebarTranslate
                 }`}
             >
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="px-6 pt-6 pb-8 flex items-center">
+                    <div className="px-6 pt-6 pb-8 flex items-center justify-between">
                         <span className="text-white font-bold text-[22px] tracking-wide flex items-center">
                             ROOT<span className="text-[#a855f7] flex items-center"><LineChart size={20} className="mx-0.5" strokeWidth={3} />FIN</span>
                         </span>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            title="Close Sidebar"
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
                     </div>
-                    <nav className="space-y-5 px-3 overflow-y-auto pb-4">
+                    <nav className="space-y-5 px-3 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
                     {/* ── CLUSTER MANAGER: only Financial Summary + Reports ── */}
                     {isClusterManager ? (

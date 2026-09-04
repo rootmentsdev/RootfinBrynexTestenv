@@ -5,6 +5,7 @@ import Head from "../components/Head";
 import ImageUpload from "../components/ImageUpload";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 // All warehouses/stores in the system
 const ALL_WAREHOUSES = [
@@ -33,6 +34,7 @@ const ALL_WAREHOUSES = [
 ];
 
 const ShoeSalesItemGroupDetail = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const [itemGroup, setItemGroup] = useState(null);
@@ -248,7 +250,7 @@ const ShoeSalesItemGroupDetail = () => {
 
   if (!itemGroup) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
           <p className="text-lg font-medium text-[#475569]">Item Group not found</p>
           <Link
@@ -579,7 +581,7 @@ const ShoeSalesItemGroupDetail = () => {
   };
 
   return (
-    <div className="p-8 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-8 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={
           <div className="flex items-center gap-3">

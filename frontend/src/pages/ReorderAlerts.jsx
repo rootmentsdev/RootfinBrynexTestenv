@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { AlertTriangle, CheckCircle, Trash2, Bell, Mail } from "lucide-react";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const ReorderAlerts = () => {
+  const isSidebarOpen = useSidebar();
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("active");
@@ -124,7 +126,7 @@ const ReorderAlerts = () => {
     <div className="min-h-screen bg-[#f6f9ff]">
       <Head title="Reorder Alerts" description="Manage product reorder alerts" />
 
-      <div className="ml-64 px-10 pb-16 pt-8">
+      <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="space-y-1">
             <h1 className="text-2xl font-semibold text-[#111827]">Reorder Alerts</h1>

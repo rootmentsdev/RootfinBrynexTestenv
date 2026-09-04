@@ -5,6 +5,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { X, ChevronDown, ArrowUp, Calendar, Search, Check, Plus, Pencil } from "lucide-react";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const Label = ({ children, required = false }) => (
   <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
@@ -14,6 +15,7 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
+  const isSidebarOpen = useSidebar();
   const baseClasses = "rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors";
   const tableInputClasses = "h-[36px] px-[10px] py-[6px]";
   const defaultClasses = "w-full px-3 py-2.5";
@@ -1033,14 +1035,14 @@ const PurchaseReceiveCreate = () => {
   // Show loading state while fetching receive data in edit mode
   if (loading && isEditMode) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center text-[#64748b]">Loading purchase receive...</div>
       </div>
     );
   }
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb]">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="border-b border-[#e6eafb] bg-white px-6 py-4">
         <div className="flex items-center justify-between">

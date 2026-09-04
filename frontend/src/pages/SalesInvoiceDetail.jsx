@@ -3,8 +3,10 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Printer, Download, Mail, Share2, Edit, MoreHorizontal, ArrowLeft } from "lucide-react";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const SalesInvoiceDetail = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
@@ -833,7 +835,7 @@ const SalesInvoiceDetail = () => {
       <div className="flex">
   
         {/* LEFT SIDEBAR — unchanged */}
-        <div className="w-80 bg-white border-r border-[#e5e7eb] h-screen overflow-y-auto ml-64">
+        <div className={`transition-all duration-300 w-80 bg-white border-r border-[#e5e7eb] h-screen overflow-y-auto ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
   <div className="p-4 border-b border-[#e5e7eb]">
     <div className="flex items-center justify-between mb-4">
       <h2 className="text-lg font-semibold text-[#1f2937]">All Invoices</h2>

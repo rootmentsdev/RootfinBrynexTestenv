@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const columns = [
   "Date",
@@ -12,11 +13,12 @@ const columns = [
 ];
 
 const PaymentsReceived = () => {
+  const isSidebarOpen = useSidebar();
   return (
     <div className="min-h-screen bg-[#f6f8ff]">
       <Head title="Payments Received" />
 
-      <div className="ml-64 px-10 pb-16 pt-8">
+      <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-[#111827]">All Received Payments</h1>
           <div className="flex items-center gap-2">

@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash, FaTimes } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
 import baseUrl from "../api/api";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const AddNewUser = () => {
+    const isSidebarOpen = useSidebar();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -181,7 +183,7 @@ const AddNewUser = () => {
     };
 
     return (
-        <div className="ml-[240px] bg-white min-h-screen">
+        <div className={`bg-white min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
             {/* Header Section */}
             <div className="bg-white px-8 py-6 border-b border-gray-200">
                 <div className="flex items-center gap-4">

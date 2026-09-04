@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import SingleImageUpload from "../components/SingleImageUpload";
 import baseUrl from "../api/api";
 import { FiInfo } from "react-icons/fi";
+import useSidebar from "../hooks/useSidebar";
 
 const baseExpenseCats = [
   { value: "petty expenses",        label: "Petty Expenses" },
@@ -31,6 +32,7 @@ const baseIncomeCats = [
 ];
 
 const SecurityReturn = () => {
+  const isSidebarOpen = useSidebar();
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
 

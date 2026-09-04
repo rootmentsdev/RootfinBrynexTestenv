@@ -5,9 +5,11 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { ChevronDown, List, Grid, Camera, MoreHorizontal, ArrowUp, Search, Filter, X, Plus, Pencil, Image as ImageIcon, Check, Info, Upload, FileText } from "lucide-react";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 // Vendor Credit Number Preferences Modal Component
 const CreditNumberPreferencesModal = ({ isOpen, onClose, onSave, currentPrefix, currentNextNumber, autoGenerate, restartYearly }) => {
+  const isSidebarOpen = useSidebar();
   const [localAutoGenerate, setLocalAutoGenerate] = useState(autoGenerate);
   const [localPrefix, setLocalPrefix] = useState(currentPrefix);
   const [localNextNumber, setLocalNextNumber] = useState(currentNextNumber);
@@ -1825,7 +1827,7 @@ const NewVendorCreditForm = ({ creditId, isEditMode = false }) => {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb]">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-[#e6eafb] px-6 py-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-[#1f2937]">{isEditMode ? "Edit Vendor Credit" : "New Vendor Credit"}</h1>
@@ -2508,7 +2510,7 @@ const VendorCredits = () => {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">

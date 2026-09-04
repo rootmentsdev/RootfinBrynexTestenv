@@ -3,11 +3,13 @@ import Head from "../components/Head";
 import { Link, useLocation } from "react-router-dom";
 import { SlidersHorizontal } from "lucide-react";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const currency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
 
 const PurchaseVendors = () => {
+  const isSidebarOpen = useSidebar();
   const location = useLocation();
   const [vendors, setVendors] = useState([]);
   const [selected, setSelected] = useState(() => new Set());
@@ -152,7 +154,7 @@ const PurchaseVendors = () => {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="All Vendors"
         description=""

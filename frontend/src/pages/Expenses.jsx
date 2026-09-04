@@ -4,6 +4,7 @@ import baseUrl from "../api/api";
 import { BsBank2 } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
 import { ChevronDown } from "lucide-react";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const baseExpenseCats = [
   { value: "dry cleaning",          label: "Dry Cleaning",           subs: ["Dry cleaning"] },
@@ -30,6 +31,7 @@ const baseExpenseCats = [
 ];
 
 const Expenses = () => {
+  const isSidebarOpen = useSidebar();
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
   const cats = baseExpenseCats;
@@ -108,7 +110,7 @@ const Expenses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] ml-64">
+    <div className={`min-h-screen bg-[#f0f4ff] transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="px-10 pt-8 pb-16">
         {/* Page title */}
         <div className="mb-6">

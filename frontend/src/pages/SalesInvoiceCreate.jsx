@@ -6,6 +6,7 @@ import { Search, Image as ImageIcon, ChevronDown, X, Settings, Pencil, Check, Pl
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 // Utility function to round to 2 decimal places without floating-point errors
 // This fixes issues like 9999.99 showing as 9999.989999 or 100.01 instead of 100.00
@@ -764,6 +765,7 @@ const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
 }
 
 const SalesInvoiceCreate = () => {
+  const isSidebarOpen = useSidebar();
   // Complete and corrected mapping from branch names to location codes
   const branchToLocCodeMap = {
     // Main office and special locations
@@ -3154,7 +3156,7 @@ Customer Service Available`;
         </div>
       )}
 
-      <div className="ml-52 min-h-screen flex flex-col">
+      <div className={`transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'ml-52' : 'ml-0'}`}>
         {/* ── Top Header Bar ── */}
         <div className="flex items-center justify-between px-6 py-3">
           <div className="flex items-center gap-3">

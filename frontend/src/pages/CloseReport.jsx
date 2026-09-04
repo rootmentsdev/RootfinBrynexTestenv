@@ -1,8 +1,10 @@
 import { useRef, useState, useMemo } from 'react';
 import Headers from '../components/Header';
 import baseUrl from '../api/api';
+import { useSidebar } from '../hooks/useSidebar.js';
 
 const CloseReport = () => {
+  const isSidebarOpen = useSidebar();
   const AllLoation = [
     { "locName": "Z-Edapally1", "locCode": "144" },
     { "locName": "G-Edappally", "locCode": "702" },
@@ -177,7 +179,7 @@ const CloseReport = () => {
   return (
     <div className="close-report-wrapper bg-[#fcfcfc] min-h-screen pb-10">
       <Headers title={'Close Report'} />
-      <div className='ml-64 pl-[10px] pr-8 pt-8'>
+      <div className={`transition-all duration-300 pl-[10px] pr-8 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         
         {/* Top Controls Area */}
         <div className="flex justify-between items-end mb-8">

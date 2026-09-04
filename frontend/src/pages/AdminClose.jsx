@@ -3,6 +3,7 @@ import { useEnterToSave } from "../hooks/useEnterToSave";
 import Select from "react-select";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 // Function to format location names with proper spacing
 const formatLocationName = (name) => {
@@ -63,6 +64,7 @@ const AdminClose = () => {
         label: formatLocationName(loc.value),
     })));
 
+    const isSidebarOpen = useSidebar();
     const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
     const email = currentUser?.email;
     const isOfficeUser = currentUser?.locCode === '102';
@@ -191,7 +193,7 @@ const AdminClose = () => {
     return (
         <>
             <Header title="Admin Close" />
-            <div className="ml-[290px] mt-[80px] p-4">
+            <div className={`transition-all duration-300 p-4 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'}`}>
                 {isEditMode && (
                     <div className="mb-4 p-3 bg-yellow-100 border border-yellow-400 rounded">
                         <p className="text-yellow-800 font-semibold">

@@ -4,11 +4,13 @@ import { ChevronDown, MoreHorizontal, Send } from "lucide-react";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 const currency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(value || 0);
 
 const PurchaseReceives = () => {
+  const isSidebarOpen = useSidebar();
   const location = useLocation();
   const isNewReceive = location.pathname === "/purchase/receives/new";
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -183,7 +185,7 @@ const PurchaseReceives = () => {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="All Purchase Receives"
         description=""

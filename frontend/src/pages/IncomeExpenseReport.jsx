@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { RefreshCw } from "lucide-react";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
 
@@ -9,6 +10,7 @@ const fmt = (n) =>
 
 const today = () => new Date().toISOString().slice(0, 10);
 const firstOfMonth = () => {
+  const isSidebarOpen = useSidebar();
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
 };
@@ -437,7 +439,7 @@ export default function IncomeExpenseReport() {
   const hasData = !loading && (Object.keys(incomeGrouped).length > 0 || Object.keys(expenseGrouped).length > 0);
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="mb-6">
         <h1 className="text-xl font-bold text-[#101828] uppercase tracking-wide">Income &amp; Expenses Report</h1>
         <p className="text-sm text-[#6c728a]">Detailed overview of Income &amp; Expense Report</p>

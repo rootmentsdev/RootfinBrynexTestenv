@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { ChevronDown, Plus, MoreHorizontal } from "lucide-react";
+import useSidebar from "../hooks/useSidebar";
 
 const PaymentsMade = () => {
+  const isSidebarOpen = useSidebar();
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">

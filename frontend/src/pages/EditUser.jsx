@@ -3,8 +3,10 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const EditUser = () => {
+  const isSidebarOpen = useSidebar();
     const { id } = useParams();
     const location = useLocation();
     const navigate = useNavigate();

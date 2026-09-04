@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const columns = [
   {
@@ -21,8 +22,9 @@ const columns = [
 ];
 
 const InventoryPackages = () => {
+  const isSidebarOpen = useSidebar();
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="All Packages"
         description="Track package progress from staging to delivery."

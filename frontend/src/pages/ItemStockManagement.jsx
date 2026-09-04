@@ -3,6 +3,7 @@ import { useEnterToSave } from "../hooks/useEnterToSave";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { X, Trash2, Plus } from "lucide-react";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 // Warehouse names for the dropdown
 const WAREHOUSES = [
@@ -26,6 +27,7 @@ const WAREHOUSES = [
 ];
 
 const ItemStockManagement = () => {
+  const isSidebarOpen = useSidebar();
   const { id, itemId } = useParams();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -349,7 +351,7 @@ const ItemStockManagement = () => {
 
   if (!itemGroup || !item) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
           <p className="text-lg font-medium text-[#475569]">Item not found</p>
         </div>
@@ -358,7 +360,7 @@ const ItemStockManagement = () => {
   }
 
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#e4e6f2] px-8 py-6">

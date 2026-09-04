@@ -4,8 +4,10 @@ import { Search, X, Plus, Trash2, AlertTriangle } from "lucide-react";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 const InventoryAdjustments = () => {
+  const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
   
@@ -386,7 +388,7 @@ const InventoryAdjustments = () => {
   };
   
   return (
-    <div className="ml-64 min-h-screen bg-[#f8fafc] p-8">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">

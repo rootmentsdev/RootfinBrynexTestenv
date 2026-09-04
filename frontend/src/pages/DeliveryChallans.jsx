@@ -1,8 +1,10 @@
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const DeliveryChallans = () => {
+  const isSidebarOpen = useSidebar();
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="Delivery Challans"
         description="Track dispatch documentation and proof of delivery."

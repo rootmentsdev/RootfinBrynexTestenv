@@ -5,6 +5,7 @@ import Head from "../components/Head";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 // Warehouse name mapping: actual names from API -> display names for Stocks page
 const WAREHOUSE_NAME_MAPPING = {
@@ -119,6 +120,7 @@ const ALLOWED_WAREHOUSES_DISPLAY = [
 
 // Get all possible actual warehouse names that map to allowed warehouses
 const getAllowedActualNames = () => {
+  const isSidebarOpen = useSidebar();
   const actualNames = new Set();
   Object.keys(WAREHOUSE_NAME_MAPPING).forEach(actualName => {
     if (ALLOWED_WAREHOUSES_DISPLAY.includes(WAREHOUSE_NAME_MAPPING[actualName])) {
@@ -759,7 +761,7 @@ const ShoeSalesItemDetailFromGroup = () => {
 
   if (!itemGroup || !item) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
           <p className="text-lg font-medium text-[#475569]">Item not found</p>
           <Link
@@ -1114,7 +1116,7 @@ const ShoeSalesItemDetailFromGroup = () => {
   };
 
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={item.name || "Item Detail"}
         description={item.sku ? `SKU: ${item.sku}` : itemGroup.name}

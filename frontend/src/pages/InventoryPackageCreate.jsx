@@ -1,15 +1,17 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const InventoryPackageCreate = () => {
+  const isSidebarOpen = useSidebar();
   const [customer, setCustomer] = useState("");
   const [salesOrder, setSalesOrder] = useState("");
 
   const isDetailsVisible = useMemo(() => customer && salesOrder, [customer, salesOrder]);
 
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="New Package"
         description="Create a shipment-ready package for your customer."

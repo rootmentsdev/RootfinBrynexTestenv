@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { CSVLink } from "react-csv";
 import Headers from "../components/Header.jsx";
 import baseUrl from "../api/api.js";
+import useSidebar from "../hooks/useSidebar";
 
 const STORES = [
   { value: "all", label: "All Stores" },
@@ -29,6 +30,7 @@ const STORES = [
 ];
 
 const SalesByGroupReport = () => {
+  const isSidebarOpen = useSidebar();
   const today = new Date().toISOString().split("T")[0];
   const user = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (user.power || "").toLowerCase() === "admin";

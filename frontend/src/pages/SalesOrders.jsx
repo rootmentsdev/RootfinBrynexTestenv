@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const SalesOrders = () => {
+  const isSidebarOpen = useSidebar();
   return (
     <div className="min-h-screen bg-[#f6f8ff]">
       <Head title="Sales Orders" />
 
-      <div className="ml-64 flex min-h-[calc(100vh-6rem)] flex-col gap-16 px-10 pb-16 pt-10">
+      <div className={`transition-all duration-300 flex min-h-[calc(100vh-6rem)] flex-col gap-16 px-10 pb-16 pt-10 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-[#111827]">All Sales Orders</h1>
           <div className="flex items-center gap-3">

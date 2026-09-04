@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 import { ChevronDown, MoreHorizontal, Plus } from "lucide-react";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const ShoeSalesPriceLists = () => {
+  const isSidebarOpen = useSidebar();
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title="All Price Lists"
         description="Create and manage multiple price lists tailored to different customer segments."

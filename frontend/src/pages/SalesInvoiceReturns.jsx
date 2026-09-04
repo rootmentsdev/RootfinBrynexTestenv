@@ -4,8 +4,10 @@ import Head from "../components/Head";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 const SalesInvoiceReturns = () => {
+  const isSidebarOpen = useSidebar();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -178,7 +180,7 @@ const SalesInvoiceReturns = () => {
           description="View and manage return, refund, and cancellation invoices."
         />
 
-        <div className="ml-64 px-10 pb-16 pt-8">
+        <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <div className="flex flex-col gap-6">
             <header className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
