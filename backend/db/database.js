@@ -1,6 +1,14 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import fs from 'fs';
+import dns from 'dns';
+
+// Fix Node.js Windows IPv6 / local router DNS SRV lookup failures (querySrv ECONNREFUSED)
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  // Ignore fallback error
+}
 
 // 🔁 Load correct .env file based on env (only if not loaded already by server.js)
 const env = process.env.NODE_ENV || 'development';
