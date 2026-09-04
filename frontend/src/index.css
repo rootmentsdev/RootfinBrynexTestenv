@@ -87,7 +87,7 @@ button:not([type="submit"]):not(.tax-dropdown-button) {
 }
 
 /* Apply blue background to ALL buttons for Windows compatibility - EXCLUDES invoice page */
-body:not(:has(.invoice-page-wrapper)) button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn):not(.branch-select-btn) {
+body:not(:has(.invoice-page-wrapper)):not(:has(.close-report-wrapper)) button:not(.sidebar-button):not(.select-option):not(.table-link-button):not(.custom-button):not(.no-blue-button):not(.tax-dropdown-button):not(.gst-treatment-button):not(.state-dropdown-button):not(.action-edit-btn):not(.action-delete-btn):not(.branch-select-btn) {
   background-color: rgb(37, 99, 235) !important;
   color: white !important;
   border: 1px solid rgba(0, 0, 0, 0.1);

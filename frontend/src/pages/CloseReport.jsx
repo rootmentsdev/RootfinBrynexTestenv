@@ -5,9 +5,7 @@ import baseUrl from '../api/api';
 const CloseReport = () => {
   const AllLoation = [
     { "locName": "Z-Edapally1", "locCode": "144" },
-    // { "locName": "Warehouse", "locCode": "858" },
     { "locName": "G-Edappally", "locCode": "702" },
-    // { "locName": "HEAD OFFICE01", "locCode": "759" },
     { "locName": "SG-Trivandrum", "locCode": "700" },
     { "locName": "Z- Edappal", "locCode": "100" },
     { "locName": "Z.Perinthalmanna", "locCode": "133" },
@@ -60,10 +58,6 @@ const CloseReport = () => {
 
       const result = await response.json();
       
-      console.log('🔍 CloseReport - Raw API response:', result);
-      console.log('🔍 CloseReport - Data array:', result?.data);
-
-      // Process data in chunks for better performance
       const processDataInChunks = (data, chunkSize = 50) => {
         const chunks = [];
         for (let i = 0; i < data.length; i += chunkSize) {
@@ -77,18 +71,10 @@ const CloseReport = () => {
       
       let mappedData = [];
       
-      // Process chunks to avoid blocking UI
       for (const chunk of dataChunks) {
         const processedChunk = chunk.map((transaction) => {
           const foundLoc = AllLoation.find(item => item.locCode === transaction.locCode);
           const storeName = foundLoc ? foundLoc.locName : "Unknown";
-
-          console.log(`🔍 Transaction for ${storeName} (${transaction.locCode}):`, {
-            cash: transaction.cash,
-            Closecash: transaction.Closecash,
-            bank: transaction.bank,
-            rawTransaction: transaction
-          });
 
           const calculatedClosingCash = Number(transaction.cash || 0);
           const physicalCash = Number(transaction.Closecash || 0);
@@ -111,8 +97,6 @@ const CloseReport = () => {
         });
         
         mappedData = [...mappedData, ...processedChunk];
-        
-        // Yield control to prevent UI blocking
         await new Promise(resolve => setTimeout(resolve, 0));
       }
 
@@ -125,185 +109,201 @@ const CloseReport = () => {
     }
   };
 
-  // Memoized filtered transactions for better performance
-  const filteredTransactions = useMemo(() => {
+  const counts = useMemo(() => {
     const transactions = data?.data || [];
-    if (filter === "All") return transactions;
-    return transactions.filter(transaction => transaction.match === filter);
+    const matchCount = transactions.filter(t => t.match === 'Match').length;
+    const mismatchCount = transactions.filter(t => t.match === 'Mismatch').length;
+    const notClosedCount = AllLoation.filter(loc => !transactions.some(t => t.storeName === loc.locName)).length;
+    return { matchCount, mismatchCount, notClosedCount };
+  }, [data?.data]);
+
+  const combinedData = useMemo(() => {
+    let combined = (data?.data || []).map(txn => ({
+      ...txn,
+      displayStatus: txn.match
+    }));
+
+    const notClosed = AllLoation.filter(loc => 
+      !combined.some(txn => txn.storeName === loc.locName)
+    ).map(loc => ({
+      storeName: loc.locName,
+      locCode: loc.locCode,
+      bankPlusUpi: '',
+      cash: '',
+      Closecash: '',
+      difference: '',
+      displayStatus: 'Not Closed'
+    }));
+
+    combined = [...combined, ...notClosed];
+
+    if (filter !== "All") {
+       combined = combined.filter(item => item.displayStatus === filter);
+    }
+
+    return combined;
   }, [data?.data, filter]);
 
-  // Memoized not closing branches calculation
-  const NotClosingBranch = useMemo(() => {
-    const transactions = filteredTransactions;
-    return AllLoation.filter((loc) => {
-      return !transactions.some((txn) => txn.storeName === loc.locName);
+  const handleExportCSV = () => {
+    if (!combinedData || combinedData.length === 0) return;
+    const headers = ['NO.', 'NO.OF BILLS', 'LOC CODE', 'BANK', 'CASH', 'CLOSE CASH', 'DIFFERENCE', 'STATUS'];
+    const csvRows = [headers.join(',')];
+    combinedData.forEach((row, i) => {
+      csvRows.push([
+        i + 1,
+        row.storeName,
+        row.locCode,
+        row.bankPlusUpi || 0,
+        row.cash || 0,
+        row.Closecash || 0,
+        row.difference || 0,
+        row.displayStatus
+      ].join(','));
     });
-  }, [filteredTransactions, AllLoation]);
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Close_Report_${fromDate}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
 
-
-
-  const handlePrint = () => {
-    window.print();
+  const formatNumber = (num) => {
+    if (num === '' || num === null || num === undefined) return '';
+    return Number(num).toLocaleString('en-IN');
   };
 
   return (
-    <div>
-      <style>{`
-        @media print {
-          @page { size: tabloid; margin: 10mm; }
-          body { font-family: Arial, sans-serif; }
-          .no-print { display: none !important; }
-          table { width: 100%; border-collapse: collapse; page-break-inside: avoid; }
-          th, td { border: 1px solid black; padding: 8px; text-align: left; white-space: nowrap; }
-          tr { break-inside: avoid; }
-          .print-title { font-size: 20px; font-weight: bold; margin-bottom: 20px; text-align: center; }
-        }
-      `}</style>
+    <div className="close-report-wrapper bg-[#fcfcfc] min-h-screen pb-10">
       <Headers title={'Close Report'} />
-      <div className='ml-[240px]'>
-        <div className="p-6 bg-gray-100 min-h-screen">
-          {/* Date Input */}
-          <div className="flex gap-4 mb-6 w-[600px] no-print">
-            <div className='w-full flex flex-col'>
-              <label htmlFor="from">From *</label>
-              <input
-                type="date"
-                id="from"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className='border border-gray-300 py-[6px]'
-              />
+      <div className='ml-64 pl-[10px] pr-8 pt-8'>
+        
+        {/* Top Controls Area */}
+        <div className="flex justify-between items-end mb-8">
+          <div className="flex items-end gap-3">
+            <div className="flex flex-col">
+              <label className="text-[13px] text-gray-500 mb-1 ml-1">Select Date</label>
+              <div className="relative">
+                 <input
+                   type="date"
+                   value={fromDate}
+                   onChange={(e) => setFromDate(e.target.value)}
+                   className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 w-[160px] h-[40px] shadow-sm"
+                 />
+              </div>
             </div>
-
+            
             <button
-              disabled={!fromDate || isLoading}
-              className={`w-[400px] h-[40px] mt-[20px] rounded-md text-white flex items-center justify-center gap-2 ${
-                !fromDate || isLoading 
-                  ? 'bg-blue-300 cursor-not-allowed' 
-                  : 'bg-blue-500 hover:bg-blue-600'
-              }`}
               onClick={handleFetch}
+              disabled={!fromDate || isLoading}
+              className={`px-6 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors ${!fromDate || isLoading ? 'bg-[#d8b4fe] cursor-not-allowed text-white' : 'bg-[#a855f7] hover:bg-[#9333ea] text-white shadow-sm'}`}
             >
-              {isLoading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Loading...
-                </>
-              ) : (
-                'Fetch'
+              {isLoading ? 'Loading...' : 'Fetch Data'}
+            </button>
+            
+            <button
+              onClick={handleExportCSV}
+              className="bg-[#f1f5f9] hover:bg-gray-200 text-gray-800 px-5 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors shadow-sm border border-gray-200"
+            >
+              Export CSV 
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            </button>
+          </div>
+          
+          <div className="flex bg-[#eceef0] rounded-full p-1 items-center">
+            <button 
+              onClick={() => setFilter("All")} 
+              style={{ display: 'inline-flex' }}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors items-center justify-center ${filter === 'All' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
+            >
+              All Status
+            </button>
+            <button 
+              onClick={() => setFilter("Not Closed")} 
+              style={{ display: 'inline-flex' }}
+              className={`items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${filter === 'Not Closed' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
+            >
+              <span>Not Closed</span>
+              {counts.notClosedCount > 0 && (
+                <span className="bg-[#ef4444] text-white text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  {counts.notClosedCount}
+                </span>
+              )}
+            </button>
+            <button 
+              onClick={() => setFilter("Match")} 
+              style={{ display: 'inline-flex' }}
+              className={`px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors items-center justify-center ${filter === 'Match' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
+            >
+              Match
+            </button>
+            <button 
+              onClick={() => setFilter("Mismatch")} 
+              style={{ display: 'inline-flex' }}
+              className={`items-center justify-center gap-1.5 px-4 py-1.5 rounded-full text-[13px] font-medium whitespace-nowrap transition-colors ${filter === 'Mismatch' ? 'bg-[#222222] text-white shadow-sm' : 'text-gray-800 hover:bg-gray-200 bg-transparent'}`}
+            >
+              <span>Mismatch</span>
+              {counts.mismatchCount > 0 && (
+                <span className="bg-[#ef4444] text-white text-[11px] rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                  {counts.mismatchCount}
+                </span>
               )}
             </button>
           </div>
+        </div>
 
-          {/* Match Filter Buttons */}
-          <div className="mb-4 flex gap-4 no-print">
-            <button onClick={() => setFilter("All")} className={`px-4 py-2 rounded ${filter === 'All' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}>All</button>
-            <button onClick={() => setFilter("Match")} className={`px-4 py-2 rounded ${filter === 'Match' ? 'bg-green-600 text-white' : 'bg-gray-300'}`}>Match</button>
-            <button onClick={() => setFilter("Mismatch")} className={`px-4 py-2 rounded ${filter === 'Mismatch' ? 'bg-red-600 text-white' : 'bg-gray-300'}`}>Mismatch</button>
-          </div>
-
-          {/* Table */}
-          <div ref={printRef}>
-            <h2 className="print-title" style={{display: 'none'}}>Financial Summary Report - {fromDate}</h2>
-            <div className="bg-white p-4 shadow-md rounded-lg">
-              <table className="w-full border-collapse border rounded-md border-gray-300">
-                <thead>
-                  <tr className="bg-[#7C7C7C] text-white">
-                    <th className="border p-2">No.of</th>
-                    <th className="border p-2">Date</th>
-                    <th className="border p-2">Store</th>
-                    <th className="border p-2">locCode</th>
-                    <th className="border p-2">Bank</th>
-                    <th className="border p-2">Cash</th>
-                    <th className="border p-2">Close Cash</th>
-                    <th className="border p-2">difference</th>
-                    <th className="border p-2">Match</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {isLoading ? (
-                    <tr>
-                      <td colSpan="9" className="text-center border p-8">
-                        <div className="flex items-center justify-center gap-3">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
-                          <span className="text-gray-600">Loading data...</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ) : filteredTransactions.length > 0 ? (
-                    filteredTransactions.map((transaction, index) => (
-
-                      <tr key={index}>
-                        <td className="border p-2">{index + 1}</td>
-
-                        <td className="border p-2">{transaction.date.split('T')[0]}</td>
-                        <td className="border p-2">{transaction.storeName}</td>
-                        <td className="border p-2">{transaction.locCode}</td>
-                        <td className="border p-2">{transaction.bankPlusUpi}</td>
-                        <td className="border p-2">{transaction.cash}</td>
-                        <td className="border p-2">{transaction.Closecash}</td>
-                        <td className='border p-2'>{transaction.difference}</td>
-                        <td className={`border p-2 ${transaction.match === 'Match' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}`}>
-                          {transaction.match}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="9" className="text-center border p-4">
-                        {!fromDate ? "Select date first" : "No transactions found"}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-          </div>
-
-          <h1 className='mt-10 mb-10 ml-10 text-xl font-bold text-red-500'>
-            They haven’t closed their store balance          </h1>
-
-          <table className="w-full border-collapse border rounded-md border-red-400">
-            <thead>
-              <tr className="bg-[#7C7C7C] text-white">
-                <th className="border border-red-400 p-2">No.of</th>
-                <th className="border border-red-400 p-2">Date</th>
-                <th className="border border-red-400 p-2">Store</th>
-                <th className="border border-red-400 p-2">locCode</th>
-
+        {/* Table Area */}
+        <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#222222] text-white text-[12px] uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-4 font-semibold w-16">NO.</th>
+                <th className="px-6 py-4 font-semibold">NO.OF BILLS</th>
+                <th className="px-6 py-4 font-semibold text-center">LOC CODE</th>
+                <th className="px-6 py-4 font-semibold text-center">BANK</th>
+                <th className="px-6 py-4 font-semibold text-center">CASH</th>
+                <th className="px-6 py-4 font-semibold text-center">CLOSE CASH</th>
+                <th className="px-6 py-4 font-semibold text-center">DIFFERENCE</th>
+                <th className="px-6 py-4 font-semibold text-center w-40">STATUS</th>
               </tr>
             </thead>
             <tbody>
-              {NotClosingBranch.length > 0 ? (
-                NotClosingBranch.map((transaction, index) => (
-
-                  <tr key={index}>
-                    <td className="border border-red-400 p-2">{index + 1}</td>
-
-                    <td className="border border-red-400 p-2">{fromDate}</td>
-                    <td className="border border-red-400 p-2">{transaction.locName}</td>
-                    <td className="border border-red-400 p-2">{transaction.locCode}</td>
-
+              {isLoading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-16">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+                      <span className="text-gray-600 text-[14px]">Loading data...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : combinedData.length > 0 ? (
+                combinedData.map((row, index) => (
+                  <tr key={index} className={`border-b border-gray-100 text-[14px] hover:bg-gray-50 transition-colors ${row.displayStatus === 'Not Closed' ? 'bg-[#ffe4e6]' : 'bg-white'}`}>
+                    <td className="px-6 py-4 text-gray-500">{String(index + 1).padStart(2, '0')}</td>
+                    <td className="px-6 py-4 font-medium text-gray-900">{row.storeName}</td>
+                    <td className="px-6 py-4 text-center text-gray-600">{row.locCode}</td>
+                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.bankPlusUpi)}</td>
+                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.cash)}</td>
+                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.Closecash)}</td>
+                    <td className="px-6 py-4 text-center text-gray-600">{formatNumber(row.difference)}</td>
+                    <td className="px-6 py-4 text-center">
+                      {row.displayStatus === 'Match' && <span className="bg-[#dcfce7] text-[#16a34a] px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Match</span>}
+                      {row.displayStatus === 'Mismatch' && <span className="bg-[#fee2e2] text-[#ef4444] px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Mismatch</span>}
+                      {row.displayStatus === 'Not Closed' && <span className="bg-[#ef4444] text-white px-3 py-1 rounded-md text-[12px] font-semibold inline-block">Not Closed</span>}
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="text-center border border-red-400 p-4">
-                    {!fromDate ? "Select date first" : "No transactions found"}
+                  <td colSpan="8" className="text-center py-16 text-gray-500 text-[14px]">
+                    {!fromDate ? "Please select a date to view reports" : "No reports found for selected filter"}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-
-          {/* Print Button */}
-          <button
-            onClick={handlePrint}
-            className="mt-6 w-[200px] float-right bg-blue-600 text-white py-2 rounded-lg flex items-center justify-center gap-2 no-print"
-          >
-            📥 Take PDF
-          </button>
         </div>
       </div>
     </div>

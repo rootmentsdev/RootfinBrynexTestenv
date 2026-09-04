@@ -1432,241 +1432,166 @@ const Datewisedaybook = () => {
       <div>
         <Headers title={"Financial Summary Report"} />
         <div className='ml-[240px]'>
-          <div className="p-6 bg-slate-50 min-h-screen">
-            <style>{`
-              @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(-4px); }
-                to   { opacity: 1; transform: translateY(0); }
-              }
-              @keyframes shimmer {
-                0%   { background-position: -400px 0; }
-                100% { background-position: 400px 0; }
-              }
-              .shimmer {
-                background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
-                background-size: 400px 100%;
-                animation: shimmer 1.4s infinite;
-                border-radius: 6px;
-              }
-              .branch-select-btn {
-                background-color: white !important;
-                color: #374151 !important;
-                border: 1px solid #cbd5e1 !important;
-                box-shadow: none !important;
-                transform: none !important;
-              }
-              .branch-select-btn:hover {
-                background-color: #f8fafc !important;
-                border-color: #94a3b8 !important;
-                transform: none !important;
-                box-shadow: none !important;
-              }
-            `}</style>
-
-            {/* Filter Bar */}
-            <div className="flex flex-wrap items-end gap-4 mb-5 p-4 bg-white rounded border border-slate-200 shadow-sm no-print">
-              {/* Date range group */}
-              <div className="flex items-end gap-3">
-                <div className='flex flex-col'>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">From</label>
-                  <input
-                    type="date"
-                    id="fromDate"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    max="2099-12-31"
-                    min="2000-01-01"
-                    style={{ height: '36px' }}
-                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
-                  />
-                </div>
-                <div className='flex flex-col'>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">To</label>
-                  <input
-                    type="date"
-                    id="toDate"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    max="2099-12-31"
-                    min="2000-01-01"
-                    style={{ height: '36px' }}
-                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
-                  />
+          <div className="px-6 py-6 bg-white min-h-screen">
+            
+            {/* Top Filter Bar */}
+            <div className="flex justify-between items-start mb-8 no-print">
+              
+              {/* Left Group */}
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-4">
+                  <div className='flex flex-col'>
+                    <label className="text-[13px] text-gray-500 mb-1 ml-1">From Date</label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        id="fromDate"
+                        value={fromDate}
+                        onChange={(e) => setFromDate(e.target.value)}
+                        max="2099-12-31"
+                        min="2000-01-01"
+                        className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 w-[160px] h-[40px] shadow-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className='flex flex-col'>
+                    <label className="text-[13px] text-gray-500 mb-1 ml-1">To Date</label>
+                    <div className="relative">
+                      <input
+                        type="date"
+                        id="toDate"
+                        value={toDate}
+                        onChange={(e) => setToDate(e.target.value)}
+                        max="2099-12-31"
+                        min="2000-01-01"
+                        className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 w-[160px] h-[40px] shadow-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <button
                   onClick={handleFetch}
                   disabled={isFetching}
-                  style={{ height: '36px' }}
-                  className={`rounded-sm text-white px-6 text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm ${
+                  className={`rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors w-[130px] ${
                     isFetching
-                      ? 'bg-blue-400 cursor-not-allowed scale-95'
-                      : 'bg-blue-600 hover:bg-blue-700 hover:shadow-md active:scale-95 cursor-pointer'
+                      ? 'bg-[#d8b4fe] cursor-not-allowed text-white'
+                      : 'bg-[#a855f7] hover:bg-[#9333ea] text-white shadow-sm'
                   }`}
                 >
-                  {isFetching ? (
-                    <>
-                      <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-                      </svg>
-                      <span>Fetching...</span>
-                    </>
-                  ) : 'Fetch'}
+                  {isFetching ? 'Loading...' : 'Fetch Data'}
                 </button>
               </div>
 
-              {/* Divider */}
-              <div className="w-px self-stretch bg-slate-200 mx-1" />
-
-              {/* Filter group */}
-              <div className="flex items-end gap-3">
-                <div className='flex flex-col w-40'>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Category</label>
-                  <Select
-                    options={categories}
-                    value={selectedCategory}
-                    onChange={setSelectedCategory}
-                    menuPortalTarget={document.body}
-                    styles={{
-                      control: (base, state) => ({
-                        ...base,
-                        minHeight: '36px',
-                        height: '36px',
-                        border: state.isFocused ? '1px solid #3b82f6' : '1px solid #cbd5e1',
-                        borderRadius: '2px',
-                        boxShadow: state.isFocused ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
-                        fontSize: '0.875rem',
-                        transition: 'all 0.15s ease',
-                        '&:hover': { border: '1px solid #94a3b8' }
-                      }),
-                      valueContainer: base => ({ ...base, height: '34px', padding: '0 8px' }),
-                      input: base => ({ ...base, margin: '0px', padding: '0px' }),
-                      indicatorSeparator: base => ({ ...base, display: 'none' }),
-                      dropdownIndicator: (base, state) => ({
-                        ...base,
-                        padding: '0 8px',
-                        transition: 'transform 0.2s ease',
-                        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }),
-                      menu: base => ({
-                        ...base,
-                        zIndex: 9999,
-                        borderRadius: '2px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                        animation: 'fadeIn 0.15s ease',
-                      }),
-                      menuPortal: base => ({ ...base, zIndex: 9999 }),
-                      option: (base, state) => ({
-                        ...base,
-                        fontSize: '0.875rem',
-                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
-                        color: state.isSelected ? 'white' : '#374151',
-                        cursor: 'pointer',
-                      }),
-                    }}
-                  />
-                </div>
-                <div className='flex flex-col w-44'>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Sub Category</label>
-                  <Select
-                    options={subCategories}
-                    value={selectedSubCategory}
-                    onChange={setSelectedSubCategory}
-                    menuPortalTarget={document.body}
-                    styles={{
-                      control: (base, state) => ({
-                        ...base,
-                        minHeight: '36px',
-                        height: '36px',
-                        border: state.isFocused ? '1px solid #3b82f6' : '1px solid #cbd5e1',
-                        borderRadius: '2px',
-                        boxShadow: state.isFocused ? '0 0 0 2px rgba(59,130,246,0.2)' : 'none',
-                        fontSize: '0.875rem',
-                        transition: 'all 0.15s ease',
-                        '&:hover': { border: '1px solid #94a3b8' }
-                      }),
-                      valueContainer: base => ({ ...base, height: '34px', padding: '0 8px' }),
-                      input: base => ({ ...base, margin: '0px', padding: '0px' }),
-                      indicatorSeparator: base => ({ ...base, display: 'none' }),
-                      dropdownIndicator: (base, state) => ({
-                        ...base,
-                        padding: '0 8px',
-                        transition: 'transform 0.2s ease',
-                        transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      }),
-                      menu: base => ({
-                        ...base,
-                        zIndex: 9999,
-                        borderRadius: '2px',
-                        boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
-                        animation: 'fadeIn 0.15s ease',
-                      }),
-                      menuPortal: base => ({ ...base, zIndex: 9999 }),
-                      option: (base, state) => ({
-                        ...base,
-                        fontSize: '0.875rem',
-                        backgroundColor: state.isSelected ? '#3b82f6' : state.isFocused ? '#eff6ff' : 'white',
-                        color: state.isSelected ? 'white' : '#374151',
-                        cursor: 'pointer',
-                      }),
-                    }}
-                  />
-                </div>
-                <div className='flex flex-col w-44'>
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Store</label>
-                  <select
-                    value={selectedStore}
-                    onChange={e => setSelectedStore(e.target.value)}
-                    style={{ height: '36px' }}
-                    className="border border-slate-300 rounded-sm px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all box-border"
-                  >
-                    <option value="current">Current Store ({currentusers.locCode})</option>
-                    {((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager) && (
-                      <option value="all">All Stores (Totals)</option>
-                    )}
-                    {(currentusers.power || '').toLowerCase() === 'admin' && (
-                      <option value="multi">Multiple Branches</option>
-                    )}
-                  </select>
-                </div>
-
-                {/* Select Branches dropdown — inline in filter bar */}
-                {selectedStore === "multi" && (
-                  <div className="flex flex-col" style={{ alignSelf: 'flex-end' }}>
-                    <label className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Branches</label>
-                    <button
-                      onClick={() => setShowStoreSelector(prev => !prev)}
-                      className="branch-select-btn"
-                      style={{
-                        height: '36px',
-                        borderRadius: '2px',
-                        fontSize: '0.875rem',
-                        fontWeight: '400',
-                        padding: '0 12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        boxSizing: 'border-box',
-                        outline: 'none',
-                        whiteSpace: 'nowrap',
+              {/* Right Group */}
+              <div className="flex flex-col gap-4 items-end">
+                <div className="flex gap-4">
+                  <div className='flex flex-col w-[170px]'>
+                    <label className="text-[13px] text-gray-500 mb-1 ml-1">Category</label>
+                    <Select
+                      options={categories}
+                      value={selectedCategory}
+                      onChange={setSelectedCategory}
+                      menuPortalTarget={document.body}
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          height: '40px',
+                          minHeight: '40px',
+                          border: state.isFocused ? '1px solid #3b82f6' : '1px solid #d1d5db',
+                          borderRadius: '0.375rem',
+                          boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }),
+                        valueContainer: base => ({ ...base, height: '38px', padding: '0 12px' }),
+                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                        indicatorSeparator: () => ({ display: 'none' })
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; }}
-                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                    >
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-slate-500 shrink-0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
-                      <span className="whitespace-nowrap">
-                        {selectedStores.length === 0 ? "Select Branches" : `${selectedStores.length} Branch${selectedStores.length > 1 ? "es" : ""}`}
-                      </span>
-                      {selectedStores.length > 0 && (
-                        <span className="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-blue-600 text-white text-[9px] font-bold">
-                          {selectedStores.length}
-                        </span>
-                      )}
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-slate-400 transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
-                    </button>
+                    />
                   </div>
-                )}
+                  <div className='flex flex-col w-[170px]'>
+                    <label className="text-[13px] text-gray-500 mb-1 ml-1">Sub Category</label>
+                    <Select
+                      options={subCategories}
+                      value={selectedSubCategory}
+                      onChange={setSelectedSubCategory}
+                      menuPortalTarget={document.body}
+                      styles={{
+                        control: (base, state) => ({
+                          ...base,
+                          height: '40px',
+                          minHeight: '40px',
+                          border: state.isFocused ? '1px solid #3b82f6' : '1px solid #d1d5db',
+                          borderRadius: '0.375rem',
+                          boxShadow: state.isFocused ? '0 0 0 1px #3b82f6' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }),
+                        valueContainer: base => ({ ...base, height: '38px', padding: '0 12px' }),
+                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                        indicatorSeparator: () => ({ display: 'none' })
+                      }}
+                    />
+                  </div>
+                  <div className='flex flex-col w-[170px] relative'>
+                    <label className="text-[13px] text-gray-500 mb-1 ml-1">Store</label>
+                    <select
+                      value={selectedStore}
+                      onChange={e => setSelectedStore(e.target.value)}
+                      className="border border-gray-300 bg-white rounded-md px-3 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 w-full h-[40px] shadow-sm appearance-none cursor-pointer"
+                    >
+                      <option value="current">Current Store</option>
+                      {((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager) && (
+                        <option value="all">All Stores (Totals)</option>
+                      )}
+                      {(currentusers.power || '').toLowerCase() === 'admin' && (
+                        <option value="multi">Multiple Branches</option>
+                      )}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 pt-6 text-gray-500">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
+
+                  {/* Select Branches dropdown — inline in filter bar */}
+                  {selectedStore === "multi" && (
+                    <div className="flex flex-col">
+                      <label className="text-[13px] text-gray-500 mb-1 ml-1">Branches</label>
+                      <button
+                        onClick={() => setShowStoreSelector(prev => !prev)}
+                        className="bg-white border border-gray-300 text-gray-700 h-[40px] px-3 rounded-md flex items-center gap-2 hover:bg-gray-50 shadow-sm transition-colors text-sm"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-gray-500 shrink-0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+                        <span className="whitespace-nowrap font-medium">
+                          {selectedStores.length === 0 ? "Select Branches" : `${selectedStores.length} Branch${selectedStores.length > 1 ? "es" : ""}`}
+                        </span>
+                        {selectedStores.length > 0 && (
+                          <span className="inline-flex items-center justify-center h-4 min-w-[16px] px-1 rounded-full bg-blue-600 text-white text-[9px] font-bold">
+                            {selectedStores.length}
+                          </span>
+                        )}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-gray-400 transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-3">
+                  <CSVLink
+                    data={selectedStore === "all" ? allStoresSummary : selectedStore === "multi" ? multiBranchData.map(t => ({ ...t, attachment: t.hasAttachment ? "Yes" : "No" })) : exportData}
+                    headers={selectedStore === "all" ? allStoresCsvHeaders : selectedStore === "multi" ? multiBranchCsvHeaders : headers}
+                    filename={`${fromDate} to ${toDate} report.csv`}
+                  >
+                    <button className="bg-[#f1f5f9] hover:bg-gray-200 text-gray-800 px-5 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors border border-gray-200 shadow-sm">
+                      Export CSV 
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    </button>
+                  </CSVLink>
+                  <button type='button' onClick={handlePrint} className="bg-[#f1f5f9] hover:bg-gray-200 text-gray-800 px-5 rounded-md text-[14px] font-medium h-[40px] flex items-center justify-center gap-2 transition-colors border border-gray-200 shadow-sm cursor-pointer">
+                    Print PDF
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1774,66 +1699,66 @@ const Datewisedaybook = () => {
                               return (
                                 <>
                                   <tr key={`mb-${index}-sec`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.customerName || "-"}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.quantity}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.Category}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory}</td>
-                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.securityAmount}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.totalTransaction}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.discountAmount || 0}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.billValue}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.cash}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.rbl ?? 0}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.bank}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.upi}</td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.date}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.customerName || "-"}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-700 text-[13px]">{t.quantity}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-700 text-[13px]">{t.Category}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.SubCategory}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                    <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.securityAmount}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.totalTransaction}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.discountAmount || 0}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.billValue}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.cash}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.rbl ?? 0}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.bank}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.upi}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-500 text-[13px]">
                                       {t.hasAttachment && t._id ? (
                                         <a href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs">View</a>
                                       ) : "-"}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs font-medium">{t.branch}</td>
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-700 text-[13px] font-medium">{t.branch}</td>
                                   </tr>
                                   <tr key={`mb-${index}-bal`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.customerName || "-"}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory1}</td>
-                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.Balance}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.date}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.customerName || "-"}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.SubCategory1}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                    <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.Balance}</td>
                                   </tr>
                                 </>
                               );
                             }
                             return (
                               <tr key={`mb-${t.invoiceNo || t._id || t.locCode}-${index}`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.customerName || "-"}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.quantity}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.Category || t.type}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.date}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.customerName || "-"}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.quantity}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.Category || t.type}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">
                                   {[t.SubCategory].concat(t.Category === "RentOut" ? [t.SubCategory1 || t.subCategory1] : []).filter(Boolean).map(getCatLabel).join(" + ") || "-"}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.amount)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.billValue)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.cash}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.rbl ?? 0}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.bank}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{t.upi}</td>
-                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.amount)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.billValue)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.cash}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.rbl ?? 0}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.bank}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{t.upi}</td>
+                                <td className="px-4 py-3 text-gray-500 text-[13px]">
                                   {t.hasAttachment && t._id ? (
                                     <a href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-blue-600 hover:underline text-xs">
                                       <FiDownload size={14} />Download
                                     </a>
                                   ) : "-"}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs font-medium">{t.branch}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px] font-medium">{t.branch}</td>
                               </tr>
                             );
                           })}
@@ -1871,7 +1796,7 @@ const Datewisedaybook = () => {
               ) : (
                 !isFetching && <div className="bg-white shadow-sm rounded border border-slate-200 overflow-hidden">
                   <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
-                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1200px' }}>
+                    <table className="w-full border-collapse text-left" style={{ minWidth: '1200px' }}>
                       <thead
                         style={{
                           position: "sticky",
@@ -1879,39 +1804,32 @@ const Datewisedaybook = () => {
                           zIndex: 2,
                         }}
                       >
-                        <tr className="bg-slate-700 text-white text-xs uppercase tracking-wide">
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Date</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Invoice No.</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Customer Name</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Qty</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Category</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Sub Category</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Remarks</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Amount</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Total Txn</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Discount</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Bill Value</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Cash</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Razorpay</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Card/Bank</th>
-                          <th className="px-2 py-1 text-right font-semibold whitespace-nowrap border-r border-slate-600 text-xs">UPI</th>
-                          <th className="px-2 py-1 text-left font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Attachment</th>
-                          {showAction && <th className="px-2 py-1 text-center font-semibold whitespace-nowrap border-r border-slate-600 text-xs">Action</th>}
+                        <tr className="bg-[#222222] text-white">
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Date</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Invoice No.</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Customer Name</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider hidden">Qty</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Category</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Sub Category</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider">Remarks</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right">Amount</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right">Total Txn</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right">Discount</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right hidden">Bill Value</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right hidden">Cash</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right hidden">Razorpay</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right hidden">Card/Bank</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-right hidden">UPI</th>
+                          <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider hidden">Attachment</th>
+                          {showAction && <th className="px-4 py-3 font-medium whitespace-nowrap text-[11px] uppercase tracking-wider text-center hidden">Action</th>}
                         </tr>
                       </thead>
 
                       <tbody>
-                        <tr className="bg-slate-50 font-semibold text-slate-600 border-b border-slate-200">
-                          <td colSpan="10" className="px-2 py-1.5 text-xs uppercase tracking-wide">
-                            Opening Balance
+                        <tr className="bg-white border-b border-gray-100">
+                          <td colSpan="9" className="px-4 py-3 text-[13px] font-bold text-gray-800 uppercase tracking-wide">
+                            OPENING BALANCE
                           </td>
-                          <td className="px-2 py-1.5"></td>
-                          <td className="px-2 py-1.5 text-right">{preOpen.cash || 0}</td>
-                          <td className="px-2 py-1.5 text-right">{preOpen.rbl ?? 0}</td>
-                          <td className="px-2 py-1.5 text-right">0</td>
-                          <td className="px-2 py-1.5 text-right">0</td>
-                          <td className="px-2 py-1.5"></td>
-                          {showAction && <td className="px-2 py-1.5"></td>}
                         </tr>
 
                         {mergedTransactions
@@ -1936,13 +1854,18 @@ const Datewisedaybook = () => {
                             if (t.Category === "RentOut") {
                               return (
                                 <>
-                                  <tr key={`${index}-sec`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                  <tr key={`${index}-sec`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{t.date}</span>
+                                        <span className="text-[11px] text-gray-400">10:34 am</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">
                                       {t.customerName || t.customer || t.name || "-"}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-700 text-[13px] hidden">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -1956,12 +1879,12 @@ const Datewisedaybook = () => {
                                         t.quantity
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-700 text-[13px]">
                                       {t.Category}
                                     </td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory}</td>
-                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.SubCategory}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                    <td className="px-4 py-3 text-right text-gray-700 text-[13px]">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -1975,16 +1898,16 @@ const Datewisedaybook = () => {
                                         t.securityAmount
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">
                                       {t.totalTransaction}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px]">
                                       {t.discountAmount || 0}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                       {t.billValue}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -1999,7 +1922,7 @@ const Datewisedaybook = () => {
                                         t.cash
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -2013,7 +1936,7 @@ const Datewisedaybook = () => {
                                         t.rbl ?? 0
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -2028,7 +1951,7 @@ const Datewisedaybook = () => {
                                         t.bank
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                       {isEditing && editedTransaction._id ? (
                                         <input
                                           type="number"
@@ -2043,7 +1966,7 @@ const Datewisedaybook = () => {
                                         t.upi
                                       )}
                                     </td>
-                                    <td rowSpan="2" className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
+                                    <td rowSpan="2" className="px-4 py-3 text-gray-500 text-[13px] hidden">
                                       {t.hasAttachment && t._id ? (
                                         <a
                                           href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`}
@@ -2059,7 +1982,7 @@ const Datewisedaybook = () => {
                                     </td>
 
                                     {showAction && (
-                                      <td rowSpan="2" className="px-2 py-1.5 text-center border-r border-slate-100 text-xs">
+                                      <td rowSpan="2" className="px-4 py-3 text-center text-xs hidden">
                                         {isSyncing && editingIndex === index ? (
                                           <span className="text-slate-400 text-xs">Syncing…</span>
                                         ) : isEditing ? (
@@ -2081,15 +2004,20 @@ const Datewisedaybook = () => {
                                     )}
                                   </tr>
 
-                                  <tr key={`${index}-bal`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                  <tr key={`${index}-bal`} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{t.date}</span>
+                                        <span className="text-[11px] text-gray-400">10:34 am</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">
                                       {t.customerName || t.customer || t.name || "-"}
                                     </td>
-                                    <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.SubCategory1}</td>
-                                    <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                    <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                    <td className="px-4 py-3 text-gray-700 text-[13px]">{t.SubCategory1}</td>
+                                    <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                    <td className="px-4 py-3 text-right text-gray-700 text-[13px]">
                                       {isEditing ? (
                                         <input
                                           type="number"
@@ -2113,14 +2041,19 @@ const Datewisedaybook = () => {
                                 key={`${t.invoiceNo || t._id || t.locCode}-${new Date(
                                   t.date
                                 ).toISOString().split("T")[0]}-${index}`}
-                                className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                               >
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.date}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.invoiceNo || t.locCode}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">
+                                  <div className="flex flex-col">
+                                    <span className="font-medium">{t.date}</span>
+                                    <span className="text-[11px] text-gray-400">10:34 am</span>
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.invoiceNo || t.locCode}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">
                                   {t.customerName || t.customer || t.name || "-"}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-700 text-[13px] hidden">
                                   {isEditing ? (
                                     <input
                                       type="number"
@@ -2134,8 +2067,8 @@ const Datewisedaybook = () => {
                                     t.quantity
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">{t.Category || t.type}</td>
-                                <td className="px-2 py-1.5 text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">{t.Category || t.type}</td>
+                                <td className="px-4 py-3 text-gray-700 text-[13px]">
                                   {[t.SubCategory]
                                     .concat(
                                       t.Category === "RentOut" ? [t.SubCategory1 || t.subCategory1] : []
@@ -2144,12 +2077,12 @@ const Datewisedaybook = () => {
                                     .map(getCatLabel)
                                     .join(" + ") || "-"}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">{t.remark}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.amount)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">{Math.round(Number(t.billValue)).toLocaleString()}</td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-500 text-[13px]">{t.remark}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.amount)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px]">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">{Math.round(Number(t.billValue)).toLocaleString()}</td>
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
@@ -2161,7 +2094,7 @@ const Datewisedaybook = () => {
                                     t.cash
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                   {isEditing &&
                                     editedTransaction._id &&
                                     t.SubCategory !== "Cash to Bank" ? (
@@ -2175,7 +2108,7 @@ const Datewisedaybook = () => {
                                     t.rbl ?? 0
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
@@ -2187,7 +2120,7 @@ const Datewisedaybook = () => {
                                     t.bank
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 text-right text-slate-700 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-right text-gray-700 text-[13px] hidden">
                                   {isEditing && editedTransaction._id ? (
                                     <input
                                       type="number"
@@ -2199,7 +2132,7 @@ const Datewisedaybook = () => {
                                     t.upi
                                   )}
                                 </td>
-                                <td className="px-2 py-1.5 text-slate-600 border-r border-slate-100 text-xs">
+                                <td className="px-4 py-3 text-gray-500 text-[13px] hidden">
                                   {t.hasAttachment && t._id ? (
                                     <a
                                       href={`${baseUrl.baseUrl}user/transaction/${t._id}/attachment`}
@@ -2216,7 +2149,7 @@ const Datewisedaybook = () => {
                                 </td>
 
                                 {showAction && (
-                                  <td className="px-2 py-1.5 text-center border-r border-slate-100 text-xs">
+                                  <td className="px-4 py-3 text-center text-xs hidden">
                                     {isSyncing && editingIndex === index ? (
                                       <span className="text-slate-400 text-xs">Syncing…</span>
                                     ) : isEditing ? (
@@ -2251,19 +2184,18 @@ const Datewisedaybook = () => {
 
                       <tfoot>
                         <tr
-                          className="bg-slate-100 font-semibold border-t-2 border-slate-300"
+                          className="bg-gray-200 font-bold border-t border-gray-300"
                           style={{ position: "sticky", bottom: 0, zIndex: 2 }}
                         >
-                          <td colSpan="10" className="px-2 py-1.5 text-left text-slate-700 text-xs font-semibold">
+                          <td colSpan="9" className="px-4 py-3 text-left text-gray-800 text-[13px] tracking-wide uppercase">
                             Total
                           </td>
-                          <td className="px-2 py-1.5"></td>
-                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalCash)).toLocaleString()}</td>
-                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalRblAmount)).toLocaleString()}</td>
-                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalBankAmount)).toLocaleString()}</td>
-                          <td className="px-2 py-1.5 text-right text-slate-800 text-xs font-semibold">{Math.round(Number(totalUpiAmount)).toLocaleString()}</td>
-                          <td className="px-2 py-1.5"></td>
-                          {showAction && <td className="px-2 py-1.5"></td>}
+                          <td className="px-4 py-3 text-right text-gray-900 text-[13px] hidden">{Math.round(Number(totalCash)).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-gray-900 text-[13px] hidden">{Math.round(Number(totalRblAmount)).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-gray-900 text-[13px] hidden">{Math.round(Number(totalBankAmount)).toLocaleString()}</td>
+                          <td className="px-4 py-3 text-right text-gray-900 text-[13px] hidden">{Math.round(Number(totalUpiAmount)).toLocaleString()}</td>
+                          <td className="px-4 py-3 hidden"></td>
+                          {showAction && <td className="px-4 py-3 hidden"></td>}
                         </tr>
                       </tfoot>
                     </table>
@@ -2302,21 +2234,7 @@ const Datewisedaybook = () => {
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex justify-end gap-3 mt-5 no-print">
-              <CSVLink
-                data={selectedStore === "all" ? allStoresSummary : selectedStore === "multi" ? multiBranchData.map(t => ({ ...t, attachment: t.hasAttachment ? "Yes" : "No" })) : exportData}
-                headers={selectedStore === "all" ? allStoresCsvHeaders : selectedStore === "multi" ? multiBranchCsvHeaders : headers}
-                filename={`${fromDate} to ${toDate} report.csv`}
-              >
-                <button className="border border-blue-600 text-blue-600 py-2 px-5 rounded-sm text-sm font-medium hover:bg-blue-50 transition-colors">
-                  Export CSV
-                </button>
-              </CSVLink>
-              <button type='button' onClick={handlePrint} className="bg-blue-600 text-white py-2 px-5 rounded-sm text-sm font-medium hover:bg-blue-700 transition-colors cursor-pointer">
-                Print PDF
-              </button>
-            </div>
+
 
           </div>
         </div>
