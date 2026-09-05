@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Head from "../components/Head";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import { useSidebar } from "../hooks/useSidebar.js";
 import dataCache from "../utils/cache";
+import { Plus, Search, Calendar, RotateCcw, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 const SalesInvoices = () => {
   const isSidebarOpen = useSidebar();
@@ -65,15 +65,15 @@ const SalesInvoices = () => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "paid":
-        return "bg-[#d1fae5] text-[#065f46]";
+        return "bg-emerald-50 text-emerald-700 border border-emerald-200";
       case "sent":
-        return "bg-[#dbeafe] text-[#1e40af]";
+        return "bg-purple-50 text-purple-700 border border-purple-200";
       case "draft":
-        return "bg-[#f3f4f6] text-[#374151]";
+        return "bg-gray-100 text-gray-700 border border-gray-200";
       case "overdue":
-        return "bg-[#fee2e2] text-[#991b1b]";
+        return "bg-red-50 text-red-700 border border-red-200";
       default:
-        return "bg-[#f3f4f6] text-[#374151]";
+        return "bg-gray-100 text-gray-700 border border-gray-200";
     }
   };
 
@@ -82,20 +82,20 @@ const SalesInvoices = () => {
     switch (returnStatus) {
       case "full":
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md bg-[#fee2e2] text-[#991b1b]">
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-red-50 text-red-700 border border-red-200">
             FULLY RETURNED
           </span>
         );
       case "partial":
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md bg-[#fed7aa] text-[#9a3412]">
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-amber-50 text-amber-700 border border-amber-200">
             PARTIALLY RETURNED
           </span>
         );
       case "none":
       default:
         return (
-          <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md bg-[#f3f4f6] text-[#6b7280]">
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-gray-100 text-gray-600 border border-gray-200">
             NOT RETURNED
           </span>
         );
@@ -311,279 +311,260 @@ const SalesInvoices = () => {
   return (
     <>
       <Header title="Sales Invoices" />
-      <div className="min-h-screen bg-[#f6f9ff]">
-        <Head
-          title="Sales Invoices"
-          description=""
-        />
-
-        <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="flex flex-col gap-6">
-            <header className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
-                <h1 className="text-2xl font-semibold text-[#111827]">All Invoices</h1>
-                <p className="text-sm text-[#6b7280]">Review your invoicing activity and keep tabs on payments.</p>
-                <div className="flex items-center gap-4 mt-2">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-[#e0f2fe] px-3 py-1 text-sm font-medium text-[#0369a1]">
-                    📊 Total: {filteredInvoices.length} invoices
-                  </span>
-                  {(fromDate || toDate) && (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[#f0f9ff] px-3 py-1 text-sm font-medium text-[#1e40af]">
-                      📅 Filtered by date
-                    </span>
-                  )}
-                  {searchTerm && (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-[#fef3c7] px-3 py-1 text-sm font-medium text-[#92400e]">
-                      🔍 Search: "{searchTerm}"
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#F9FAFB] flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        {/* ── Top Header Bar ── */}
+        <div className="px-6 pt-5 pb-4 border-b border-[#E5E7EB] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
+                All Invoices
+              </h1>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Review your invoicing activity and keep tabs on customer payments.
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
               <Link
                 to="/sales/invoices/returns"
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-[#d7def4] bg-white px-4 text-sm font-semibold text-[#4b5563] shadow-sm transition hover:bg-[#f1f3fd]"
+                className="inline-flex h-9 items-center gap-2 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] px-3.5 text-xs font-semibold text-[#111827] shadow-sm transition-colors cursor-pointer"
               >
-                View Returns
+                <RotateCcw size={14} className="text-[#111827]" />
+                <span>View Returns</span>
               </Link>
               <Link
                 to="/sales/invoices/new"
-                className="inline-flex h-10 items-center gap-2 rounded-md border border-transparent bg-[#3366ff] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#244fd6] focus:outline-none focus:ring-2 focus:ring-[#244fd6]/40"
+                className="inline-flex h-9 items-center gap-1.5 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m6-6H6" />
-                </svg>
-                New
+                <Plus size={15} className="text-white" />
+                <span>New Invoice</span>
               </Link>
-              <button className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-[#d7def4] bg-white text-[#4b5563] shadow-sm transition hover:bg-[#f1f3fd]">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-5 w-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M6.75 5.25h10.5m-10.5 13.5h10.5M5.25 7.5h13.5v9H5.25v-9z"
-                  />
-                </svg>
-              </button>
-              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search by invoice #, customer name, or order #..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 rounded-lg border border-[#d7def4] bg-white px-4 py-2.5 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#3366ff] focus:outline-none focus:ring-2 focus:ring-[#3366ff]/20"
-              />
-              
-              {/* Date Filter Toggle Button */}
-              <button
-                onClick={() => setShowDateFilter(!showDateFilter)}
-                className={`rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors ${
-                  showDateFilter || fromDate || toDate
-                    ? 'border-[#3366ff] bg-[#3366ff] text-white'
-                    : 'border-[#d7def4] bg-white text-[#6b7280] hover:bg-[#f9fafb]'
-                }`}
-                title="Filter by date range"
-              >
-                📅 Date Filter
-              </button>
-            </div>
-            
-            {/* Date Range Filter */}
-            {showDateFilter && (
-              <div className="mt-4 flex items-center gap-4 rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-4">
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-[#374151]">From:</label>
-                  <input
-                    type="date"
-                    value={fromDate}
-                    onChange={(e) => setFromDate(e.target.value)}
-                    className="rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-[#3366ff] focus:outline-none focus:ring-1 focus:ring-[#3366ff]"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-[#374151]">To:</label>
-                  <input
-                    type="date"
-                    value={toDate}
-                    onChange={(e) => setToDate(e.target.value)}
-                    className="rounded-md border border-[#d1d5db] px-3 py-2 text-sm focus:border-[#3366ff] focus:outline-none focus:ring-1 focus:ring-[#3366ff]"
-                  />
-                </div>
-                <button
-                  onClick={() => {
-                    setFromDate("");
-                    setToDate("");
-                  }}
-                  className="rounded-md bg-[#6b7280] px-3 py-2 text-sm font-medium text-white hover:bg-[#4b5563] transition-colors"
-                >
-                  Clear
-                </button>
-              </div>
-            )}
-          </header>
+          </div>
+        </div>
 
-          <section className="rounded-3xl border border-[#dfe5f5] bg-white shadow-sm">
-            <div className="flex flex-wrap items-center gap-4 border-b border-[#e7ecf8] px-8 py-5">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-3 rounded-xl bg-[#f0f4ff] px-4 py-3 text-sm font-medium text-[#415079]">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#415079] shadow-sm">
-                    📊
-                  </span>
-                  Insights on Invoicing
+        {/* ── Controls Row: Search, Date Filter, Badges ── */}
+        <div className="px-6 pt-4 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Search Box & Date Filter Button */}
+            <div className="flex items-center gap-2.5 flex-1 max-w-2xl">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={14} className="text-[#9CA3AF]" />
                 </div>
-                <button className="text-sm font-medium text-[#4f46e5] hover:text-[#4338ca]">
-                  Show Details
-                </button>
+                <input
+                  type="text"
+                  placeholder="Search by invoice #, customer name, or order #..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                />
               </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDateFilter(!showDateFilter)}
+                className={`h-9 px-3.5 rounded-none border text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                  showDateFilter || fromDate || toDate
+                    ? 'border-[#D1D5DB] bg-[#E2E2E2] text-[#111827] font-bold'
+                    : 'border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827]'
+                }`}
+              >
+                <Calendar size={13} className="text-[#111827]" />
+                <span>Date Filter</span>
+              </button>
             </div>
+
+            {/* Badges / Metrics */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
+                Total: {filteredInvoices.length} {filteredInvoices.length === 1 ? 'Invoice' : 'Invoices'}
+              </span>
+              {(fromDate || toDate) && (
+                <span className="inline-flex items-center gap-1.5 rounded-none bg-[#EDE9FE] border border-[#C4B5FD] px-2.5 py-1 text-xs font-bold text-[#6D28D9]">
+                  📅 Filtered
+                </span>
+              )}
+              {searchTerm && (
+                <span className="inline-flex items-center gap-1.5 rounded-none bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-1 text-xs font-bold text-[#92400E]">
+                  🔍 "{searchTerm}"
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Date Range Drawer */}
+          {showDateFilter && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-none border border-[#E5E7EB] bg-white p-3.5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#374151]">From:</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-8 rounded-none border border-[#E5E7EB] px-2.5 text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#374151]">To:</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-8 rounded-none border border-[#E5E7EB] px-2.5 text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+                className="h-8 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] px-3 text-xs font-semibold uppercase tracking-wider text-[#111827] transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ── Main Table Card ── */}
+        <div className="px-6 pb-8 pt-2">
+          <section className="rounded-none border border-[#E5E7EB] bg-white shadow-sm overflow-hidden">
 
             {loading ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">Loading invoices...</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <div className="inline-block animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
+                <p className="text-xs font-medium text-[#6B7280]">Loading invoices...</p>
               </div>
             ) : error ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#ef4444]">{error}</p>
+              <div className="px-8 py-16 text-center">
+                <p className="text-xs font-semibold text-red-500">{error}</p>
               </div>
             ) : invoices.length === 0 ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">No invoices found. Create your first invoice!</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] flex items-center justify-center mb-3">
+                  <FileText size={24} className="text-[#8B5CF6]" />
+                </div>
+                <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">No Invoices Found</h3>
+                <p className="text-xs text-[#6B7280] max-w-sm mb-4">
+                  You haven't created any sales invoices yet. Get started by creating your first invoice.
+                </p>
+                <Link
+                  to="/sales/invoices/new"
+                  className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
+                >
+                  <Plus size={14} className="text-white" />
+                  Create Invoice
+                </Link>
               </div>
             ) : filteredInvoices.length === 0 ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">No invoices match your search. Try a different search term.</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <p className="text-xs text-[#6B7280]">No invoices match your search. Try a different search term.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#eef1fb] bg-[#f9fbff] text-xs font-semibold uppercase tracking-[0.24em] text-[#8a94b0]">
-                      <th className="w-12 px-4 py-4 text-center">#</th>
-                      <th className="w-12 px-4 py-4">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
+                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">#</th>
+                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca]"
+                          className="h-3.5 w-3.5 rounded-none border-gray-600 bg-[#2d2d2d] accent-[#8B5CF6] cursor-pointer"
                         />
                       </th>
-                      <th className="px-4 py-4 text-left">DATE</th>
-                      <th className="px-4 py-4 text-left">INVOICE#</th>
-                      <th className="px-4 py-4 text-left">ORDER NUMBER</th>
-                      <th className="px-4 py-4 text-left">CUSTOMER NAME</th>
-                      <th className="px-4 py-4 text-left">INVOICE STATUS</th>
-                      <th className="px-4 py-4 text-left">RETURN STATUS</th>
-                      <th className="px-4 py-4 text-right">INVOICE AMOUNT</th>
-                      <th className="px-4 py-4 text-right">BALANCE</th>
-                      <th className="px-4 py-4 text-left">BRANCH</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">DATE</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">INVOICE#</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">ORDER NUMBER</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">CUSTOMER NAME</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">INVOICE STATUS</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">RETURN STATUS</th>
+                      <th className="px-3 py-3 text-right border-r border-[#333333] whitespace-nowrap">INVOICE AMOUNT</th>
+                      <th className="px-3 py-3 text-right border-r border-[#333333] whitespace-nowrap">BALANCE</th>
+                      <th className="px-3 py-3 text-left whitespace-nowrap">BRANCH</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#eef1fb] text-sm text-[#1f2937]">
+                  <tbody className="divide-y divide-[#F3F4F6] text-xs text-[#1F2937]">
                     {paginatedInvoices.map((invoice, index) => (
                       <tr
                         key={invoice._id || invoice.id}
-                        className={`${index % 2 === 0 ? "bg-white" : "bg-[#f7f9ff]"} hover:bg-[#f2f5ff]`}
+                        className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]/40"} hover:bg-purple-50/25 transition-colors`}
                       >
-                        <td className="px-4 py-4 text-center text-sm font-medium text-[#6b7280]">
-                          {index + 1}
+                        <td className="px-3 py-2.5 text-center font-medium text-[#6B7280]">
+                          {startIndex + index + 1}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5 text-center">
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca]"
+                            className="h-3.5 w-3.5 rounded-none border-[#D1D5DB] accent-[#8B5CF6]"
                           />
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-[#4b5563]">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-[#4B5563]">
                           {formatDate(invoice.invoiceDate)}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5 font-semibold">
                           <Link
                             to={`/sales/invoices/${invoice._id || invoice.id}`}
-                            className="font-semibold text-[#2563eb] hover:text-[#1d4ed8] hover:underline"
+                            className="text-[#8B5CF6] hover:text-[#7C3AED] hover:underline"
                           >
                             {invoice.invoiceNumber}
                           </Link>
                         </td>
-                        <td className="px-4 py-4 text-[#4b5563]">{invoice.orderNumber || ""}</td>
-                        <td className="px-4 py-4 text-[#1f2937]">{invoice.customer}</td>
-                        <td className="px-4 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-md ${getStatusColor(invoice.status)}`}>
+                        <td className="px-3 py-2.5 text-[#4B5563]">{invoice.orderNumber || "-"}</td>
+                        <td className="px-3 py-2.5 text-[#111827] font-medium">{invoice.customer || "-"}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none ${getStatusColor(invoice.status)}`}>
                             {(invoice.status || "sent").toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5">
                           {getReturnStatusBadge(invoice.returnStatus)}
                         </td>
-                        <td className="px-4 py-4 text-right font-semibold text-[#1f2937]">
+                        <td className="px-3 py-2.5 text-right font-bold text-[#111827]">
                           {formatCurrency(
                             parseFloat(invoice.finalTotal) > 0
                               ? invoice.finalTotal
                               : (invoice.lineItems || []).reduce((s, i) => s + (parseFloat(i.lineTotal) || (parseFloat(i.quantity || 0) * parseFloat(i.rate || 0))), 0)
                           )}
                         </td>
-                        <td className="px-4 py-4 text-right font-semibold text-[#1f2937]">
+                        <td className="px-3 py-2.5 text-right font-bold text-[#111827]">
                           ₹0.00
                         </td>
-                        <td className="px-4 py-4 text-[#4b5563]">{invoice.branch}</td>
+                        <td className="px-3 py-2.5 text-[#4B5563]">{invoice.branch || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                
+
                 {/* Table Footer with Pagination */}
-                <div className="border-t border-[#eef1fb] bg-[#f9fbff] px-6 py-4">
-                  <div className="flex flex-col gap-4">
-                    {/* Summary Row */}
-                    <div className="flex items-center justify-between text-sm text-[#6b7280]">
-                      <div className="flex items-center gap-4">
-                        <span>
-                          Showing {startIndex + 1}-{Math.min(endIndex, filteredInvoices.length)} of {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''}
-                        </span>
-                        {(fromDate || toDate || searchTerm) && (
-                          <span className="text-[#4b5563]">
-                            • Filtered from {invoices.length} total
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span>
-                          Total Amount: ₹{filteredInvoices.reduce((sum, inv) => {
-                            const total = parseFloat(inv.finalTotal) > 0
-                              ? parseFloat(inv.finalTotal)
-                              : (inv.lineItems || []).reduce((s, i) => s + (parseFloat(i.lineTotal) || (parseFloat(i.quantity || 0) * parseFloat(i.rate || 0))), 0);
-                            return sum + total;
-                          }, 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </span>
-                      </div>
+                <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-5 py-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B7280]">
+                    <div className="flex items-center gap-4">
+                      <span>
+                        Showing {startIndex + 1}-{Math.min(endIndex, filteredInvoices.length)} of {filteredInvoices.length} {filteredInvoices.length !== 1 ? 'invoices' : 'invoice'}
+                      </span>
+                      <span className="font-bold text-[#111827]">
+                        Total: ₹{filteredInvoices.reduce((sum, inv) => {
+                          const total = parseFloat(inv.finalTotal) > 0
+                            ? parseFloat(inv.finalTotal)
+                            : (inv.lineItems || []).reduce((s, i) => s + (parseFloat(i.lineTotal) || (parseFloat(i.quantity || 0) * parseFloat(i.rate || 0))), 0);
+                          return sum + total;
+                        }, 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
                     </div>
-                    
+
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                      <div className="flex items-center justify-between">
-                        {/* Items per page selector */}
-                        <div className="flex items-center gap-2">
-                          <label className="text-sm text-[#6b7280]">Items per page:</label>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-[#6B7280]">Rows:</span>
                           <select
                             value={itemsPerPage}
                             onChange={(e) => {
                               setItemsPerPage(Number(e.target.value));
                               setCurrentPage(1);
                             }}
-                            className="rounded border border-[#d1d5db] px-2 py-1 text-sm focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb]"
+                            className="rounded-none border border-[#E5E7EB] bg-white px-2 py-0.5 text-xs text-[#374151] focus:border-[#8B5CF6] focus:outline-none"
                           >
                             <option value={25}>25</option>
                             <option value={50}>50</option>
@@ -591,71 +572,44 @@ const SalesInvoices = () => {
                             <option value={200}>200</option>
                           </select>
                         </div>
-                        
-                        {/* Page navigation */}
-                        <div className="flex items-center gap-2">
+
+                        <div className="flex items-center gap-1">
                           <button
                             onClick={goToFirstPage}
                             disabled={currentPage === 1}
-                            className="rounded border border-[#d1d5db] px-3 py-1 text-sm text-[#374151] hover:bg-[#f3f4f6] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-7 w-7 flex items-center justify-center rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="First page"
                           >
-                            ««
+                            <ChevronsLeft size={13} />
                           </button>
                           <button
                             onClick={goToPreviousPage}
                             disabled={currentPage === 1}
-                            className="rounded border border-[#d1d5db] px-3 py-1 text-sm text-[#374151] hover:bg-[#f3f4f6] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-7 w-7 flex items-center justify-center rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Previous page"
                           >
-                            «
+                            <ChevronLeft size={13} />
                           </button>
-                          
-                          {/* Page numbers */}
-                          <div className="flex items-center gap-1">
-                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                              let pageNum;
-                              if (totalPages <= 5) {
-                                pageNum = i + 1;
-                              } else if (currentPage <= 3) {
-                                pageNum = i + 1;
-                              } else if (currentPage >= totalPages - 2) {
-                                pageNum = totalPages - 4 + i;
-                              } else {
-                                pageNum = currentPage - 2 + i;
-                              }
-                              
-                              return (
-                                <button
-                                  key={pageNum}
-                                  onClick={() => goToPage(pageNum)}
-                                  className={`rounded px-3 py-1 text-sm ${
-                                    currentPage === pageNum
-                                      ? 'bg-[#2563eb] text-white font-semibold'
-                                      : 'border border-[#d1d5db] text-[#374151] hover:bg-[#f3f4f6]'
-                                  }`}
-                                >
-                                  {pageNum}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          
+
+                          <span className="px-2 text-xs font-semibold text-[#111827]">
+                            {currentPage} / {totalPages}
+                          </span>
+
                           <button
                             onClick={goToNextPage}
                             disabled={currentPage === totalPages}
-                            className="rounded border border-[#d1d5db] px-3 py-1 text-sm text-[#374151] hover:bg-[#f3f4f6] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-7 w-7 flex items-center justify-center rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Next page"
                           >
-                            »
+                            <ChevronRight size={13} />
                           </button>
                           <button
                             onClick={goToLastPage}
                             disabled={currentPage === totalPages}
-                            className="rounded border border-[#d1d5db] px-3 py-1 text-sm text-[#374151] hover:bg-[#f3f4f6] disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-7 w-7 flex items-center justify-center rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
                             title="Last page"
                           >
-                            »»
+                            <ChevronsRight size={13} />
                           </button>
                         </div>
                       </div>
@@ -667,7 +621,6 @@ const SalesInvoices = () => {
           </section>
         </div>
       </div>
-    </div>
     </>
   );
 };

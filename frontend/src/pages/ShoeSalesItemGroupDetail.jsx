@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Edit, X, Building2, ChevronDown, Package } from "lucide-react";
-import Head from "../components/Head";
+import Header from "../components/Header";
 import ImageUpload from "../components/ImageUpload";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
@@ -250,15 +250,18 @@ const ShoeSalesItemGroupDetail = () => {
 
   if (!itemGroup) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
-          <p className="text-lg font-medium text-[#475569]">Item Group not found</p>
-          <Link
-            to="/shoe-sales/item-groups"
-            className="mt-4 inline-block text-sm font-medium text-[#475569] hover:text-[#1f2937]"
-          >
-            Back to Item Groups
-          </Link>
+      <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+        <Header title="Item Groups" />
+        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+          <div className="rounded-none border border-[#E5E7EB] bg-white shadow-xs p-8 text-center max-w-md mx-auto mt-12">
+            <p className="text-base font-bold text-[#111827] uppercase">Item Group Not Found</p>
+            <Link
+              to="/shoe-sales/item-groups"
+              className="mt-4 inline-block px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
+            >
+              Back to Item Groups
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -581,111 +584,132 @@ const ShoeSalesItemGroupDetail = () => {
   };
 
   return (
-    <div className={`transition-all duration-300 p-8 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      <Head
-        title={
-          <div className="flex items-center gap-3">
-            <span className="text-xl font-semibold text-[#1f2937]">{itemGroup.name}</span>
-            {itemGroup.isActive === false && (
-              <span className="inline-flex items-center rounded-md bg-gray-100 border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                Inactive
+    <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+      <Header title="Item Groups" />
+
+      <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        {/* Top Action Toolbar */}
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate("/shoe-sales/item-groups")}
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+            >
+              <ArrowLeft size={14} className="text-[#111827]" />
+              <span>Item Groups</span>
+            </button>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#111827] uppercase font-mono truncate">
+                {itemGroup.name}
+              </h1>
+              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB] uppercase tracking-wider">
+                {Array.isArray(itemGroup.items) ? itemGroup.items.length : 0} Items
               </span>
-            )}
+              {itemGroup.isActive === false && (
+                <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-red-50 text-red-700 border border-red-200 uppercase tracking-wider">
+                  Inactive
+                </span>
+              )}
+            </div>
           </div>
-        }
-        description={`${Array.isArray(itemGroup.items) ? itemGroup.items.length : 0} Item(s)`}
-        actions={
-          <div className="flex items-center gap-2">
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               to={`/shoe-sales/item-groups/${id}/edit`}
-              className="no-blue-button inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
             >
-              <Edit size={16} className="text-[#64748b]" />
+              <Edit size={13} className="text-white" />
               <span>Edit</span>
             </Link>
+
             <div className="relative" ref={moreMenuRef}>
-              <button 
+              <button
                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                className="no-blue-button inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
+                className="inline-flex items-center gap-1.5 h-9 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
               >
                 <span>More</span>
-               
+                <ChevronDown size={14} className="text-[#6B7280]" />
               </button>
               {showMoreMenu && (
-                <div className="absolute right-0 mt-2 w-56 rounded-lg border border-[#d7dcf5] bg-white shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)] z-50 overflow-hidden">
+                <div className="absolute right-0 mt-1 w-48 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1">
                   <button
                     onClick={() => {
                       setShowInactiveModal(true);
                       setShowMoreMenu(false);
                     }}
-                    className="no-blue-button w-full px-4 py-2.5 text-left text-sm font-medium text-[#475569] bg-white hover:bg-[#f8fafc] active:bg-[#f1f5f9] transition-colors duration-150"
+                    className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
                   >
                     Mark as Inactive
                   </button>
-                  <div className="h-px bg-[#e7ebf8]"></div>
+                  <div className="h-px bg-[#E5E7EB] my-1" />
                   <button
                     onClick={() => {
                       setShowDeleteModal(true);
                       setShowMoreMenu(false);
                     }}
-                    className="no-blue-button w-full px-4 py-2.5 text-left text-sm font-medium text-[#475569] bg-white hover:bg-[#f8fafc] active:bg-[#f1f5f9] transition-colors duration-150"
+                    className="w-full px-4 py-2 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                   >
                     Delete
                   </button>
                 </div>
               )}
             </div>
-            <div className="h-6 w-px bg-[#e7ebf8] mx-2"></div>
+
             <Link
               to="/shoe-sales/item-groups"
-              className="no-blue-button inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#d7dcf5] bg-white text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
+              className="inline-flex items-center justify-center h-9 w-9 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
+              title="Close"
             >
-              <X size={16} className="text-[#64748b]" />
+              <X size={15} />
             </Link>
           </div>
-        }
-      />
+        </div>
 
-      <div className="mt-6 rounded-2xl border border-[#e4e6f2] bg-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)] overflow-hidden">
-        {/* Content */}
-        <div className="p-8">
-          {itemGroup.isActive === false && (
-            <div className="mb-6 rounded-lg border border-gray-300 bg-gray-50 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-gray-400"></div>
-                <p className="text-sm font-medium text-gray-700">
-                  This item group is currently inactive and will not appear in active lists.
-                </p>
-              </div>
+        {/* Inactive Banner */}
+        {itemGroup.isActive === false && (
+          <div className="mb-6 rounded-none border border-red-200 bg-red-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-none bg-red-500"></div>
+              <p className="text-xs font-bold text-red-700 uppercase tracking-wider">
+                This item group is currently inactive and will not appear in active lists.
+              </p>
             </div>
-          )}
-          
-          <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-            {/* Left Column - Primary Details */}
-            <div className="space-y-8">
-              {/* Primary Details Card */}
-              <div className="rounded-xl border border-[#e4e6f2] bg-[#fafbff] p-6">
-                <h3 className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-[#64748b] border-b border-[#e7ebf8] pb-3">
+          </div>
+        )}
+
+        {/* Main Grid: Details on Left, Upload & Metrics on Right */}
+        <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          {/* Left Column - Primary Details & Items */}
+          <div className="space-y-6">
+            {/* Primary Details Card */}
+            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+              <div className="px-6 py-4 border-b border-[#E5E7EB]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
                   Primary Details
                 </h3>
+              </div>
+              <div className="p-6">
                 <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">
                       Item Group Name
                     </label>
-                    <p className="mt-1.5 text-base font-semibold text-[#1f2937]">{itemGroup.name}</p>
+                    <p className="text-base font-extrabold text-[#111827] uppercase font-mono">{itemGroup.name}</p>
                   </div>
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">
                       Item Type
                     </label>
-                    <p className="mt-1.5 text-sm font-medium text-[#1f2937]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#111827]">
                       {itemGroup.itemType === "goods" ? "Inventory Items" : "Service Items"}
                     </p>
                   </div>
+
                   {Array.isArray(itemGroup.attributeRows) && itemGroup.attributeRows.length > 0 && (
-                    <div className="md:col-span-2 space-y-4">
-                      <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+                    <div className="md:col-span-2 space-y-2">
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
                         Attributes
                       </label>
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -694,22 +718,22 @@ const ShoeSalesItemGroupDetail = () => {
                           .map((row, idx) => (
                             <div
                               key={`${row.attribute}-${idx}`}
-                              className="rounded-lg border border-[#e4e6f2] bg-white px-4 py-3 shadow-sm"
+                              className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-none p-4 shadow-2xs"
                             >
-                              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#94a3b8] mb-2">
+                              <p className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-2.5">
                                 {row.attribute}
                               </p>
                               <div className="flex flex-wrap gap-2">
                                 {(row.options || []).map((opt, optIdx) => (
                                   <span
                                     key={`${row.attribute}-${opt}-${optIdx}`}
-                                    className="inline-flex items-center rounded-md border border-[#d7dcf5] bg-[#f8fafc] px-3 py-1 text-sm font-medium text-[#475569]"
+                                    className="inline-flex items-center px-3 py-1 bg-white border border-[#E5E7EB] text-xs font-bold text-[#111827] rounded-none shadow-2xs"
                                   >
                                     {opt}
                                   </span>
                                 ))}
                                 {(!row.options || row.options.length === 0) && (
-                                  <span className="text-xs text-[#94a3b8]">No options added</span>
+                                  <span className="text-xs text-[#9CA3AF]">No options added</span>
                                 )}
                               </div>
                             </div>
@@ -717,140 +741,154 @@ const ShoeSalesItemGroupDetail = () => {
                       </div>
                     </div>
                   )}
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">
                       Unit
                     </label>
-                    <p className="mt-1.5 text-sm font-medium text-[#1f2937]">{itemGroup.unit || "PCS"}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#111827]">{itemGroup.unit || "PCS"}</p>
                   </div>
-                  <div className="space-y-1">
-                    <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">
                       Tax Preference
                     </label>
-                    <p className="mt-1.5 text-sm font-medium text-[#1f2937]">Taxable</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#111827]">Taxable</p>
                   </div>
+
                   {itemGroup.inventoryValuation && (
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">
                         Inventory Valuation Method
                       </label>
-                      <p className="mt-1.5 text-sm font-medium text-[#1f2937]">{itemGroup.inventoryValuation}</p>
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#111827]">{itemGroup.inventoryValuation}</p>
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Images Section */}
-              {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
-                <div className="rounded-xl border border-[#e4e6f2] bg-white p-6">
-                  <AttachmentDisplay attachments={itemGroup.groupImages} />
-                </div>
-              )}
-
-              {/* Items Table Card */}
-              {items.length > 0 && (
-                <div className="rounded-xl border border-[#e4e6f2] bg-white overflow-hidden">
-                  <div className="px-6 py-4 bg-[#fafbff] border-b border-[#e7ebf8] flex items-center justify-between">
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[#64748b]">
-                      Items in Group
-                    </h3>
-                    <button
-                      onClick={() => setShowOpeningStockModal(true)}
-                      className="inline-flex items-center gap-2 text-sm font-medium text-[#2563eb] hover:text-[#1d4ed8] transition"
-                    >
-                      <Building2 size={16} className="text-[#2563eb]" />
-                      Opening Stock
-                    </button>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-[#e6eafb]">
-                      <thead className="bg-[#f8fafc]">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Item Details
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Cost Price
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Selling Price
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Stock on Hand
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Reorder Point
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#64748b]">
-                            Actions
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-[#f1f5f9] bg-white">
-                        {items.map((item, idx) => {
-                          // Calculate total stock from all warehouses
-                          let itemStock = 0;
-                          
-                          if (item.warehouseStocks && Array.isArray(item.warehouseStocks)) {
-                            itemStock = item.warehouseStocks.reduce((total, ws) => {
-                              const stockOnHand = parseFloat(ws.stockOnHand) || 0;
-                              return total + stockOnHand;
-                            }, 0);
-                          } else if (typeof item.stock === 'number') {
-                            // Fallback to direct stock property if warehouseStocks not available
-                            itemStock = item.stock;
-                          } else if (item.stock) {
-                            itemStock = parseFloat(item.stock) || 0;
-                          }
-                          
-                          return (
-                            <tr 
-                              key={item._id || item.id || idx} 
-                              className="hover:bg-[#f8fafc] cursor-pointer transition-colors duration-150"
-                              onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${item._id || item.id}`)}
-                            >
-                              <td className="px-6 py-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#d7dcf5] bg-[#f8fafc]">
-                                    <Package size={20} className="text-[#64748b]" />
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-semibold text-[#1f2937]">{item.name || "Unnamed Item"}</p>
-                                    <p className="text-xs text-[#64748b] mt-0.5">[{item.sku || "N/A"}]</p>
-                                  </div>
-                                </div>
-                              </td>
-                              <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">
-                                ₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}
-                              </td>
-                              <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">
-                                ₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}
-                              </td>
-                              <td className="px-6 py-4 text-sm font-bold text-[#1f2937]">{Math.round(itemStock)}</td>
-                              <td className="px-6 py-4 text-sm text-[#64748b]">{item.reorderPoint || "—"}</td>
-                              <td className="px-6 py-4">
-                                <Link
-                                  to={`/shoe-sales/item-groups/${id}/items/${item._id || item.id}/edit`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="no-blue-button inline-flex items-center gap-2 rounded-md border border-[#d7dcf5] bg-white px-3 py-1.5 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
-                                  title="Edit Variant"
-                                >
-                                  Edit Variant
-                                </Link>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Right Column - Image Upload & Stock Info */}
-            <div className="space-y-6">
-              {/* Image Upload Card */}
+            {/* Attached Images Gallery */}
+            {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
+              <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs p-6">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-4">
+                  Attached Images
+                </h3>
+                <AttachmentDisplay attachments={itemGroup.groupImages} />
+              </div>
+            )}
+
+            {/* Items Table Card */}
+            {items.length > 0 && (
+              <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+                <div className="px-6 py-4 border-b border-[#E5E7EB] flex items-center justify-between bg-white">
+                  <div className="flex items-center gap-2">
+                    <Package size={15} className="text-[#8B5CF6]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">
+                      Items in Group
+                    </h3>
+                    <span className="text-[10px] font-bold text-[#6B7280] bg-[#F3F4F6] px-2 py-0.5 border border-[#E5E7EB]">
+                      {items.length}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setShowOpeningStockModal(true)}
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Building2 size={13} className="text-[#111827]" />
+                    <span>Opening Stock</span>
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-[#E5E7EB]">
+                    <thead className="bg-[#1e1e1e] text-white">
+                      <tr>
+                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                          Item Details
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                          Cost Price
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                          Selling Price
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                          Stock on Hand
+                        </th>
+                        <th className="px-6 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
+                          Reorder Point
+                        </th>
+                        <th className="px-6 py-3.5 text-right text-[11px] font-bold uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E5E7EB] bg-white">
+                      {items.map((item, idx) => {
+                        let itemStock = 0;
+                        if (item.warehouseStocks && Array.isArray(item.warehouseStocks)) {
+                          itemStock = item.warehouseStocks.reduce((total, ws) => {
+                            const stockOnHand = parseFloat(ws.stockOnHand) || 0;
+                            return total + stockOnHand;
+                          }, 0);
+                        } else if (typeof item.stock === 'number') {
+                          itemStock = item.stock;
+                        } else if (item.stock) {
+                          itemStock = parseFloat(item.stock) || 0;
+                        }
+                        
+                        return (
+                          <tr 
+                            key={item._id || item.id || idx} 
+                            className="hover:bg-[#F9FAFB] cursor-pointer transition-colors"
+                            onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${item._id || item.id}`)}
+                          >
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-10 w-10 items-center justify-center rounded-none border border-[#E5E7EB] bg-[#F9FAFB] shrink-0">
+                                  <Package size={18} className="text-[#6B7280]" />
+                                </div>
+                                <div>
+                                  <p className="text-xs font-bold text-[#111827] uppercase">{item.name || "Unnamed Item"}</p>
+                                  <p className="text-[11px] font-mono text-[#6B7280] mt-0.5">[{item.sku || "N/A"}]</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">
+                              ₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}
+                            </td>
+                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">
+                              ₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}
+                            </td>
+                            <td className="px-6 py-4 text-xs font-mono font-bold text-[#111827]">{Math.round(itemStock)}</td>
+                            <td className="px-6 py-4 text-xs font-mono text-[#6B7280]">{item.reorderPoint || "—"}</td>
+                            <td className="px-6 py-4 text-right">
+                              <Link
+                                to={`/shoe-sales/item-groups/${id}/items/${item._id || item.id}/edit`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-2xs transition-colors"
+                                title="Edit Variant"
+                              >
+                                Edit Variant
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Image Upload & Stock Metrics */}
+          <div className="space-y-6">
+            {/* Image Upload Card */}
+            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs p-6">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-4">
+                Product Images
+              </h3>
               <ImageUpload
                 onImagesSelect={(images) => setGroupImages(images)}
                 existingImages={groupImages}
@@ -859,47 +897,56 @@ const ShoeSalesItemGroupDetail = () => {
                 }}
                 multiple={true}
               />
+            </div>
 
-              {/* Opening Stock Card */}
-              <div className="rounded-xl border border-[#e4e6f2] bg-white shadow-sm overflow-hidden">
-                {/* Opening Stock Section */}
-                <div className="bg-gradient-to-br from-[#f0f4ff] to-[#f8fafc] px-6 py-6 border-b border-[#e7ebf8]">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="p-2 rounded-xl bg-white border border-[#d7dcf5] shadow-sm">
-                      <Building2 size={20} className="text-[#2563eb]" />
-                    </div>
-                    <h3 className="text-sm font-semibold uppercase tracking-[0.05em] text-[#475569]">Opening Stock</h3>
+            {/* Opening Stock & Accounting Metrics Card */}
+            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+              {/* Opening Stock Section */}
+              <div className="bg-[#F9FAFB] px-6 py-6 border-b border-[#E5E7EB]">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Building2 size={16} className="text-[#8B5CF6]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                      Opening Stock
+                    </h3>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-5xl font-bold text-[#1f2937] leading-none">
-                      {Math.round(stockInfo.openingStock)}
-                    </p>
-                    <span className="text-xs font-medium text-[#64748b] uppercase tracking-wide ml-1">Units</span>
-                  </div>
+                  <span className="text-[10px] font-bold text-[#6B7280] bg-white px-2 py-0.5 border border-[#E5E7EB] uppercase">
+                    Total
+                  </span>
                 </div>
-                
-                {/* Accounting Stock Section */}
-                <div className="px-6 py-5 bg-white">
-                  <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-[#64748b] mb-4">Accounting Stock</h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-[#f8fafc] border border-[#f1f5f9]">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] shadow-sm"></div>
-                        <span className="text-sm font-medium text-[#64748b]">Stock on Hand</span>
-                      </div>
-                      <span className="text-base font-bold text-[#1f2937]">
-                        {Math.round(stockInfo.stockOnHand)}
-                      </span>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-4xl font-extrabold text-[#111827] font-mono leading-none">
+                    {Math.round(stockInfo.openingStock)}
+                  </p>
+                  <span className="text-xs font-bold text-[#6B7280] uppercase tracking-wider">
+                    Units
+                  </span>
+                </div>
+              </div>
+              
+              {/* Accounting Stock Section */}
+              <div className="p-6 bg-white space-y-4">
+                <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">
+                  Accounting Stock
+                </h4>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-none"></div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Stock on Hand</span>
                     </div>
-                    <div className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-[#f8fafc] border border-[#f1f5f9]">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#f59e0b] shadow-sm"></div>
-                        <span className="text-sm font-medium text-[#64748b]">Committed Stock</span>
-                      </div>
-                      <span className="text-base font-bold text-[#1f2937]">
-                        {Math.round(stockInfo.committedStock)}
-                      </span>
+                    <span className="text-sm font-bold font-mono text-[#111827]">
+                      {Math.round(stockInfo.stockOnHand)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-2.5 px-3.5 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 bg-amber-500 rounded-none"></div>
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Committed Stock</span>
                     </div>
+                    <span className="text-sm font-bold font-mono text-[#111827]">
+                      {Math.round(stockInfo.committedStock)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -910,30 +957,30 @@ const ShoeSalesItemGroupDetail = () => {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Delete Item Group</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="px-6 py-4 border-b border-[#E5E7EB]">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Delete Item Group</h2>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b]">
-                Are you sure you want to delete "{itemGroup?.name}"? This action cannot be undone and will delete all items in this group.
+            <div className="p-6">
+              <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
+                Are you sure you want to delete <span className="font-bold text-[#111827]">"{itemGroup?.name}"</span>? This action cannot be undone and will delete all items in this group.
               </p>
             </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
+                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={loading}
-                className="no-blue-button rounded-md bg-[#ef4444] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#dc2626] disabled:opacity-50"
+                className="h-9 px-4 rounded-none bg-[#EF4444] hover:bg-[#DC2626] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
               >
-                {loading ? "Deleting..." : "Delete"}
+                {loading ? "Deleting..." : "Delete Group"}
               </button>
             </div>
           </div>
@@ -942,28 +989,28 @@ const ShoeSalesItemGroupDetail = () => {
 
       {/* Mark as Inactive Confirmation Modal */}
       {showInactiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Mark as Inactive</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+            <div className="px-6 py-4 border-b border-[#E5E7EB]">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b]">
-                Are you sure you want to mark "{itemGroup?.name}" as inactive? This will hide the group from active lists.
+            <div className="p-6">
+              <p className="text-xs font-medium text-[#4B5563] leading-relaxed">
+                Are you sure you want to mark <span className="font-bold text-[#111827]">"{itemGroup?.name}"</span> as inactive? This will hide the group from active lists.
               </p>
             </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
+            <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-3">
               <button
                 onClick={() => setShowInactiveModal(false)}
                 disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
+                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleMarkAsInactive}
                 disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f8fafc] hover:border-[#cbd5f5] disabled:opacity-50"
+                className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {loading ? "Updating..." : "Mark as Inactive"}
               </button>
@@ -975,22 +1022,24 @@ const ShoeSalesItemGroupDetail = () => {
       {/* Opening Stock Distribution Modal */}
       {showOpeningStockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-8 overflow-y-auto">
-          <div className="relative w-full max-w-6xl bg-white rounded-lg shadow-2xl my-8">
+          <div className="relative w-full max-w-5xl bg-white rounded-none border border-[#E5E7EB] shadow-2xl my-8">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
+            <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between z-10">
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold text-gray-900">Distribution of Opening Stock</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">
+                  Distribution of Opening Stock
+                </h2>
                 {/* Month Selector */}
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-gray-700">Month:</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Month:</label>
                   <input
                     type="month"
                     value={selectedMonth}
                     onChange={(e) => {
                       setSelectedMonth(e.target.value);
-                      setEditingStock({}); // Clear edits when month changes
+                      setEditingStock({});
                     }}
-                    className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-2.5 py-1 border border-[#E5E7EB] rounded-none text-xs font-bold bg-[#F9FAFB] focus:outline-none focus:border-[#8B5CF6]"
                   />
                 </div>
               </div>
@@ -999,59 +1048,59 @@ const ShoeSalesItemGroupDetail = () => {
                   setShowOpeningStockModal(false);
                   setEditingStock({});
                 }}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6] transition-colors cursor-pointer"
               >
-                <X size={24} />
+                <X size={16} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0 z-10">
+            <div className="px-6 py-4 max-h-[calc(100vh-220px)] overflow-y-auto">
+              <div className="border border-[#E5E7EB] rounded-none overflow-hidden">
+                <table className="min-w-full divide-y divide-[#E5E7EB]">
+                  <thead className="bg-[#1e1e1e] text-white sticky top-0 z-10">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                         ITEM NAME
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                         WAREHOUSE
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider border-r border-gray-200">
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider border-r border-[#333333]">
                         OPENING STOCK
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-wider">
                         OPENING STOCK VALUE
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-[#E5E7EB]">
                     {openingStockData.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="px-4 py-8 text-center text-sm text-gray-500">
+                        <td colSpan={4} className="px-4 py-8 text-center text-xs font-semibold text-[#6B7280]">
                           No opening stock data available
                         </td>
                       </tr>
                     ) : (
-                      openingStockData.flatMap((itemData, itemIdx) => {
+                      openingStockData.flatMap((itemData) => {
                         const rows = [];
                         
                         // First row: Item name with total
                         rows.push(
-                          <tr key={`${itemData.itemId}-total`} className="bg-blue-50">
-                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 border-r border-gray-200">
+                          <tr key={`${itemData.itemId}-total`} className="bg-[#F5F3FF]">
+                            <td className="px-4 py-2.5 text-xs font-bold text-[#111827] border-r border-[#E5E7EB]">
                               <div>
-                                <div className="font-semibold">{itemData.itemName}</div>
-                                <div className="text-xs text-gray-500 mt-0.5">SKU: {itemData.itemSku || "No SKU"}</div>
+                                <div className="font-extrabold uppercase">{itemData.itemName}</div>
+                                <div className="text-[11px] font-mono text-[#6B7280] mt-0.5">SKU: {itemData.itemSku || "No SKU"}</div>
                               </div>
                             </td>
-                            <td className="px-4 py-3 text-sm font-medium text-gray-700 border-r border-gray-200">
+                            <td className="px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-[#7C3AED] border-r border-[#E5E7EB]">
                               Warehouse (total)
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right border-r border-gray-200">
+                            <td className="px-4 py-2.5 text-xs font-mono font-bold text-[#111827] text-right border-r border-[#E5E7EB]">
                               {Math.round(itemData.openingStock)}
                             </td>
-                            <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
+                            <td className="px-4 py-2.5 text-xs font-mono font-bold text-[#7C3AED] text-right">
                               ₹{itemData.openingStockValue.toFixed(2)}
                             </td>
                           </tr>
@@ -1059,36 +1108,30 @@ const ShoeSalesItemGroupDetail = () => {
                         
                         // Add warehouse rows for this item
                         itemData.warehouseEntries.forEach((warehouseEntry, whIdx) => {
-                          // Show all warehouses (matching Zoho Books behavior)
                           const isInactive = warehouseEntry.warehouse.toLowerCase().includes('inactive');
                           const editKey = `${warehouseEntry.itemId}-${warehouseEntry.warehouse}`;
                           const isEditing = editingStock[editKey];
                           
                           rows.push(
-                            <tr key={`${itemData.itemId}-${warehouseEntry.warehouse}-${whIdx}`} className="hover:bg-gray-50">
-                              <td className="px-4 py-2 text-sm text-gray-500 border-r border-gray-200"></td>
-                              <td className={`px-4 py-2 text-sm border-r border-gray-200 ${isInactive ? 'text-gray-400 italic' : 'text-gray-700'}`}>
+                            <tr key={`${itemData.itemId}-${warehouseEntry.warehouse}-${whIdx}`} className="hover:bg-[#F9FAFB]">
+                              <td className="px-4 py-2 text-xs text-[#6B7280] border-r border-[#E5E7EB]"></td>
+                              <td className={`px-4 py-2 text-xs border-r border-[#E5E7EB] ${isInactive ? 'text-[#9CA3AF] italic' : 'text-[#374151] font-medium'}`}>
                                 {warehouseEntry.warehouse}
-                                {isInactive && <span className="ml-2 text-xs">(INACTIVE)</span>}
+                                {isInactive && <span className="ml-2 text-[10px] text-red-500 font-bold uppercase">(INACTIVE)</span>}
                               </td>
-                              <td className="px-4 py-2 text-sm text-right border-r border-gray-200">
+                              <td className="px-4 py-2 text-xs text-right border-r border-[#E5E7EB]">
                                 <input
                                   type="number"
                                   step="1"
                                   min="0"
                                   value={isEditing ? (isEditing.openingStock || '') : Math.round(warehouseEntry.openingStock)}
                                   onChange={(e) => handleStockChange(warehouseEntry.itemId, warehouseEntry.warehouse, 'openingStock', e.target.value, warehouseEntry.itemSellingPrice)}
-                                  className="w-24 px-2 py-1 text-right border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  className="w-24 px-2 py-1 text-right border border-[#E5E7EB] rounded-none text-xs font-mono font-bold bg-[#F9FAFB] focus:bg-white focus:outline-none focus:border-[#8B5CF6]"
                                   placeholder="0"
                                 />
                               </td>
-                              <td className="px-4 py-2 text-sm text-right">
-                                <div className="flex items-center justify-end gap-1 px-2 py-1 bg-gray-50 rounded border border-gray-200">
-                                  <span className="text-gray-700">₹</span>
-                                  <span className="text-gray-900 font-medium">
-                                    {(isEditing ? (isEditing.openingStockValue || 0) : warehouseEntry.openingStockValue).toFixed(2)}
-                                  </span>
-                                </div>
+                              <td className="px-4 py-2 text-xs text-right font-mono font-semibold text-[#111827]">
+                                ₹{(isEditing ? (isEditing.openingStockValue || 0) : warehouseEntry.openingStockValue).toFixed(2)}
                               </td>
                             </tr>
                           );
@@ -1103,28 +1146,28 @@ const ShoeSalesItemGroupDetail = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
+            <div className="sticky bottom-0 bg-[#F9FAFB] border-t border-[#E5E7EB] px-6 py-4 flex items-center justify-end gap-3">
               <button
                 onClick={() => {
                   setShowOpeningStockModal(false);
                   setEditingStock({});
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] transition-colors cursor-pointer"
               >
                 Close
               </button>
               <button
                 onClick={handleSaveMonthlyStock}
                 disabled={savingStock || Object.keys(editingStock).length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
               >
                 {savingStock ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Saving...
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Saving...</span>
                   </>
                 ) : (
-                  'Save Opening Stock'
+                  <span>Save Opening Stock</span>
                 )}
               </button>
             </div>

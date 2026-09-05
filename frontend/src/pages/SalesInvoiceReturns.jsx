@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Head from "../components/Head";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import { Search, Calendar, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, RotateCcw } from "lucide-react";
 
 const SalesInvoiceReturns = () => {
   const isSidebarOpen = useSidebar();
@@ -12,6 +12,15 @@ const SalesInvoiceReturns = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Date range filtering states
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showDateFilter, setShowDateFilter] = useState(false);
+
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
 
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
@@ -47,17 +56,42 @@ const SalesInvoiceReturns = () => {
     })}`;
   };
 
-  // Get category badge color
+  // Get category badge color with sharp corners
   const getCategoryColor = (category) => {
     switch (category?.toLowerCase()) {
       case "return":
-        return "bg-[#fef3c7] text-[#92400e]";
+        return "bg-amber-50 text-amber-800 border border-amber-200";
       case "refund":
-        return "bg-[#fee2e2] text-[#991b1b]";
+        return "bg-red-50 text-red-700 border border-red-200";
       case "cancel":
-        return "bg-[#f3f4f6] text-[#374151]";
+        return "bg-gray-100 text-gray-700 border border-gray-200";
       default:
-        return "bg-[#f3f4f6] text-[#374151]";
+        return "bg-gray-100 text-gray-700 border border-gray-200";
+    }
+  };
+
+  // Get return status badge with sharp corners
+  const getReturnStatusBadge = (returnStatus) => {
+    switch (returnStatus) {
+      case "full":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-red-50 text-red-700 border border-red-200">
+            FULLY RETURNED
+          </span>
+        );
+      case "partial":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-amber-50 text-amber-700 border border-amber-200">
+            PARTIALLY RETURNED
+          </span>
+        );
+      case "none":
+      default:
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-gray-100 text-gray-600 border border-gray-200">
+            NOT RETURNED
+          </span>
+        );
     }
   };
 
@@ -79,11 +113,9 @@ const SalesInvoiceReturns = () => {
           userId: user.email,
         });
 
-        // Add userPower and locCode if available
         if (user.power) params.append("userPower", user.power);
         if (user.locCode) params.append("locCode", user.locCode);
         
-        // Add warehouse parameter for filtering
         const fallbackLocations = [
           { "locName": "Z-Edapally1", "locCode": "144" },
           { "locName": "Warehouse", "locCode": "858" },
@@ -127,7 +159,6 @@ const SalesInvoiceReturns = () => {
         if (userWarehouse) {
           params.append("warehouse", userWarehouse);
         }
-        // Also pass the locCode for filtering by location code
         if (user?.locCode) {
           params.append("filterLocCode", user.locCode);
         }
@@ -151,14 +182,21 @@ const SalesInvoiceReturns = () => {
     fetchInvoices();
   }, [API_URL]);
 
-  // Filter invoices to show ONLY Return/Refund/Cancel categories
+  // Filter invoices to show ONLY Return/Refund/Cancel categories and date filtering
   const filteredInvoices = invoices.filter(invoice => {
-    // Only show Return/Refund/Cancel invoices on this page
     const categoryLower = (invoice.category || "").toLowerCase().trim();
     const isReturnRefundCancel = ["return", "refund", "cancel"].includes(categoryLower);
     
     if (!isReturnRefundCancel) {
-      return false; // Don't show non-return invoices on this page
+      return false;
+    }
+
+    // Date range filtering
+    if (fromDate || toDate) {
+      if (!invoice.invoiceDate) return false;
+      const invoiceDateStr = new Date(invoice.invoiceDate).toISOString().split("T")[0];
+      if (fromDate && invoiceDateStr < fromDate) return false;
+      if (toDate && invoiceDateStr > toDate) return false;
     }
     
     // Apply search filter
@@ -171,156 +209,314 @@ const SalesInvoiceReturns = () => {
     );
   });
 
+  // Reset to page 1 on search or filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, fromDate, toDate]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+
+  // Pagination handlers
+  const goToPage = (page) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+  const goToFirstPage = () => setCurrentPage(1);
+  const goToLastPage = () => setCurrentPage(totalPages);
+  const goToPreviousPage = () => setCurrentPage(prev => Math.max(1, prev - 1));
+  const goToNextPage = () => setCurrentPage(prev => Math.min(totalPages, prev + 1));
+
   return (
     <>
       <Header title="Invoice Returns" />
-      <div className="min-h-screen bg-[#f6f9ff]">
-        <Head
-          title="Invoice Returns"
-          description="View and manage return, refund, and cancellation invoices."
-        />
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#F9FAFB] flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        {/* ── Top Header Bar ── */}
+        <div className="px-6 pt-5 pb-4 border-b border-[#E5E7EB] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
+                Invoice Returns
+              </h1>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                View all return, refund, and cancellation invoices.
+              </p>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <Link
+                to="/sales/invoices"
+                className="inline-flex h-9 items-center gap-2 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] px-3.5 text-xs font-semibold text-[#111827] shadow-sm transition-colors cursor-pointer"
+              >
+                <FileText size={14} className="text-[#111827]" />
+                <span>View Sales Invoices</span>
+              </Link>
+            </div>
+          </div>
+        </div>
 
-        <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-          <div className="flex flex-col gap-6">
-            <header className="flex flex-col gap-4">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h1 className="text-2xl font-semibold text-[#111827]">Invoice Returns</h1>
-                <p className="text-sm text-[#6b7280]">View all return, refund, and cancellation invoices.</p>
+        {/* ── Controls Row: Search, Date Filter, Badges ── */}
+        <div className="px-6 pt-4 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Search Box & Date Filter Button */}
+            <div className="flex items-center gap-2.5 flex-1 max-w-2xl">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={14} className="text-[#9CA3AF]" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by invoice #, customer name, or order #..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowDateFilter(!showDateFilter)}
+                className={`h-9 px-3.5 rounded-none border text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+                  showDateFilter || fromDate || toDate
+                    ? 'border-[#D1D5DB] bg-[#E2E2E2] text-[#111827] font-bold'
+                    : 'border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827]'
+                }`}
+              >
+                <Calendar size={13} className="text-[#111827]" />
+                <span>Date Filter</span>
+              </button>
+            </div>
+
+            {/* Badges / Metrics */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
+                Total: {filteredInvoices.length} {filteredInvoices.length === 1 ? 'Return' : 'Returns'}
+              </span>
+              {(fromDate || toDate) && (
+                <span className="inline-flex items-center gap-1.5 rounded-none bg-[#EDE9FE] border border-[#C4B5FD] px-2.5 py-1 text-xs font-bold text-[#6D28D9]">
+                  📅 Filtered
+                </span>
+              )}
+              {searchTerm && (
+                <span className="inline-flex items-center gap-1.5 rounded-none bg-[#FEF3C7] border border-[#FDE68A] px-2.5 py-1 text-xs font-bold text-[#92400E]">
+                  🔍 "{searchTerm}"
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Date Range Drawer */}
+          {showDateFilter && (
+            <div className="mt-3 flex flex-wrap items-center gap-3 rounded-none border border-[#E5E7EB] bg-white p-3.5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-[#374151]">From:</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="h-8 rounded-none border border-[#E5E7EB] bg-white px-2.5 text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                />
               </div>
               <div className="flex items-center gap-2">
-                <Link
-                  to="/sales/invoices"
-                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[#d7def4] bg-white px-4 text-sm font-semibold text-[#4b5563] shadow-sm transition hover:bg-[#f1f3fd]"
-                >
-                  View Sales Invoices
-                </Link>
+                <label className="text-xs font-bold uppercase tracking-wider text-[#374151]">To:</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="h-8 rounded-none border border-[#E5E7EB] bg-white px-2.5 text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                />
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFromDate("");
+                  setToDate("");
+                }}
+                className="h-8 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] px-3 text-xs font-semibold uppercase tracking-wider text-[#111827] transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search by invoice #, customer name, or order #..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 rounded-lg border border-[#d7def4] bg-white px-4 py-2.5 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#3366ff] focus:outline-none focus:ring-2 focus:ring-[#3366ff]/20"
-              />
-            </div>
-          </header>
+          )}
+        </div>
 
-          <section className="rounded-3xl border border-[#dfe5f5] bg-white shadow-sm">
-            <div className="flex flex-wrap items-center gap-4 border-b border-[#e7ecf8] px-8 py-5">
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex items-center gap-3 rounded-xl bg-[#fff7ed] px-4 py-3 text-sm font-medium text-[#9a3412]">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#9a3412] shadow-sm">
-                    🔄
-                  </span>
-                  Return & Refund Transactions
-                </div>
-              </div>
-            </div>
-
+        {/* ── Main Table Card ── */}
+        <div className="px-6 pb-8 pt-2">
+          <section className="rounded-none border border-[#E5E7EB] bg-white shadow-sm overflow-hidden">
             {loading ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">Loading return invoices...</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <div className="inline-block animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
+                <p className="text-xs font-medium text-[#6B7280]">Loading return invoices...</p>
               </div>
             ) : error ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#ef4444]">{error}</p>
+              <div className="px-8 py-16 text-center">
+                <p className="text-xs font-semibold text-red-500">{error}</p>
               </div>
             ) : invoices.length === 0 ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">No return invoices found.</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] flex items-center justify-center mb-3">
+                  <RotateCcw size={24} className="text-[#8B5CF6]" />
+                </div>
+                <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">No Return Invoices Found</h3>
+                <p className="text-xs text-[#6B7280] max-w-sm mb-4">
+                  There are currently no return, refund, or cancellation invoices recorded.
+                </p>
+                <Link
+                  to="/sales/invoices"
+                  className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
+                >
+                  <FileText size={14} className="text-white" />
+                  View Invoices
+                </Link>
               </div>
             ) : filteredInvoices.length === 0 ? (
-              <div className="px-8 py-12 text-center">
-                <p className="text-sm text-[#6b7280]">No return invoices match your search. Try a different search term.</p>
+              <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                <p className="text-xs text-[#6B7280]">No return invoices match your search. Try a different search term.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-[#eef1fb] bg-[#f9fbff] text-xs font-semibold uppercase tracking-[0.24em] text-[#8a94b0]">
-                      <th className="w-12 px-4 py-4">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
+                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">#</th>
+                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">
                         <input
                           type="checkbox"
-                          className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca]"
+                          className="h-3.5 w-3.5 rounded-none border-gray-600 bg-[#2d2d2d] accent-[#8B5CF6] cursor-pointer"
                         />
                       </th>
-                      <th className="px-4 py-4 text-left">DATE</th>
-                      <th className="px-4 py-4 text-left">INVOICE#</th>
-                      <th className="px-4 py-4 text-left">ORDER NUMBER</th>
-                      <th className="px-4 py-4 text-left">CUSTOMER NAME</th>
-                      <th className="px-4 py-4 text-left">CATEGORY</th>
-                      <th className="px-4 py-4 text-left">RETURN STATUS</th>
-                      <th className="px-4 py-4 text-right">INVOICE AMOUNT</th>
-                      <th className="px-4 py-4 text-left">BRANCH</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">DATE</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">INVOICE#</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">ORDER NUMBER</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">CUSTOMER NAME</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">CATEGORY</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">RETURN STATUS</th>
+                      <th className="px-3 py-3 text-right border-r border-[#333333] whitespace-nowrap">INVOICE AMOUNT</th>
+                      <th className="px-3 py-3 text-left whitespace-nowrap">BRANCH</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#eef1fb] text-sm text-[#1f2937]">
-                    {filteredInvoices.map((invoice, index) => (
+                  <tbody className="divide-y divide-[#F3F4F6] text-xs text-[#1F2937]">
+                    {paginatedInvoices.map((invoice, index) => (
                       <tr
                         key={invoice._id || invoice.id}
-                        className={`${index % 2 === 0 ? "bg-white" : "bg-[#f7f9ff]"} hover:bg-[#f2f5ff]`}
+                        className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]/40"} hover:bg-purple-50/25 transition-colors`}
                       >
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5 text-center font-medium text-[#6B7280]">
+                          {startIndex + index + 1}
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca]"
+                            className="h-3.5 w-3.5 rounded-none border-[#D1D5DB] accent-[#8B5CF6]"
                           />
                         </td>
-                        <td className="px-4 py-4 whitespace-nowrap text-[#4b5563]">
+                        <td className="px-3 py-2.5 whitespace-nowrap text-[#4B5563]">
                           {formatDate(invoice.invoiceDate)}
                         </td>
-                        <td className="px-4 py-4">
+                        <td className="px-3 py-2.5 font-semibold">
                           <Link
                             to={`/sales/invoices/${invoice._id || invoice.id}`}
-                            className="font-semibold text-[#2563eb] hover:text-[#1d4ed8] hover:underline"
+                            className="text-[#8B5CF6] hover:text-[#7C3AED] hover:underline"
                           >
                             {invoice.invoiceNumber}
                           </Link>
                         </td>
-                        <td className="px-4 py-4 text-[#4b5563]">{invoice.orderNumber || ""}</td>
-                        <td className="px-4 py-4 text-[#1f2937]">{invoice.customer}</td>
-                        <td className="px-4 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-md ${getCategoryColor(invoice.category)}`}>
+                        <td className="px-3 py-2.5 text-[#4B5563]">{invoice.orderNumber || "-"}</td>
+                        <td className="px-3 py-2.5 text-[#111827] font-medium">{invoice.customer || "-"}</td>
+                        <td className="px-3 py-2.5">
+                          <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none ${getCategoryColor(invoice.category)}`}>
                             {(invoice.category || "").toUpperCase()}
                           </span>
                         </td>
-                        <td className="px-4 py-4">
-                          {invoice.returnStatus === "full" && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                              <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                              FULLY RETURNED
-                            </span>
-                          )}
-                          {invoice.returnStatus === "partial" && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-                              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                              PARTIALLY RETURNED
-                            </span>
-                          )}
-                          {!invoice.returnStatus || invoice.returnStatus === "none" && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full">
-                              <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                              NOT RETURNED
-                            </span>
-                          )}
+                        <td className="px-3 py-2.5">
+                          {getReturnStatusBadge(invoice.returnStatus)}
                         </td>
-                        <td className="px-4 py-4 text-right font-semibold text-[#1f2937]">
+                        <td className="px-3 py-2.5 text-right font-bold text-[#111827]">
                           {formatCurrency(invoice.finalTotal)}
                         </td>
-                        <td className="px-4 py-4 text-[#4b5563]">{invoice.branch}</td>
+                        <td className="px-3 py-2.5 text-[#4B5563]">{invoice.branch || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
+                {/* Table Footer with Pagination */}
+                <div className="border-t border-[#E5E7EB] bg-[#FAFAFA] px-5 py-3">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#6B7280]">
+                    <div className="flex items-center gap-4">
+                      <span>
+                        Showing {startIndex + 1}-{Math.min(endIndex, filteredInvoices.length)} of {filteredInvoices.length} {filteredInvoices.length !== 1 ? 'returns' : 'return'}
+                      </span>
+                      <span className="font-bold text-[#111827]">
+                        Total: ₹{filteredInvoices.reduce((sum, inv) => sum + (parseFloat(inv.finalTotal) || 0), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs text-[#6B7280]">Rows:</span>
+                          <select
+                            value={itemsPerPage}
+                            onChange={(e) => {
+                              setItemsPerPage(Number(e.target.value));
+                              setCurrentPage(1);
+                            }}
+                            className="rounded-none border border-[#E5E7EB] bg-white px-2 py-0.5 text-xs text-[#374151] focus:border-[#8B5CF6] focus:outline-none"
+                          >
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                          </select>
+                        </div>
+                        <span className="text-xs text-[#6B7280]">
+                          Page {currentPage} of {totalPages}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={goToFirstPage}
+                            disabled={currentPage === 1}
+                            className="p-1 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed text-[#374151]"
+                            title="First Page"
+                          >
+                            <ChevronsLeft size={14} />
+                          </button>
+                          <button
+                            onClick={goToPreviousPage}
+                            disabled={currentPage === 1}
+                            className="p-1 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed text-[#374151]"
+                            title="Previous Page"
+                          >
+                            <ChevronLeft size={14} />
+                          </button>
+                          <button
+                            onClick={goToNextPage}
+                            disabled={currentPage === totalPages}
+                            className="p-1 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed text-[#374151]"
+                            title="Next Page"
+                          >
+                            <ChevronRight size={14} />
+                          </button>
+                          <button
+                            onClick={goToLastPage}
+                            disabled={currentPage === totalPages}
+                            className="p-1 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] disabled:opacity-40 disabled:cursor-not-allowed text-[#374151]"
+                            title="Last Page"
+                          >
+                            <ChevronsRight size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </section>
         </div>
       </div>
-    </div>
     </>
   );
 };

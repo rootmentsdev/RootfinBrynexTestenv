@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Search, Image as ImageIcon, ChevronDown, X, Settings, Pencil, Check, Plus, HelpCircle, ChevronUp, MessageCircle } from "lucide-react";
+import { Search, Image as ImageIcon, ChevronDown, X, Settings, Pencil, Check, Plus, HelpCircle, ChevronUp, MessageCircle, ArrowLeft, Calendar } from "lucide-react";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
@@ -323,7 +323,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
       }}
       className={dropdownPos.openUpward ? "dropdown-animate-up" : "dropdown-animate"}
     >
-      <div className="rounded-xl shadow-2xl bg-white border border-[#e2e8f0] overflow-hidden" style={{ width: '100%' }}>
+      <div className="rounded-none shadow-2xl bg-white border border-[#e2e8f0] overflow-hidden" style={{ width: '100%' }}>
         <div className="flex items-center gap-2 border-b border-[#f1f5f9] px-3 py-2 bg-white">
           <Search size={14} className="text-[#9ca3af] shrink-0" />
           <input
@@ -434,7 +434,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
                 onNewItem();
                 setIsOpen(false);
               }}
-              className="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm text-[#374151] hover:bg-[#f3f4f6] rounded-md transition-colors"
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer text-sm text-[#374151] hover:bg-[#f3f4f6] rounded-none transition-colors"
             >
               <span>+</span>
               <span>New Item</span>
@@ -474,8 +474,8 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
               updatePos();
             }
           }}
-          placeholder="Type or click to select an item"
-          className="w-full h-[32px] rounded border border-[#e5e7eb] bg-white px-2 py-1 text-xs text-[#111827] placeholder:text-[#9ca3af] focus:border-[#6366f1] focus:outline-none focus:ring-0 transition-colors"
+          placeholder="Type of click to select an item"
+          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] placeholder:text-[#9ca3af] focus:border-[#8b5cf6] focus:outline-none transition-colors"
         />
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -497,6 +497,7 @@ const blankLineItem = () => ({
   itemData: null,
   size: "",
   quantity: 1,
+  remarks: "",
   rate: 0,
   tax: "",
   amount: 0,
@@ -620,7 +621,7 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
       }}
       className={dropdownPos.openUpward ? "dropdown-animate-up" : "dropdown-animate"}
     >
-      <div className="rounded-xl shadow-2xl bg-white border border-[#e2e8f0] overflow-hidden">
+      <div className="rounded-none shadow-2xl bg-white border border-[#e2e8f0] overflow-hidden">
         {/* Search */}
         <div className="flex items-center gap-2 border-b border-[#f1f5f9] px-3 py-2 bg-[#f8fafc]">
           <Search size={13} className="text-[#9ca3af] shrink-0" />
@@ -692,12 +693,12 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
         <button
           type="button"
           onClick={toggleDropdown}
-          className="no-blue-button w-full h-[28px] rounded border border-[#e5e7eb] bg-white px-2 py-1 text-[10px] text-[#111827] hover:border-[#9ca3af] focus:outline-none flex items-center justify-between gap-1 transition-colors overflow-hidden"
+          className="w-full h-9 rounded-none border border-[#e5e7eb] bg-white px-2.5 text-xs text-[#111827] hover:border-[#8b5cf6] focus:outline-none flex items-center justify-between gap-1 transition-colors overflow-hidden"
         >
           <span className="truncate text-left flex-1 text-[#374151] min-w-0 block">
             {selectedTax ? selectedTax.display || selectedTax.name : <span className="text-[#9ca3af]">Select Tax</span>}
           </span>
-          <ChevronDown size={12} className={`shrink-0 text-[#9ca3af] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <ChevronDown size={14} className={`shrink-0 text-[#9ca3af] transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -736,12 +737,13 @@ const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
         readOnly
         onClick={() => setIsOpen(!isOpen)}
         value={selectedLabel}
-        className="w-full rounded-lg border border-[#e5e7eb] bg-white text-sm text-[#111827] hover:border-[#9ca3af] focus:border-[#9ca3af] focus:outline-none focus:ring-0 transition-all cursor-pointer px-3 py-2.5 appearance-none"
+        className="w-full h-[42px] rounded-none border border-[#e5e7eb] bg-white text-sm text-[#111827] hover:border-[#8b5cf6] focus:border-[#8b5cf6] focus:outline-none transition-all cursor-pointer px-3.5 pr-8 appearance-none"
         style={{ backgroundImage: 'none' }}
       />
+      <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e5e7eb] rounded-none shadow-lg z-50 max-h-64 overflow-y-auto">
           {options.map((option) => (
             <div
               key={option.value}
@@ -762,7 +764,7 @@ const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
       )}
     </div>
   );
-}
+};
 
 const SalesInvoiceCreate = () => {
   const isSidebarOpen = useSidebar();
@@ -3083,48 +3085,7 @@ Customer Service Available`;
   };
 
   return (
-    <div className="min-h-screen invoice-page-wrapper">
-      <style dangerouslySetInnerHTML={{__html: `
-        /* MAXIMUM SPECIFICITY - Invoice page NO BLUE buttons */
-        div.invoice-page-wrapper button,
-        div.invoice-page-wrapper > * button,
-        div.invoice-page-wrapper * button,
-        .invoice-page-wrapper button {
-          background-color: white !important;
-          color: #374151 !important;
-          border: 1px solid #d1d5db !important;
-          box-shadow: none !important;
-          padding: 0.5rem 1rem !important;
-          border-radius: 0.5rem !important;
-          font-size: 0.875rem !important;
-          font-weight: 500 !important;
-          min-height: auto !important;
-          min-width: auto !important;
-          transform: none !important;
-        }
-        
-        div.invoice-page-wrapper button:hover,
-        div.invoice-page-wrapper > * button:hover,
-        div.invoice-page-wrapper * button:hover,
-        .invoice-page-wrapper button:hover {
-          background-color: #f9fafb !important;
-          border-color: #9ca3af !important;
-          transform: none !important;
-          box-shadow: none !important;
-        }
-        
-        div.invoice-page-wrapper button.keep-blue,
-        .invoice-page-wrapper button.keep-blue {
-          background-color: #1e3a8a !important;
-          color: white !important;
-          border-color: #1e3a8a !important;
-        }
-        
-        div.invoice-page-wrapper button.keep-blue:hover,
-        .invoice-page-wrapper button.keep-blue:hover {
-          background-color: #1e40af !important;
-        }
-      `}} />
+    <div className="min-h-screen bg-[#F8F9FA]">
       {/* Better Alert UI */}
       {alert && (
         <div className={`fixed top-4 right-4 z-[9999] max-w-md rounded-lg shadow-2xl border-l-4 p-4 animate-in fade-in slide-in-from-top-2 ${
@@ -3156,497 +3117,720 @@ Customer Service Available`;
         </div>
       )}
 
-      <div className={`transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'ml-52' : 'ml-0'}`}>
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* ── Top Header Bar ── */}
-        <div className="flex items-center justify-between px-6 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#1e3a8a] text-white text-lg shadow-md">
-              📄
-            </div>
+        <div className="px-6 pt-5 pb-3">
+          {/* Heading and Action Buttons */}
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-base font-bold text-[#111827] uppercase tracking-wide">{isEditMode ? "Edit Invoice" : "Create Invoice"}</h1>
-              <p className="text-xs text-[#6b7280]">{isEditMode ? "Update an existing invoice" : "Create a new sales invoice"}</p>
+              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
+                {isEditMode ? "Edit Invoice" : "Create Invoice"}
+              </h1>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                {isEditMode ? "Update an existing invoice" : "Create a new sales invoice"}
+              </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowInvoiceSettingsModal(true)}
-              className="no-blue-button inline-flex items-center justify-center rounded-lg border border-[#d1d5db] bg-white px-3 py-1.5 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] transition-colors shadow-sm"
-              title="Settings"
-            >
-              <Settings size={13} className="text-[#6b7280]" />
-            </button>
-            <Link
-              to="/sales/invoices"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                borderRadius: '8px',
-                border: '1px solid #fca5a5',
-                backgroundColor: '#fff5f5',
-                padding: '6px 12px',
-                fontSize: '12px',
-                fontWeight: '500',
-                color: '#dc2626',
-                textDecoration: 'none',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                transition: 'background-color 0.15s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#fee2e2'}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = '#fff5f5'}
-            >
-              <X size={13} /> Back to Invoices
-            </Link>
+
+            <div className="flex items-center gap-2.5">
+              <Link
+                to="/sales/invoices"
+                className="inline-flex items-center gap-2 rounded-none border border-[#E5E7EB] bg-white px-4 py-2 text-xs font-semibold text-[#8B5CF6] hover:bg-purple-50 transition-colors shadow-sm"
+              >
+                <X size={14} className="text-[#8B5CF6]" />
+                Back to Invoice
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowInvoiceSettingsModal(true)}
+                className="inline-flex items-center justify-center h-8 w-8 rounded-none border border-[#E5E7EB] bg-white text-[#374151] hover:bg-[#F9FAFB] transition-colors shadow-sm"
+                title="Settings"
+              >
+                <Settings size={15} className="text-[#4B5563]" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ── Body: left main + right sidebar ── */}
-        <div className="flex flex-1 min-h-0 px-6 pb-6 gap-4">
-
+        {/* ── Body: Left Main Card + Right Sidebar (Equal Height with items-stretch) ── */}
+        <div className="flex flex-1 min-h-0 px-6 pb-6 gap-4 items-stretch">
           {/* ── LEFT / MAIN COLUMN ── */}
-          <div className="flex-1 overflow-y-auto space-y-3">
-
-        {/* Main Content */}
-        <div className="rounded-xl border border-[#e2e8f0] bg-white shadow-sm">
-          {/* Top Section - Bill To + Invoice Details */}
-          <div className="border-b border-[#e5e7eb] px-5 py-4">
-            <div className="grid grid-cols-2 gap-6">
-              {/* BILL TO */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm w-full flex-1 flex flex-col justify-between">
               <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#6b7280]">Bill To</p>
-                <div className="space-y-3">
+                {/* BILL TO & INVOICE DETAILS */}
+                <div className="grid grid-cols-2 gap-6">
+                  {/* BILL TO */}
                   <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1">Customer Name <span className="text-red-500">*</span></label>
-                    <input
-                      type="text"
-                      value={customer}
-                      onChange={(e) => setCustomer(e.target.value)}
-                      placeholder="Customer name"
-                      className="w-full rounded-md border border-[#d1d5db] px-3 py-2 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#9ca3af] focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1">Phone Number <span className="text-red-500">*</span></label>
-                    <div className="flex">
-                      <span className="inline-flex items-center rounded-l-md border border-r-0 border-[#d1d5db] bg-[#f9fafb] px-3 text-sm text-[#6b7280]">+91</span>
-                      <input
-                        type="tel"
-                        value={customerPhone}
-                        onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder=""
-                        className="flex-1 rounded-r-md border border-[#d1d5db] px-3 py-2 text-sm text-[#111827] focus:border-[#9ca3af] focus:outline-none focus:ring-0"
-                      />
-                    </div>
-                  </div>
-                  <SalesPersonSelect
-                    label="Sales Person"
-                    placeholder="Select sales person"
-                    value={salesperson}
-                    onChange={(value) => setSalesperson(value)}
-                    options={salesPersons}
-                    onManageClick={() => setShowSalesPersonModal(true)}
-                    onDeleteClick={handleDeleteSalesPerson}
-                    disabled={status.loading || isSaving}
-                    required={true}
-                  />
-                </div>
-              </div>
-
-              {/* INVOICE DETAILS */}
-              <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#6b7280]">Invoice Details</p>
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1">Invoice Number <span className="text-red-500">*</span></label>
-                    <div className="flex items-center rounded-md border border-[#d1d5db] bg-white px-3 py-2">
-                      <input
-                        value={invoiceNumber}
-                        onChange={(e) => setInvoiceNumber(e.target.value)}
-                        className="flex-1 border-0 bg-transparent text-sm font-medium text-[#111827] focus:outline-none"
-                      />
-                      <button onClick={() => setShowInvoiceSettingsModal(true)} className="no-blue-button text-[#6b7280] hover:text-[#374151] transition-colors">
-                        <Settings size={15} />
-                      </button>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[#374151] mb-1">Invoice Date <span className="text-red-500">*</span></label>
-                    <div className="flex items-center rounded-md border border-[#d1d5db] bg-white px-3 py-2">
-                      <input
-                        type="date"
-                        value={invoiceDate}
-                        onChange={(e) => setInvoiceDate(e.target.value)}
-                        className="flex-1 border-0 bg-transparent text-sm text-[#111827] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Classifications */}
-          <div className="border-b border-[#e5e7eb] px-5 py-4">
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-[#6b7280]">Classifications</p>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1">Branch <span className="text-red-500">*</span></label>
-                {storeAccess.isStoreUser ? (
-                  <input type="text" value={branch} readOnly
-                    className="w-full rounded-md border border-[#d1d5db] bg-[#f9fafb] px-3 py-2 text-sm text-[#111827] cursor-not-allowed opacity-75" />
-                ) : (
-                  <Select value={branch} onChange={(e) => { const b = e.target.value; setBranch(b); setWarehouse(mapLocNameToWarehouse(b)); }}>
-                    <option value="Head Office">Head Office</option>
-                    <option value="Warehouse">Warehouse</option>
-                    <option value="Calicut">Calicut</option>
-                    <option value="Chavakkad Branch">Chavakkad Branch</option>
-                    <option value="Edapally Branch">Edapally Branch</option>
-                    <option value="Edappal Branch">Edappal Branch</option>
-                    <option value="Grooms Trivandrum">Grooms Trivandrum</option>
-                    <option value="Kalpetta Branch">Kalpetta Branch</option>
-                    <option value="Kannur Branch">Kannur Branch</option>
-                    <option value="Kottakkal Branch">Kottakkal Branch</option>
-                    <option value="Kottayam Branch">Kottayam Branch</option>
-                    <option value="Manjery Branch">Manjery Branch</option>
-                    <option value="Palakkad Branch">Palakkad Branch</option>
-                    <option value="Perinthalmanna Branch">Perinthalmanna Branch</option>
-                    <option value="Perumbavoor Branch">Perumbavoor Branch</option>
-                    <option value="SuitorGuy MG Road">SuitorGuy MG Road</option>
-                    <option value="Thrissur Branch">Thrissur Branch</option>
-                    <option value="Vadakara Branch">Vadakara Branch</option>
-                    <option value="Z-Edapally1 Branch">Z-Edapally1 Branch</option>
-                    <option value="Z-Edappal Branch">Z-Edappal Branch</option>
-                    <option value="Z-Perinthalmanna Branch">Z-Perinthalmanna Branch</option>
-                    <option value="Z-Kottakkal Branch">Z-Kottakkal Branch</option>
-                  </Select>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1">Category <span className="text-red-500">*</span></label>
-                <input type="text" value="Income" readOnly
-                  className="w-full rounded-md border border-[#d1d5db] bg-[#f9fafb] px-3 py-2 text-sm text-[#111827] cursor-not-allowed opacity-75" />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-[#374151] mb-1">Sub Category <span className="text-red-500">*</span></label>
-                <SubCategoryDropdown value={subCategory} onChange={setSubCategory} subtleControlBase={subtleControlBase} />
-                {subCategory === "mixed sales" && (
-                  <p className="mt-1 text-xs text-[#6b7280]">💡 Mixed Sales allows shoes & shirts in one invoice</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Items Section */}
-          <div className="border-b border-[#e5e7eb] px-5 py-4">
-            <div className="overflow-x-auto rounded-lg border border-[#e5e7eb]">
-              <table className="min-w-full divide-y divide-[#e5e7eb]">
-                <thead className="bg-[#374151] text-white">
-                  <tr>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold w-[40px]">
-                      <input type="checkbox" className="h-4 w-4 rounded border-white/40" />
-                    </th>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold">Item Description</th>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold w-[70px]">Size</th>
-                    <th className="px-3 py-2.5 text-center text-xs font-semibold w-[80px]">Qty</th>
-                    <th className="px-3 py-2.5 text-right text-xs font-semibold w-[90px]">Rate</th>
-                    <th className="px-3 py-2.5 text-left text-xs font-semibold w-[110px]">Tax</th>
-                    <th className="px-3 py-2.5 text-right text-xs font-semibold w-[90px]">Amount</th>
-                    <th className="px-3 py-2.5 w-[36px]"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e5e7eb] bg-white">
-                  {lineItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-[#f9fafb] transition-colors">
-                      <td className="px-3 py-2 align-middle">
-                        <div className="flex items-center gap-1.5">
-                          <input
-                            type="checkbox"
-                            checked={selectedItems.has(item.id)}
-                            onChange={(e) => {
-                              const s = new Set(selectedItems);
-                              e.target.checked ? s.add(item.id) : s.delete(item.id);
-                              setSelectedItems(s);
-                            }}
-                            className="h-4 w-4 rounded border-[#d1d5db] cursor-pointer"
-                          />
-                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[#f3f4f6]">
-                            <ImageIcon size={13} className="text-[#9ca3af]" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <ItemDropdown
-                          rowId={item.id}
-                          value={item.itemData || item.item}
-                          onChange={(value) => handleLineItemChange(item.id, "item", value)}
-                          warehouse={warehouse}
-                          onNewItem={storeAccess.isAdmin ? () => navigate("/shoe-sales/items/new") : undefined}
-                          isStoreUser={storeAccess.isStoreUser}
+                    <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                      BILL TO
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                          Customer Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={customer}
+                          onChange={(e) => setCustomer(e.target.value)}
+                          placeholder="Search or add customer"
+                          className="w-full h-[42px] rounded-none border border-[#E5E7EB] bg-white px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
                         />
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <input value={item.size} onChange={(e) => handleLineItemChange(item.id, "size", e.target.value)}
-                          placeholder="—"
-                          className="w-full rounded border border-[#e5e7eb] px-2 py-1.5 text-sm text-[#111827] focus:outline-none focus:border-[#9ca3af]" />
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <div className="flex items-center gap-0.5">
-                          <button onClick={() => handleQuantityChange(item.id, Math.max(0, item.quantity - 1))} className="no-blue-button w-6 h-7 rounded-l border border-[#e5e7eb] text-[#6b7280] hover:bg-[#f3f4f6] text-sm font-bold bg-white flex items-center justify-center">−</button>
-                          <input type="number" min={0} value={item.quantity}
-                            onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                            className="w-10 border-y border-[#e5e7eb] px-1 py-1.5 text-sm text-center text-[#111827] focus:outline-none bg-white" />
-                          <button onClick={() => handleQuantityChange(item.id, item.quantity + 1)} className="no-blue-button w-6 h-7 rounded-r border border-[#e5e7eb] text-[#6b7280] hover:bg-[#f3f4f6] text-sm font-bold bg-white flex items-center justify-center">+</button>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                          Phone Number <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex h-[42px] rounded-none border border-[#E5E7EB] bg-white overflow-hidden focus-within:border-[#8B5CF6] transition-colors">
+                          <span className="inline-flex items-center px-3.5 text-sm font-medium text-[#374151] border-r border-[#E5E7EB] bg-[#F9FAFB]">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            value={customerPhone}
+                            onChange={(e) => setCustomerPhone(e.target.value)}
+                            placeholder="Enter phone number"
+                            className="flex-1 px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none bg-transparent"
+                          />
                         </div>
-                      </td>
-                      <td className="px-2 py-2 align-middle text-right">
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-[#6b7280]">₹</span>
-                          <input type="number" min={0} value={item.rate}
-                            onChange={(e) => handleRateChange(item.id, e.target.value)}
-                            className="w-full rounded border border-[#e5e7eb] px-2 py-1.5 text-sm text-right text-[#111827] focus:outline-none" />
-                        </div>
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <TaxDropdown rowId={item.id} value={item.tax}
-                          onChange={(v) => handleLineItemChange(item.id, "tax", v)}
-                          taxOptions={taxOptions} nonTaxableOptions={nonTaxableOptions}
-                          onNewTax={() => setShowNewTaxModal(true)} />
-                      </td>
-                      <td className="px-2 py-2 align-middle text-right">
-                        <div className="text-sm font-semibold text-[#111827]">₹{item.lineTotal}</div>
-                        {item.taxPercent > 0 && (
-                          <div className="text-xs text-[#9ca3af] mt-0.5">
-                            {item.isInterState ? `IGST ${item.igstPercent}%` : `CGST+SGST ${item.cgstPercent}%`}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-2 py-2 align-middle text-center">
-                        <button onClick={() => removeLineItem(item.id)}
-                          className="no-blue-button inline-flex items-center justify-center h-6 w-6 rounded border border-[#fca5a5] text-[#ef4444] hover:bg-[#fee2e2] transition-colors bg-white">
-                          <X size={12} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                      <SalesPersonSelect
+                        label="Sales Person"
+                        placeholder="Select sales person"
+                        value={salesperson}
+                        onChange={(value) => setSalesperson(value)}
+                        options={salesPersons}
+                        onManageClick={() => setShowSalesPersonModal(true)}
+                        onDeleteClick={handleDeleteSalesPerson}
+                        disabled={status.loading || isSaving}
+                        required={true}
+                      />
+                    </div>
+                  </div>
 
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button onClick={addLineItem}
-                  className="no-blue-button inline-flex items-center gap-1 rounded-md border border-[#d1d5db] bg-white px-3 py-1.5 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] transition-colors">
-                  <Plus size={13} /> Add Row
-                </button>
-                <button onClick={handleBulkAddOpen}
-                  className="no-blue-button inline-flex items-center gap-1 rounded-md border border-[#d1d5db] bg-white px-3 py-1.5 text-xs font-medium text-[#374151] hover:bg-[#f9fafb] transition-colors">
-                  <Plus size={13} /> Add Bulk Items
-                </button>
-                {selectedItems.size > 0 && (
-                  <button onClick={() => { setLineItems(p => { const f = p.filter(i => !selectedItems.has(i.id)); return f.length ? f : [blankLineItem()]; }); setSelectedItems(new Set()); }}
-                    className="no-blue-button inline-flex items-center gap-1 rounded-md border border-[#fca5a5] bg-white px-3 py-1.5 text-xs font-medium text-[#ef4444] hover:bg-[#fee2e2] transition-colors">
-                    <X size={13} /> Remove ({selectedItems.size})
-                  </button>
-                )}
+                  {/* INVOICE DETAILS */}
+                  <div>
+                    <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                      INVOICE DETAILS
+                    </p>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                          Invoice Number <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex h-[42px] items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 focus-within:border-[#8B5CF6] transition-colors">
+                          <input
+                            value={invoiceNumber}
+                            onChange={(e) => setInvoiceNumber(e.target.value)}
+                            className="flex-1 border-0 bg-transparent text-sm text-[#374151] focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowInvoiceSettingsModal(true)}
+                            className="text-[#9CA3AF] hover:text-[#374151] transition-colors p-1"
+                            title="Invoice Settings"
+                          >
+                            <Settings size={16} />
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                          Invoice Date <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex h-[42px] items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 focus-within:border-[#8B5CF6] transition-colors">
+                          <input
+                            type="date"
+                            value={invoiceDate}
+                            onChange={(e) => setInvoiceDate(e.target.value)}
+                            className="flex-1 border-0 bg-transparent text-sm text-[#374151] focus:outline-none cursor-pointer"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CLASSIFICATION */}
+                <div className="mt-8 pt-6 border-t border-[#F3F4F6]">
+                  <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                    CLASSIFICATION
+                  </p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                        Branch <span className="text-red-500">*</span>
+                      </label>
+                      {storeAccess.isStoreUser ? (
+                        <input
+                          type="text"
+                          value={branch}
+                          readOnly
+                          className="w-full h-[42px] rounded-none border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 text-sm text-[#111827] cursor-not-allowed opacity-75"
+                        />
+                      ) : (
+                        <div className="relative">
+                          <select
+                            value={branch}
+                            onChange={(e) => {
+                              const b = e.target.value;
+                              setBranch(b);
+                              setWarehouse(mapLocNameToWarehouse(b));
+                            }}
+                            className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-white px-3.5 pr-8 text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none transition-colors cursor-pointer"
+                          >
+                            <option value="Head Office">Head Office</option>
+                            <option value="Warehouse">Warehouse</option>
+                            <option value="Calicut">Calicut</option>
+                            <option value="Chavakkad Branch">Chavakkad Branch</option>
+                            <option value="Edapally Branch">Edapally Branch</option>
+                            <option value="Edappal Branch">Edappal Branch</option>
+                            <option value="Grooms Trivandrum">Grooms Trivandrum</option>
+                            <option value="Kalpetta Branch">Kalpetta Branch</option>
+                            <option value="Kannur Branch">Kannur Branch</option>
+                            <option value="Kottakkal Branch">Kottakkal Branch</option>
+                            <option value="Kottayam Branch">Kottayam Branch</option>
+                            <option value="Manjery Branch">Manjery Branch</option>
+                            <option value="Palakkad Branch">Palakkad Branch</option>
+                            <option value="Perinthalmanna Branch">Perinthalmanna Branch</option>
+                            <option value="Perumbavoor Branch">Perumbavoor Branch</option>
+                            <option value="SuitorGuy MG Road">SuitorGuy MG Road</option>
+                            <option value="Thrissur Branch">Thrissur Branch</option>
+                            <option value="Vadakara Branch">Vadakara Branch</option>
+                            <option value="Z-Edapally1 Branch">Z-Edapally1 Branch</option>
+                            <option value="Z-Edappal Branch">Z-Edappal Branch</option>
+                            <option value="Z-Perinthalmanna Branch">Z-Perinthalmanna Branch</option>
+                            <option value="Z-Kottakkal Branch">Z-Kottakkal Branch</option>
+                          </select>
+                          <ChevronDown
+                            size={16}
+                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                        Category <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <select
+                          value="Income"
+                          disabled
+                          className="w-full h-[42px] appearance-none rounded-none border border-[#E5E7EB] bg-[#F9FAFB] px-3.5 pr-8 text-sm text-[#111827] cursor-not-allowed"
+                        >
+                          <option value="Income">Income</option>
+                        </select>
+                        <ChevronDown
+                          size={16}
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-[#374151] mb-1.5">
+                        Sub Category <span className="text-red-500">*</span>
+                      </label>
+                      <SubCategoryDropdown value={subCategory} onChange={setSubCategory} />
+                      {subCategory === "mixed sales" && (
+                        <p className="mt-1 text-xs text-[#6B7280]">
+                          💡 Mixed Sales allows shoes & shirts in one invoice
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* ITEMS TABLE */}
+                <div className="mt-8">
+                  <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
+                    <table className="min-w-full divide-y divide-[#E5E7EB]">
+                      <thead className="bg-[#18181B] text-white">
+                        <tr>
+                          <th className="w-10 px-3 py-3 text-center">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 rounded-none border-gray-600 bg-transparent text-[#8B5CF6] focus:ring-0 cursor-pointer"
+                              checked={lineItems.length > 0 && selectedItems.size === lineItems.length}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedItems(new Set(lineItems.map(i => i.id)));
+                                } else {
+                                  setSelectedItems(new Set());
+                                }
+                              }}
+                            />
+                          </th>
+                          <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-white">
+                            ITEM DESCRIPTION
+                          </th>
+                          <th className="w-20 px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            SIZE
+                          </th>
+                          <th className="w-28 px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            SUB CATEGORY
+                          </th>
+                          <th className="w-24 px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            REMARKS
+                          </th>
+                          <th className="w-24 px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            RATE
+                          </th>
+                          <th className="w-28 px-2 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            TAX
+                          </th>
+                          <th className="w-24 px-3 py-3 text-center text-xs font-bold uppercase tracking-wider text-white">
+                            AMOUNT
+                          </th>
+                          <th className="w-10 px-2 py-3"></th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E5E7EB] bg-white">
+                        {lineItems.map((item) => (
+                          <tr key={item.id} className="hover:bg-[#F9FAFB] transition-colors">
+                            <td className="px-3 py-2 text-center align-middle">
+                              <input
+                                type="checkbox"
+                                checked={selectedItems.has(item.id)}
+                                onChange={(e) => {
+                                  const s = new Set(selectedItems);
+                                  e.target.checked ? s.add(item.id) : s.delete(item.id);
+                                  setSelectedItems(s);
+                                }}
+                                className="h-4 w-4 rounded-none border-[#D1D5DB] text-[#8B5CF6] focus:ring-[#8B5CF6] cursor-pointer"
+                              />
+                            </td>
+                            <td className="px-3 py-2 align-middle">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-9 h-9 rounded-none bg-[#E4E4E7] flex items-center justify-center shrink-0 overflow-hidden">
+                                  {item.itemData?.images && item.itemData.images.length > 0 ? (
+                                    <img
+                                      src={item.itemData.images[0].url || item.itemData.images[0]}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : item.itemData?.image ? (
+                                    <img
+                                      src={item.itemData.image}
+                                      alt=""
+                                      className="w-full h-full object-cover"
+                                    />
+                                  ) : (
+                                    <span className="w-full h-full bg-[#D4D4D8] block" />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-[200px]">
+                                  <ItemDropdown
+                                    rowId={item.id}
+                                    value={item.itemData || item.item}
+                                    onChange={(value) => handleLineItemChange(item.id, "item", value)}
+                                    warehouse={warehouse}
+                                    onNewItem={storeAccess.isAdmin ? () => navigate("/shoe-sales/items/new") : undefined}
+                                    isStoreUser={storeAccess.isStoreUser}
+                                  />
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <input
+                                value={item.size || ""}
+                                onChange={(e) => handleLineItemChange(item.id, "size", e.target.value)}
+                                placeholder="-"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                              />
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <div className="inline-flex items-center rounded-none border border-[#E5E7EB] bg-white h-9 overflow-hidden">
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuantityChange(item.id, Math.max(0, (parseFloat(item.quantity) || 0) - 1))}
+                                  className="w-7 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-black text-sm font-semibold transition-colors rounded-none"
+                                >
+                                  -
+                                </button>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  value={item.quantity}
+                                  onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                                  className="w-8 h-full text-xs font-semibold text-center text-[#111827] focus:outline-none border-0 p-0 rounded-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuantityChange(item.id, (parseFloat(item.quantity) || 0) + 1)}
+                                  className="w-7 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-black text-sm font-semibold transition-colors rounded-none"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <input
+                                value={item.remarks || ""}
+                                onChange={(e) => handleLineItemChange(item.id, "remarks", e.target.value)}
+                                placeholder="-"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                              />
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <input
+                                type="number"
+                                min={0}
+                                value={item.rate || ""}
+                                onChange={(e) => handleRateChange(item.id, e.target.value)}
+                                placeholder="-"
+                                className="w-full h-9 rounded-none border border-[#E5E7EB] px-2 text-center text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                              />
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <TaxDropdown
+                                rowId={item.id}
+                                value={item.tax}
+                                onChange={(v) => handleLineItemChange(item.id, "tax", v)}
+                                taxOptions={taxOptions}
+                                nonTaxableOptions={nonTaxableOptions}
+                                onNewTax={() => setShowNewTaxModal(true)}
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-center align-middle text-xs font-semibold text-[#111827]">
+                              {parseFloat(item.lineTotal || item.amount || 0) > 0 ? `₹${item.lineTotal || item.amount}` : "-"}
+                            </td>
+                            <td className="px-2 py-2 text-center align-middle">
+                              <button
+                                type="button"
+                                onClick={() => removeLineItem(item.id)}
+                                className="inline-flex items-center justify-center h-7 w-7 rounded-none text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                title="Remove item"
+                              >
+                                <X size={14} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Table bottom actions */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={addLineItem}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-semibold text-[#374151] hover:bg-gray-50 transition-colors shadow-sm"
+                      >
+                        <Plus size={14} /> Add Row
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleBulkAddOpen}
+                        className="inline-flex items-center gap-1.5 rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-semibold text-[#374151] hover:bg-gray-50 transition-colors shadow-sm"
+                      >
+                        <Plus size={14} /> Add Bulk Items
+                      </button>
+                      {selectedItems.size > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLineItems((p) => {
+                              const f = p.filter((i) => !selectedItems.has(i.id));
+                              return f.length ? f : [blankLineItem()];
+                            });
+                            setSelectedItems(new Set());
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-none border border-red-200 bg-red-50 px-3.5 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition-colors shadow-sm"
+                        >
+                          <X size={14} /> Remove ({selectedItems.size})
+                        </button>
+                      )}
+                    </div>
+                    <span className="text-xs text-[#9CA3AF]">All price exclude local tax</span>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs text-[#9ca3af]">All prices exclude local tax</span>
             </div>
           </div>
 
-          </div>{/* end main card */}
-          </div>{/* end left column */}
-
-          {/* ── RIGHT SIDEBAR ── */}
-          <div className="w-72 shrink-0 bg-white rounded-xl border border-[#e2e8f0] shadow-sm flex flex-col sticky top-0 self-start max-h-screen overflow-y-auto overflow-x-hidden">
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-
-              {/* Payment Method */}
+          {/* ── RIGHT SIDEBAR (320px) - Stretches to same height as left card ── */}
+          <div className="w-80 shrink-0 bg-white rounded-none border border-[#E5E7EB] shadow-sm p-5 flex flex-col justify-between">
+            {/* TOP SECTION: Payment methods, sub total, discount */}
+            <div className="space-y-5">
+              {/* PAYMENT METHOD */}
               <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-widest text-[#374151]">Payment Method</p>
+                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
+                  PAYMENT METHOD
+                </p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {/* CASH */}
+                  {(() => {
+                    const isSelected = !isSplitPayment && paymentMethod.includes("Cash");
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(["Cash"]);
+                          setIsSplitPayment(false);
+                        }}
+                        className={`payment-method-btn flex items-center justify-center gap-2.5 px-3 rounded-xl transition-all cursor-pointer ${
+                          isSelected ? "payment-method-selected" : ""
+                        }`}
+                        style={{
+                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
+                          borderRadius: "12px",
+                          minHeight: "50px",
+                          color: "#111827",
+                        }}
+                      >
+                        <svg className="w-5 h-5 shrink-0 text-[#111827]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <rect x="2" y="6" width="20" height="12" rx="2" />
+                          <circle cx="12" cy="12" r="2.5" />
+                        </svg>
+                        <span className="text-xs font-bold text-[#111827] tracking-wider">CASH</span>
+                      </button>
+                    );
+                  })()}
 
-                {/* Payment buttons grid - 2x2 */}
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { name: "Cash",  icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg> },
-                    { name: "UPI",   icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/><path d="M9 7l3 4 3-4"/></svg> },
-                    { name: "Card / Bank", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-6 h-6"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
-                  ].map((m) => (
-                    <button key={m.name} type="button"
-                      onClick={() => {
-                        setPaymentMethod(paymentMethod.includes(m.name) ? [] : [m.name]);
-                        setIsSplitPayment(false);
-                      }}
-                      className={`payment-card relative flex flex-col items-center gap-2 rounded-xl border py-4 text-sm font-medium transition-all duration-150 ${
-                        !isSplitPayment && paymentMethod.includes(m.name)
-                          ? "border-[#2563eb] bg-[#dbeafe] text-[#1e40af] shadow-md scale-[1.03]"
-                          : "border-[#e2e8f0] bg-white text-[#374151] hover:border-[#93c5fd] hover:bg-[#f0f9ff]"
-                      }`}>
-                      {!isSplitPayment && paymentMethod.includes(m.name) && (
-                        <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#2563eb] text-white">
-                          <svg viewBox="0 0 12 12" fill="none" className="w-2.5 h-2.5"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        </span>
-                      )}
-                      <span className={!isSplitPayment && paymentMethod.includes(m.name) ? "text-[#1e40af]" : "text-[#6b7280]"}>{m.icon}</span>
-                      <span>{m.name}</span>
-                    </button>
-                  ))}
+                  {/* UPI */}
+                  {(() => {
+                    const isSelected = !isSplitPayment && paymentMethod.includes("UPI");
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(["UPI"]);
+                          setIsSplitPayment(false);
+                        }}
+                        className={`payment-method-btn flex items-center justify-center gap-2.5 px-3 rounded-xl transition-all cursor-pointer ${
+                          isSelected ? "payment-method-selected" : ""
+                        }`}
+                        style={{
+                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
+                          borderRadius: "12px",
+                          minHeight: "50px",
+                          color: "#111827",
+                        }}
+                      >
+                        <div className="flex flex-col items-center justify-center leading-none">
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-sm font-black italic tracking-tighter text-[#111827]">UPI</span>
+                            <svg className="w-3.5 h-3 text-[#111827]" viewBox="0 0 24 16" fill="currentColor">
+                              <path d="M0 0 L10 8 L0 16 Z" />
+                              <path d="M11 0 L21 8 L11 16 Z" />
+                            </svg>
+                          </div>
+                          <span className="text-[5.5px] font-bold tracking-tighter text-[#6B7280] uppercase mt-0.5">
+                            UNIFIED PAYMENTS INTERFACE
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })()}
 
-                  {/* Split Payment as 4th grid button */}
-                  <button type="button"
-                    onClick={() => { setIsSplitPayment(!isSplitPayment); setPaymentMethod([]); if (isSplitPayment) setSplitPaymentAmounts({ cash: "", bank: "", upi: "", rbl: "" }); }}
-                    className={`payment-card relative flex flex-col items-center gap-2 rounded-xl border py-4 text-sm font-medium transition-all duration-150 ${
-                      isSplitPayment
-                        ? "border-[#2563eb] bg-[#dbeafe] text-[#1e40af] shadow-md scale-[1.03]"
-                        : "border-[#e2e8f0] bg-white text-[#374151] hover:border-[#93c5fd] hover:bg-[#f0f9ff]"
-                    }`}>
-                    {isSplitPayment && (
-                      <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#2563eb] text-white">
-                        <svg viewBox="0 0 12 12" fill="none" className="w-2.5 h-2.5"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </span>
-                    )}
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={`w-6 h-6 ${isSplitPayment ? "text-[#1e40af]" : "text-[#6b7280]"}`}><path d="M21 12H3m9-9v18M3 7l4-4m14 4l-4-4M3 17l4 4m14-4l-4 4"/></svg>
-                    <span>Split</span>
-                  </button>
+                  {/* CARD/ BANK */}
+                  {(() => {
+                    const isSelected = !isSplitPayment && paymentMethod.includes("Card / Bank");
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPaymentMethod(["Card / Bank"]);
+                          setIsSplitPayment(false);
+                        }}
+                        className={`payment-method-btn flex items-center justify-center gap-2.5 px-3 rounded-xl transition-all cursor-pointer ${
+                          isSelected ? "payment-method-selected" : ""
+                        }`}
+                        style={{
+                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
+                          borderRadius: "12px",
+                          minHeight: "50px",
+                          color: "#111827",
+                        }}
+                      >
+                        <svg className="w-5 h-5 shrink-0 text-[#111827]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path d="M3 21h18M3 10h18M5 10v11M19 10v11M9 10v11M14 10v11M2 10l10-7 10 7" />
+                        </svg>
+                        <span className="text-xs font-bold text-[#111827] tracking-wider">CARD/ BANK</span>
+                      </button>
+                    );
+                  })()}
+
+                  {/* SPLIT */}
+                  {(() => {
+                    const isSelected = isSplitPayment;
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsSplitPayment(!isSplitPayment);
+                          setPaymentMethod([]);
+                          if (isSplitPayment) setSplitPaymentAmounts({ cash: "", bank: "", upi: "", rbl: "" });
+                        }}
+                        className={`payment-method-btn flex items-center justify-center gap-2.5 px-3 rounded-xl transition-all cursor-pointer ${
+                          isSelected ? "payment-method-selected" : ""
+                        }`}
+                        style={{
+                          border: isSelected ? "2px solid #8B5CF6" : "1.5px solid #E5E7EB",
+                          backgroundColor: isSelected ? "#F5F3FF" : "#FFFFFF",
+                          borderRadius: "12px",
+                          minHeight: "50px",
+                          color: "#111827",
+                        }}
+                      >
+                        <svg className="w-4 h-4 shrink-0 text-[#111827]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                          <path d="M12 3v18M7 8l-4 4 4 4M17 8l4 4-4 4" />
+                        </svg>
+                        <span className="text-xs font-bold text-[#111827] tracking-wider">SPLIT</span>
+                      </button>
+                    );
+                  })()}
                 </div>
 
-                {/* Split amounts */}
+                {/* Split inputs */}
                 {isSplitPayment && (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    {[
-                      { key: "cash", label: "Cash" },
-                      { key: "bank", label: "Card/Bank" },
-                      { key: "upi",  label: "UPI"  },
-                    ].map(({ key, label }) => (
-                      <div key={key}>
-                        <label className="block text-xs font-semibold text-[#374151] mb-1">{label}</label>
-                        <input type="number" value={splitPaymentAmounts[key]}
-                          onChange={(e) => setSplitPaymentAmounts(p => ({ ...p, [key]: e.target.value }))}
-                          placeholder="0.00"
-                          className="w-full rounded-md border border-[#d1d5db] px-2 py-1.5 text-sm focus:outline-none" />
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-3 gap-2 pt-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#8B5CF6] mb-1">Cash</label>
+                      <input
+                        type="number"
+                        value={splitPaymentAmounts.cash}
+                        onChange={(e) => setSplitPaymentAmounts((p) => ({ ...p, cash: e.target.value }))}
+                        placeholder="Cash"
+                        className="w-full min-w-0 h-9 rounded-none border border-[#E5E7EB] px-2 text-xs text-center text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#8B5CF6] mb-1">Card</label>
+                      <input
+                        type="number"
+                        value={splitPaymentAmounts.bank}
+                        onChange={(e) => setSplitPaymentAmounts((p) => ({ ...p, bank: e.target.value }))}
+                        placeholder="Card"
+                        className="w-full min-w-0 h-9 rounded-none border border-[#E5E7EB] px-2 text-xs text-center text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-[#8B5CF6] mb-1">UPI</label>
+                      <input
+                        type="number"
+                        value={splitPaymentAmounts.upi}
+                        onChange={(e) => setSplitPaymentAmounts((p) => ({ ...p, upi: e.target.value }))}
+                        placeholder="UPI"
+                        className="w-full min-w-0 h-9 rounded-none border border-[#E5E7EB] px-2 text-xs text-center text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
-
-              <hr className="border-[#e5e7eb]" />
 
               {/* Sub Total */}
-              <div className="flex items-start justify-between">
+              <div className="flex items-center justify-between pt-1">
                 <div>
                   <div className="text-sm font-semibold text-[#111827]">Sub Total</div>
-                  <div className="text-xs text-[#9ca3af]">(Tax inclusive)</div>
+                  <div className="text-xs text-[#9CA3AF]">(Tax inclusive)</div>
                 </div>
                 <span className="text-sm font-semibold text-[#111827]">₹ {totals.subTotal}</span>
               </div>
 
               {/* Tax Breakdown */}
               {totals.taxBreakdown.length > 0 && (
-                <div className="space-y-1">
+                <div className="space-y-1 bg-[#F9FAFB] p-2.5 rounded-none border border-[#E5E7EB]/50">
                   {totals.taxBreakdown.map((tax, idx) => {
                     if (tax.type === 'GST') {
                       const half = tax.amount / 2;
                       const halfPct = tax.rate / 2;
                       return (
                         <div key={idx} className="space-y-0.5">
-                          <div className="flex justify-between text-[11px] text-[#6b7280]">
-                            <span>CGST {halfPct}%</span><span>₹{half.toFixed(2)}</span>
+                          <div className="flex justify-between text-[11px] text-[#6B7280]">
+                            <span>CGST {halfPct}%</span>
+                            <span>₹{half.toFixed(2)}</span>
                           </div>
-                          <div className="flex justify-between text-[11px] text-[#6b7280]">
-                            <span>SGST {halfPct}%</span><span>₹{half.toFixed(2)}</span>
+                          <div className="flex justify-between text-[11px] text-[#6B7280]">
+                            <span>SGST {halfPct}%</span>
+                            <span>₹{half.toFixed(2)}</span>
                           </div>
                         </div>
                       );
                     }
                     return (
-                      <div key={idx} className="flex justify-between text-[11px] text-[#6b7280]">
-                        <span>IGST {tax.rate}%</span><span>₹{tax.amount.toFixed(2)}</span>
+                      <div key={idx} className="flex justify-between text-[11px] text-[#6B7280]">
+                        <span>IGST {tax.rate}%</span>
+                        <span>₹{tax.amount.toFixed(2)}</span>
                       </div>
                     );
                   })}
                 </div>
               )}
 
-              {/* Discount */}
-              <div className="rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 py-2">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wide">Discount</span>
-                  <div className="flex gap-1">
-                    {["₹", "%"].map(t => (
-                      <button key={t} type="button"
-                        onClick={() => setDiscount(prev => ({ ...prev, type: t }))}
-                        className={`px-2 py-0.5 text-[10px] font-semibold rounded border transition-colors ${discount.type === t ? "bg-[#1e3a8a] text-white border-[#1e3a8a]" : "bg-white text-[#374151] border-[#d1d5db] hover:bg-[#f3f4f6]"}`}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
+              {/* DISCOUNT */}
+              <div className="rounded-none bg-[#F9FAFB] p-3 border border-[#E5E7EB]/60">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#8B5CF6] mb-2">
+                  DISCOUNT
+                </p>
+                <div className="flex items-center gap-1.5 w-full">
                   <input
                     type="number"
                     value={discount.value}
-                    onChange={(e) => setDiscount(prev => ({ ...prev, value: e.target.value }))}
-                    placeholder="0.00"
-                    className="flex-1 h-[28px] rounded border border-[#e5e7eb] bg-white px-2 text-[11px] text-[#111827] focus:border-[#9ca3af] focus:outline-none"
+                    onChange={(e) => setDiscount((prev) => ({ ...prev, value: e.target.value }))}
+                    placeholder="Enter discount"
+                    className="flex-1 min-w-0 h-[42px] rounded-none border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setDiscount((prev) => ({ ...prev, type: "₹" }))}
+                    className={`h-[42px] w-10 shrink-0 flex items-center justify-center rounded-none border text-sm font-semibold transition-colors cursor-pointer ${
+                      discount.type === "₹"
+                        ? "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]"
+                        : "border-[#E5E7EB] bg-white text-[#7C3AED] hover:bg-gray-50"
+                    }`}
+                  >
+                    ₹
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDiscount((prev) => ({ ...prev, type: "%" }))}
+                    className={`h-[42px] w-10 shrink-0 flex items-center justify-center rounded-none border text-sm font-semibold transition-colors cursor-pointer ${
+                      discount.type === "%"
+                        ? "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]"
+                        : "border-[#E5E7EB] bg-white text-[#7C3AED] hover:bg-gray-50"
+                    }`}
+                  >
+                    %
+                  </button>
                 </div>
                 {parseFloat(totals.discountAmount) > 0 && (
-                  <div className="flex justify-end mt-1">
-                    <span className="text-[11px] font-medium text-[#ef4444]">- ₹{totals.discountAmount}</span>
+                  <div className="flex justify-end mt-1.5">
+                    <span className="text-xs font-semibold text-red-500">- ₹{totals.discountAmount}</span>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* TDS / TCS - temporarily disabled */}
-              {/* <div className="w-full overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f9fafb] px-3 py-2 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wide">TDS / TCS</span>
-                  <div className="flex gap-1">
-                    {["TDS","TCS"].map(t => (
-                      <button key={t} type="button"
-                        onClick={() => { setTdsTcsType(t); setTdsTcsTax(""); }}
-                        className={`px-2.5 py-1 text-[10px] font-semibold rounded-md border transition-colors ${tdsTcsType === t ? "bg-[#1e3a8a] text-white border-[#1e3a8a]" : "bg-white text-[#374151] border-[#d1d5db] hover:bg-[#f3f4f6]"}`}>
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 min-w-0">
-                    <TaxDropdown rowId="tds-tcs" value={tdsTcsTax} onChange={setTdsTcsTax}
-                      taxOptions={tdsTcsType === "TDS" ? tdsOptions : taxOptions}
-                      nonTaxableOptions={tdsTcsType === "TDS" ? [] : nonTaxableOptions}
-                      onNewTax={() => setShowNewTaxModal(true)} />
-                  </div>
-                  <span className="text-[11px] font-medium text-[#ef4444] whitespace-nowrap shrink-0">- ₹{totals.tdsTcsAmount}</span>
-                </div>
-              </div> */}
-
-              <hr className="border-[#e5e7eb]" />
-
+            {/* BOTTOM SECTION: Total and Save Button pinned to bottom */}
+            <div className="space-y-4 pt-4 border-t border-[#F3F4F6]">
               {/* Total */}
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-[#111827]">Total</span>
-                <span className="text-2xl font-bold text-[#1e3a8a]">₹ {totals.finalTotal}</span>
+                <span className="text-xl font-bold text-[#16A34A]">₹ {totals.finalTotal}</span>
               </div>
-            </div>
 
-            {/* Save Button */}
-            <div className="border-t border-[#e5e7eb] p-4">
+              {/* Save Button */}
               <button
+                type="button"
                 onClick={() => handleSaveInvoice("sent")}
                 disabled={isSaving}
-                className="keep-blue w-full flex items-center justify-center gap-2 rounded-xl bg-[#1e3a8a] py-3.5 text-sm font-bold text-white hover:bg-[#1e40af] transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
+                className="w-full flex items-center justify-center gap-2 rounded-none bg-[#8B5CF6] py-3.5 text-sm font-semibold text-white shadow-sm hover:bg-[#7C3AED] active:bg-[#6D28D9] transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wide"
               >
-                <MessageCircle size={16} />
-                {isSaving ? "Saving..." : "Save & Send WhatsApp"}
+                {isSaving ? "Saving..." : "Save & Send to Whatsapp"}
               </button>
             </div>
-          </div>{/* end right sidebar */}
-
-        </div>{/* end body flex */}
-      </div>{/* end ml-64 wrapper */}
+          </div>
+        </div>
+      </div>
 
       {/* Sales Person Modal */}
       {showSalesPersonModal && (
@@ -3670,7 +3854,7 @@ Customer Service Available`;
       {/* Add Items in Bulk Modal */}
       {showBulkModal && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-          <div className="relative w-full max-w-7xl max-h-[90vh] rounded-2xl border border-[#e1e5f5] bg-white shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] overflow-hidden flex flex-col">
+          <div className="relative w-full max-w-7xl max-h-[90vh] rounded-none border border-[#e1e5f5] bg-white shadow-[0_25px_80px_-45px_rgba(15,23,42,0.35)] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b-2 border-[#e2e8f0] px-8 py-5 bg-gradient-to-r from-white to-[#f8fafc]">
               <div>
                 <h2 className="text-2xl font-bold text-[#0f172a] mb-1">Add Items in Bulk</h2>
@@ -3683,7 +3867,7 @@ Customer Service Available`;
                   setBulkResults([]);
                   setSelectedBulkItems([]);
                 }}
-                className="rounded-xl p-2.5 text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-all active:scale-95"
+                className="rounded-none p-2.5 text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#1e293b] transition-all active:scale-95"
                 aria-label="Close"
               >
                 <X size={22} strokeWidth={2.5} />
@@ -3704,7 +3888,7 @@ Customer Service Available`;
                         handleBulkSearch(e.target.value);
                       }}
                       placeholder="Type to search or scan the barcode of the item"
-                      className="w-full pl-14 pr-5 py-4 text-[14px] font-medium border-2 border-[#cbd5e1] rounded-2xl focus:border-[#9ca3af] focus:outline-none focus:ring-4 focus:ring-[#9ca3af]/20 transition-all bg-white placeholder:text-[#94a3b8]"
+                      className="w-full pl-14 pr-5 py-4 text-[14px] font-medium border-2 border-[#cbd5e1] rounded-none focus:border-[#9ca3af] focus:outline-none focus:ring-4 focus:ring-[#9ca3af]/20 transition-all bg-white placeholder:text-[#94a3b8]"
                       autoFocus
                     />
                   </div>
@@ -4674,11 +4858,10 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
   };
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
-        {label}
-        {required && <span className="ml-0.5">*</span>}
-      </span>
+    <div className="relative flex w-full flex-col text-sm" ref={containerRef}>
+      <label className="block text-xs font-medium text-[#374151] mb-1.5">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
       <div className="relative">
         <input
           ref={inputRef}
@@ -4689,9 +4872,9 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
           placeholder={placeholder}
           disabled={disabled}
           readOnly
-          className={`w-full rounded-lg border px-3 py-2 pr-10 text-sm transition cursor-pointer ${
-            open ? "border-[#9ca3af]" : "border-[#d7dcf5]"
-          } ${disabled ? "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed" : "bg-white text-[#1f2937]"} placeholder:text-[#9ca3af] focus:outline-none`}
+          className={`w-full h-[42px] rounded-none border px-3.5 pr-10 text-sm transition cursor-pointer ${
+            open ? "border-[#8b5cf6]" : "border-[#e5e7eb]"
+          } ${disabled ? "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed" : "bg-white text-[#111827]"} placeholder:text-[#9ca3af] focus:outline-none`}
         />
         <button
           type="button"
@@ -4701,18 +4884,18 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
               inputRef.current?.focus();
             }
           }}
-          className="no-blue-button absolute right-2 top-1/2 -translate-y-1/2 p-0 border-0 bg-transparent shadow-none"
+          className="absolute right-3 top-1/2 -translate-y-1/2 p-0 border-0 bg-transparent shadow-none cursor-pointer"
           disabled={disabled}
         >
           <ChevronDown
-            size={15}
-            className={`transition-transform text-[#2563eb] ${open ? "rotate-180" : "rotate-0"}`}
+            size={16}
+            className={`transition-transform text-[#6b7280] ${open ? "rotate-180" : "rotate-0"}`}
           />
         </button>
       </div>
       
       {open && (
-        <div className="absolute z-50 top-full mt-1 w-full rounded-lg border border-[#e5e7eb] bg-white shadow-lg">
+        <div className="absolute z-50 top-full mt-1 w-full rounded-none border border-[#e5e7eb] bg-white shadow-lg">
           {/* Search Header */}
           <div className="flex items-center gap-2 px-3 py-2 border-b border-[#f3f4f6]">
             <Search size={16} className="text-[#9ca3af]" />
@@ -4756,7 +4939,7 @@ const SalesPersonSelect = ({ label, placeholder, value, onChange, options = [], 
                       <button
                         type="button"
                         onClick={(e) => handleDeleteClick(optionId, optionName, e)}
-                        className="ml-2 p-1 text-[#ef4444] hover:text-[#dc2626] hover:bg-[#fef2f2] rounded transition-colors"
+                        className="ml-2 p-1 text-[#ef4444] hover:text-[#dc2626] hover:bg-[#fef2f2] rounded-none transition-colors"
                         title={`Delete ${optionName}`}
                       >
                         <X size={14} />
@@ -4801,10 +4984,10 @@ const SalesPersonModal = ({ onClose, onAdd, newSalesPerson, setNewSalesPerson })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl border border-[#e5e7eb]">
+      <div className="relative w-full max-w-md rounded-none bg-white shadow-2xl border border-[#e5e7eb]">
         <div className="flex items-center justify-between border-b border-[#e5e7eb] px-6 py-4 bg-gradient-to-r from-[#f8fafc] to-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#374151] to-[#1f2937] flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-none bg-gradient-to-br from-[#374151] to-[#1f2937] flex items-center justify-center shadow-lg">
               <span className="text-white text-lg">👤</span>
             </div>
             <div>
@@ -4814,7 +4997,7 @@ const SalesPersonModal = ({ onClose, onAdd, newSalesPerson, setNewSalesPerson })
           </div>
           <button
             onClick={onClose}
-            className="no-blue-button rounded-lg p-2 text-[#9ca3af] hover:bg-[#f3f4f6] hover:text-[#111827] transition-colors"
+            className="no-blue-button rounded-none p-2 text-[#9ca3af] hover:bg-[#f3f4f6] hover:text-[#111827] transition-colors"
           >
             <X size={20} />
           </button>

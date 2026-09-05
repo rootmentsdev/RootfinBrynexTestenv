@@ -1,30 +1,48 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { Printer, Download, Mail, Share2, Edit, MoreHorizontal, ArrowLeft } from "lucide-react";
-import Head from "../components/Head";
+import {
+  Printer,
+  Download,
+  Mail,
+  Share2,
+  Edit,
+  MoreHorizontal,
+  ArrowLeft,
+  Search,
+  Plus,
+  RotateCcw,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  FileText,
+  User,
+  Building2,
+  Phone
+} from "lucide-react";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
+import Header from "../components/Header";
+import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 
 const SalesInvoiceDetail = () => {
   const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
-  const [returnInvoiceItems, setReturnInvoiceItems] = useState(null); // ✅ Store return invoice items
+  const [returnInvoiceItems, setReturnInvoiceItems] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState(null);
   const [storeInfo, setStoreInfo] = useState(null);
-
-  // NEW STATE (dropdown toggle)
   const [showSendMenu, setShowSendMenu] = useState(false);
+  const [invoiceSearch, setInvoiceSearch] = useState("");
   
   // Return Invoice States
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnItems, setReturnItems] = useState([]);
   const [returnReason, setReturnReason] = useState("");
-  const [returnPaymentMethod, setReturnPaymentMethod] = useState("Cash"); // ✅ NEW: Payment method for return
+  const [returnPaymentMethod, setReturnPaymentMethod] = useState("Cash");
   const [returningInvoice, setReturningInvoice] = useState(false);
 
   // Get current user info
@@ -35,19 +53,36 @@ const SalesInvoiceDetail = () => {
 
   // Branch to location code mapping
   const branchToLocCodeMap = {
-    // Main office and special locations
-    "Head Office": "759",
+    "G-Edappally": "702",
+    "G-Edappal": "707",
+    "G-Calicut": "712",
+    "SG-Trivandrum": "700",
+    "G-Kottakkal": "711",
+    "Z-Edappal": "100",
+    "Z-Perinthalmanna": "133",
+    "Z-Kottakkal": "122",
+    "G-Kottayam": "701",
+    "G-Perumbavoor": "703",
+    "G-Thrissur": "704",
+    "G-Chavakkad": "706",
+    "G-Vadakara": "708",
+    "G-Perinthalmanna": "709",
+    "G-Manjeri": "710",
+    "G-Palakkad": "705",
+    "G-Kalpetta": "717",
+    "G-Kannur": "716",
+    "G-Mg Road": "718",
+    "Z-Edapally": "144",
+    "HEAD OFFICE01": "759",
     "Warehouse": "858",
-    "WAREHOUSE": "103",
     "Production": "101",
     "Office": "102",
-    
-    // G. prefix stores (main branches)
-    "Calicut": "712",
-    "Chavakkad Branch": "706",
+    "WAREHOUSE": "103",
+    "Dappr Squad": "555",
     "Edapally Branch": "702",
+    "Calicut Branch": "712",
+    "Chavakkad Branch": "706",
     "Edappal Branch": "707",
-    "Grooms Trivandrum": "700",
     "Kalpetta Branch": "717",
     "Kannur Branch": "716",
     "Kottakkal Branch": "711",
@@ -61,15 +96,12 @@ const SalesInvoiceDetail = () => {
     "SuitorGuy MG Road": "718",
     "Thrissur Branch": "704",
     "Vadakara Branch": "708",
-    
-    // Z. prefix stores (franchise/other branches)
     "Z-Edapally1 Branch": "144",
     "Z-Edappal Branch": "100",
     "Z-Perinthalmanna Branch": "133",
     "Z-Kottakkal Branch": "122",
   };
 
-  // Get location code for branch
   const getLocCodeForBranch = (branchName) => {
     return branchToLocCodeMap[branchName] || null;
   };
@@ -103,6 +135,87 @@ const SalesInvoiceDetail = () => {
     })}`;
   };
 
+  // Dynamic Indian currency number to words conversion
+  const numberToWords = (amount) => {
+    if (isNaN(amount) || amount === null || amount === undefined) return "";
+    const num = Math.abs(Number(amount));
+    const rupees = Math.floor(num);
+    const paise = Math.round((num - rupees) * 100);
+
+    const a = [
+      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+      "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+      "Seventeen", "Eighteen", "Nineteen"
+    ];
+    const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+
+    const convert = (n) => {
+      if (n === 0) return "";
+      if (n < 20) return a[n] + " ";
+      if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "") + " ";
+      if (n < 1000) return a[Math.floor(n / 100)] + " Hundred " + convert(n % 100);
+      if (n < 100000) return convert(Math.floor(n / 1000)) + "Thousand " + convert(n % 1000);
+      if (n < 10000000) return convert(Math.floor(n / 100000)) + "Lakh " + convert(n % 100000);
+      return convert(Math.floor(n / 10000000)) + "Crore " + convert(n % 10000000);
+    };
+
+    let words = "Rupees " + (rupees === 0 ? "Zero " : convert(rupees));
+    if (paise > 0) {
+      words += "and " + convert(paise) + "Paise ";
+    }
+    return words.trim() + " Only";
+  };
+
+  // Store locations for mapping user store
+  const fallbackLocations = [
+    { locName: "Z-Edapally1", locCode: "144" },
+    { locName: "Warehouse", locCode: "858" },
+    { locName: "G-Edappally", locCode: "702" },
+    { locName: "HEAD OFFICE01", locCode: "759" },
+    { locName: "SG-Trivandrum", locCode: "700" },
+    { locName: "Z- Edappal", locCode: "100" },
+    { locName: "Z.Perinthalmanna", locCode: "133" },
+    { locName: "Z.Kottakkal", locCode: "122" },
+    { locName: "G.Kottayam", locCode: "701" },
+    { locName: "G.Perumbavoor", locCode: "703" },
+    { locName: "G.Thrissur", locCode: "704" },
+    { locName: "G.Chavakkad", locCode: "706" },
+    { locName: "G.Calicut ", locCode: "712" },
+    { locName: "G.Vadakara", locCode: "708" },
+    { locName: "G.Edappal", locCode: "707" },
+    { locName: "G.Perinthalmanna", locCode: "709" },
+    { locName: "G.Kottakkal", locCode: "711" },
+    { locName: "G.Manjeri", locCode: "710" },
+    { locName: "G.Palakkad ", locCode: "705" },
+    { locName: "G.Kalpetta", locCode: "717" },
+    { locName: "G.Kannur", locCode: "716" },
+    { locName: "G.Mg Road", locCode: "718" },
+    { locName: "Production", locCode: "101" },
+    { locName: "Office", locCode: "102" },
+    { locName: "WAREHOUSE", locCode: "103" },
+    { locName: "Dappr Squad", locCode: "555" },
+  ];
+
+  const getUserStoreDetails = (user) => {
+    if (!user) return { userLocName: "", userWarehouse: "", locCode: "" };
+    let userLocName = "";
+    if (user.locCode) {
+      const loc = fallbackLocations.find(
+        (l) => l.locCode === user.locCode || l.locCode === String(user.locCode)
+      );
+      if (loc) userLocName = loc.locName;
+    }
+    if (!userLocName) {
+      userLocName = user.username || user.locName || "";
+    }
+    const userWarehouse = mapWarehouse(userLocName);
+    return {
+      userLocName,
+      userWarehouse,
+      locCode: user.locCode || "",
+    };
+  };
+
   useEffect(() => {
     const fetchInvoices = async () => {
       setLoadingList(true);
@@ -114,6 +227,18 @@ const SalesInvoiceDetail = () => {
         });
         if (user.power) params.append("userPower", user.power);
         if (user.locCode) params.append("locCode", user.locCode);
+
+        // Store filtering parameters matching SalesInvoices.jsx
+        const { userLocName, userWarehouse } = getUserStoreDetails(user);
+        if (userWarehouse) {
+          params.append("warehouse", userWarehouse);
+        }
+        if (user.locCode) {
+          params.append("filterLocCode", user.locCode);
+        }
+        if (userLocName) {
+          params.append("branch", userLocName);
+        }
 
         const response = await fetch(`${API_URL}/api/sales/invoices?${params.toString()}`);
 
@@ -127,6 +252,7 @@ const SalesInvoiceDetail = () => {
         setLoadingList(false);
       }
     };
+
     fetchInvoices();
   }, [API_URL]);
 
@@ -140,12 +266,10 @@ const SalesInvoiceDetail = () => {
           throw new Error(`Failed to fetch invoice: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log("API Response:", data);
         setInvoice(data);
 
-        // ✅ If invoice is fully returned and has no line items, fetch the return invoice
+        // If invoice is fully returned and has no line items, fetch the return invoice
         if (data.returnStatus === "full" && (!data.lineItems || data.lineItems.length === 0)) {
-          console.log("Fetching return invoice items for:", data.invoiceNumber);
           try {
             const user = getUserInfo();
             const params = new URLSearchParams({
@@ -157,29 +281,18 @@ const SalesInvoiceDetail = () => {
             const allInvoicesResponse = await fetch(`${API_URL}/api/sales/invoices?${params.toString()}`);
             if (allInvoicesResponse.ok) {
               const allInvoices = await allInvoicesResponse.json();
-              // Find return invoice that references this invoice
               const returnInvoice = allInvoices.find(inv => 
                 inv.category === "Return" && 
-                inv.remark && 
-                inv.remark.includes(data.invoiceNumber)
+                (inv.originalInvoiceNumber === data.invoiceNumber || 
+                 inv.invoiceNumber?.includes(data.invoiceNumber))
               );
               
               if (returnInvoice && returnInvoice.lineItems && returnInvoice.lineItems.length > 0) {
-                console.log("Found return invoice with items:", returnInvoice.invoiceNumber);
-                // Convert negative quantities back to positive for display
-                const itemsWithPositiveQty = returnInvoice.lineItems.map(item => ({
-                  ...item,
-                  quantity: Math.abs(parseFloat(item.quantity || 0)),
-                  amount: Math.abs(parseFloat(item.amount || 0)),
-                  cgstAmount: Math.abs(parseFloat(item.cgstAmount || 0)),
-                  sgstAmount: Math.abs(parseFloat(item.sgstAmount || 0)),
-                  igstAmount: Math.abs(parseFloat(item.igstAmount || 0)),
-                }));
-                setReturnInvoiceItems(itemsWithPositiveQty);
+                setReturnInvoiceItems(returnInvoice.lineItems);
               }
             }
           } catch (err) {
-            console.error("Error fetching return invoice:", err);
+            console.error("Error finding return invoice:", err);
           }
         }
       } catch (err) {
@@ -189,19 +302,18 @@ const SalesInvoiceDetail = () => {
         setLoading(false);
       }
     };
+
     if (id) {
       fetchInvoice();
     }
   }, [id, API_URL]);
 
-  // Fetch store information when invoice is loaded
   useEffect(() => {
     const fetchStoreInfo = async () => {
       if (!invoice || !invoice.branch) return;
       
       const branchLocCode = getLocCodeForBranch(invoice.branch);
       if (!branchLocCode) {
-        console.log(`No location code found for branch: ${invoice.branch}`);
         return;
       }
 
@@ -211,10 +323,7 @@ const SalesInvoiceDetail = () => {
           const data = await response.json();
           if (data.store) {
             setStoreInfo(data.store);
-            console.log("Store info fetched:", data.store);
           }
-        } else if (response.status === 404) {
-          console.log(`Store not found for branch: ${invoice.branch} (locCode: ${branchLocCode})`);
         }
       } catch (err) {
         console.error("Error fetching store info:", err);
@@ -228,12 +337,10 @@ const SalesInvoiceDetail = () => {
     window.print();
   };
 
-  // OLD email handler remains
   const handleEmail = () => {
     alert("Email functionality will be implemented");
   };
 
-  // NEW — Send SMS handler
   const handleSMS = () => {
     alert("SMS functionality will be implemented");
   };
@@ -251,31 +358,18 @@ const SalesInvoiceDetail = () => {
     }
   };
 
-
-  // Whatsapp
-
-  // Check if invoice has any returnable items
-  const hasReturnableItems = invoice?.lineItems?.some(
-    (item) => item.itemData?.returnable === true
-  ) || false;
-
-  // Initialize return items when modal opens
   const handleOpenReturnModal = async () => {
-    // Check if invoice is already fully returned
     if (invoice?.returnStatus === "full") {
       alert("This invoice has already been fully returned and cannot be returned again.");
       return;
     }
 
-    // Fetch fresh item data to get latest returnable status
     try {
       const itemsWithFreshData = await Promise.all(
         (invoice.lineItems || []).map(async (item) => {
           try {
-            // Try to fetch fresh item data from database
             let freshItemData = item.itemData;
             
-            // If item is from a group, fetch from group items
             if (item.itemGroupId) {
               const response = await fetch(`${API_URL}/api/shoe-sales/item-groups/${item.itemGroupId}`);
               if (response.ok) {
@@ -286,7 +380,6 @@ const SalesInvoiceDetail = () => {
                 }
               }
             } else {
-              // Fetch standalone item
               const response = await fetch(`${API_URL}/api/shoe-sales/items/${item.itemData?._id || item.itemData?.id}`);
               if (response.ok) {
                 freshItemData = await response.json();
@@ -299,9 +392,8 @@ const SalesInvoiceDetail = () => {
               returnQuantity: 0,
               isReturnable: freshItemData?.returnable === true,
             };
-          } catch (error) {
-            console.error("Error fetching fresh item data:", error);
-            // Fallback to cached data if fetch fails
+          } catch (err) {
+            console.error("Error fetching item data:", err);
             return {
               ...item,
               returnQuantity: 0,
@@ -311,41 +403,19 @@ const SalesInvoiceDetail = () => {
         })
       );
       
-      // Check if there are any returnable items after fetching fresh data
-      const hasReturnable = itemsWithFreshData.some(item => item.isReturnable);
-      if (!hasReturnable) {
-        alert("This invoice has no returnable items. Items must be marked as 'Returnable Item' in the product settings to be eligible for return.");
-        return;
-      }
-      
       setReturnItems(itemsWithFreshData);
+      setReturnReason("");
+      setShowReturnModal(true);
     } catch (error) {
-      console.error("Error preparing return items:", error);
-      // Fallback to using cached data
-      setReturnItems(
-        invoice.lineItems?.map((item) => ({
-          ...item,
-          returnQuantity: 0,
-          isReturnable: item.itemData?.returnable === true,
-        })) || []
-      );
+      console.error("Error opening return modal:", error);
+      alert("Failed to initialize return items. Please try again.");
     }
-    
-    setReturnReason("");
-    setReturnPaymentMethod("Cash"); // ✅ Reset payment method to Cash
-    setShowReturnModal(true);
   };
 
-  // Handle return item quantity change
   const handleReturnQuantityChange = (index, quantity) => {
     const item = returnItems[index];
-    // Prevent changes for non-returnable items
     if (item.itemData?.returnable !== true) {
-      alert(`Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned as it is not marked as returnable.`);
-      // Reset the quantity to 0 if they somehow managed to change it
-      const updated = [...returnItems];
-      updated[index].returnQuantity = 0;
-      setReturnItems(updated);
+      alert(`Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned as it is not marked as returnable. Please enable the "Returnable Item" option in the product settings to return this item.`);
       return;
     }
     
@@ -357,8 +427,6 @@ const SalesInvoiceDetail = () => {
     setReturnItems(updated);
   };
 
-  // Calculate return amount with taxes for a single item
-  // Use proportional calculation from invoice's finalTotal (which includes all taxes, discounts, adjustments)
   const calculateReturnAmountWithTax = (item) => {
     if (!item.returnQuantity || item.returnQuantity <= 0) return 0;
     if (!invoice) return 0;
@@ -366,69 +434,43 @@ const SalesInvoiceDetail = () => {
     const originalQuantity = parseFloat(item.quantity || 0);
     if (originalQuantity <= 0) return 0;
     
-    // ✅ Use rate directly since it's GST inclusive
-    // Rate already includes GST, so rate × quantity = total amount for this item
     const originalItemSubTotal = parseFloat((item.rate * originalQuantity) || 0);
     const originalInvoiceSubTotal = parseFloat(invoice.subTotal || 0);
     
-    // Calculate return quantity ratio
     const returnQuantityRatio = item.returnQuantity / originalQuantity;
     const returnSubTotal = originalItemSubTotal * returnQuantityRatio;
     
-    // If invoice has subTotal and finalTotal, use finalTotal proportionally (most accurate)
     if (originalInvoiceSubTotal > 0) {
       const returnSubTotalRatio = returnSubTotal / originalInvoiceSubTotal;
       const invoiceFinalTotal = parseFloat(invoice.finalTotal || 0);
       
-      // Use finalTotal proportionally if available (this matches exactly what invoice shows as Balance Due)
-      // Note: finalTotal can be less than subTotal when TDS/discounts are applied
       if (invoiceFinalTotal > 0) {
         const proportionalFinalTotal = invoiceFinalTotal * returnSubTotalRatio;
         return Math.max(0, proportionalFinalTotal);
       }
       
-      // If finalTotal not available, calculate using invoice tax structure
-      // Invoice display shows: CGST @ 2.5% and SGST @ 2.5% calculated from subTotal
       const invoiceTotalTax = parseFloat(invoice.totalTax || 0);
       const invoiceDiscountAmount = parseFloat(invoice.discountAmount || 0);
       const invoiceTdsAmount = parseFloat(invoice.tdsTcsAmount || 0);
       const invoiceAdjustmentAmount = parseFloat(invoice.adjustmentAmount || 0);
       
-      // Calculate proportional amounts for the return
       const proportionalSubTotal = originalInvoiceSubTotal * returnSubTotalRatio;
-      
-      // Calculate tax proportionally, or use 5% (2.5% CGST + 2.5% SGST) if not available
-      let proportionalTax = 0;
-      if (invoiceTotalTax > 0) {
-        proportionalTax = invoiceTotalTax * returnSubTotalRatio;
-      } else {
-        // Default: 5% tax (2.5% CGST + 2.5% SGST)
-        proportionalTax = proportionalSubTotal * 0.05;
-      }
-      
+      let proportionalTax = invoiceTotalTax > 0 ? invoiceTotalTax * returnSubTotalRatio : proportionalSubTotal * 0.05;
       const proportionalDiscount = invoiceDiscountAmount * returnSubTotalRatio;
       const proportionalTds = invoiceTdsAmount * returnSubTotalRatio;
       const proportionalAdjustment = invoiceAdjustmentAmount * returnSubTotalRatio;
       
-      // Calculate return amount: subTotal + tax - discount - TDS + adjustment
       const returnAmountWithTax = proportionalSubTotal + proportionalTax - proportionalDiscount - proportionalTds + proportionalAdjustment;
-      
       return Math.max(0, returnAmountWithTax);
     }
     
-    // Fallback: use rate directly (GST inclusive)
-    const returnAmount = item.returnQuantity * parseFloat(item.rate || 0);
-    return returnAmount;
+    return item.returnQuantity * parseFloat(item.rate || 0);
   };
 
-  // Calculate total return amount with taxes
   const calculateTotalReturnAmountWithTax = () => {
-    return returnItems.reduce((sum, item) => {
-      return sum + calculateReturnAmountWithTax(item);
-    }, 0);
+    return returnItems.reduce((sum, item) => sum + calculateReturnAmountWithTax(item), 0);
   };
 
-  // Submit return invoice
   const handleSubmitReturn = async () => {
     const itemsToReturn = returnItems.filter((item) => item.returnQuantity > 0);
 
@@ -437,7 +479,6 @@ const SalesInvoiceDetail = () => {
       return;
     }
 
-    // Check if any non-returnable items are being returned
     const nonReturnableItems = itemsToReturn.filter((item) => item.itemData?.returnable !== true);
     if (nonReturnableItems.length > 0) {
       const itemNames = nonReturnableItems.map((item) => item.item || item.itemData?.itemName || "Unknown").join(", ");
@@ -451,227 +492,113 @@ const SalesInvoiceDetail = () => {
     }
 
     setReturningInvoice(true);
-
     try {
       const user = getUserInfo();
-      
-      // Calculate totals for return invoice (use NEGATIVE values to show as refund)
-      const returnLineItems = itemsToReturn.map((item) => ({
-        item: item.item,
-        itemData: item.itemData,
-        quantity: item.returnQuantity,
-        rate: item.rate * -1, // Negative rate for return
-        amount: item.returnQuantity * item.rate * -1, // Negative amount
-        baseAmount: item.returnQuantity * item.rate * -1,
-        cgstPercent: item.cgstPercent || 0,
-        sgstPercent: item.sgstPercent || 0,
-        igstPercent: item.igstPercent || 0,
-        cgstAmount: (item.returnQuantity * item.rate * parseFloat(item.cgstPercent || 0)) / 100 * -1,
-        sgstAmount: (item.returnQuantity * item.rate * parseFloat(item.sgstPercent || 0)) / 100 * -1,
-        igstAmount: (item.returnQuantity * item.rate * parseFloat(item.igstPercent || 0)) / 100 * -1,
-      }));
+      const returnTotal = calculateTotalReturnAmountWithTax();
 
-      const totalReturnAmount = returnLineItems.reduce((sum, item) => sum + item.amount, 0); // Will be negative (raw line items)
-      const totalTax = returnLineItems.reduce((sum, item) => sum + (item.cgstAmount + item.sgstAmount + item.igstAmount), 0); // Will be negative
-
-      // Calculate the actual return finalTotal proportionally from invoice.finalTotal
-      // This ensures discount AND adjustment (positive or negative) are both accounted for
-      const originalSubTotal = parseFloat(invoice.subTotal) || 0;
-      const originalFinalTotal = parseFloat(invoice.finalTotal) || 0;
-      const returnRatio = originalSubTotal !== 0 ? Math.abs(totalReturnAmount) / originalSubTotal : 1;
-      // proportional finalTotal for the return (negative since it's a refund)
-      const proportionalFinalTotal = -(Math.abs(originalFinalTotal) * returnRatio);
-
-      // Calculate TDS for return invoice (proportionate to return amount)
-      const originalTdsAmount = parseFloat(invoice.tdsTcsAmount) || 0;
-      
-      // Calculate proportionate TDS for the return amount
-      let returnTdsAmount = 0;
-      if (originalTdsAmount > 0 && originalSubTotal > 0) {
-        const returnRatio = Math.abs(totalReturnAmount) / originalSubTotal;
-        returnTdsAmount = originalTdsAmount * returnRatio;
-      }
-
-      // Calculate Adjustment for return invoice (proportionate + sign reversed)
-      const originalAdjustmentAmount = parseFloat(invoice.adjustmentAmount) || 0;
-      let returnAdjustmentAmount = 0;
-      if (originalAdjustmentAmount !== 0 && originalSubTotal > 0) {
-        const returnRatio = Math.abs(totalReturnAmount) / originalSubTotal;
-        returnAdjustmentAmount = (originalAdjustmentAmount * returnRatio) * -1;
-      }
-
-      // Calculate proportionate discount for the return amount
-      const originalDiscountAmount = parseFloat(invoice.discountAmount) || 0;
-      let returnDiscountAmount = 0;
-      if (originalDiscountAmount > 0 && originalSubTotal > 0) {
-        const returnRatio = Math.abs(totalReturnAmount) / originalSubTotal;
-        returnDiscountAmount = originalDiscountAmount * returnRatio;
-      }
-
-      const returnInvoiceData = {
-        invoiceNumber: `RTN-${invoice.invoiceNumber}`,
-        invoiceDate: new Date().toISOString().split('T')[0],
+      const returnInvoicePayload = {
         customer: invoice.customer,
         customerPhone: invoice.customerPhone,
+        invoiceDate: new Date().toISOString().split("T")[0],
+        terms: "Due on Receipt",
         branch: invoice.branch,
+        salesperson: invoice.salesperson,
         category: "Return",
-        subCategory: invoice.subCategory,
-        paymentMethod: returnPaymentMethod, // ✅ Use selected payment method (Cash or RBL)
-        remark: `Return for: ${returnReason}`,
-        lineItems: returnLineItems,
-        subTotal: totalReturnAmount, // Negative
-        discount: invoice.discount || { value: "0", type: "%" },
-        discountAmount: -returnDiscountAmount, // Negative proportional discount
-        totalTax: totalTax, // Negative
-        tdsTcsType: invoice.tdsTcsType || "TDS",
-        tdsTcsTax: invoice.tdsTcsTax || "",
-        tdsTcsAmount: returnTdsAmount * -1, // Negative TDS amount for return
-        adjustment: returnAdjustmentAmount.toFixed(2),
-        adjustmentAmount: returnAdjustmentAmount,
-        finalTotal: proportionalFinalTotal, // Proportional from invoice.finalTotal — includes discount AND adjustment
-        userId: user?.email,
-        warehouse: invoice.warehouse || invoice.locCode,
-        locCode: invoice.locCode || user?.locCode,
         originalInvoiceId: invoice._id,
         originalInvoiceNumber: invoice.invoiceNumber,
+        notes: `Return for Invoice ${invoice.invoiceNumber}. Reason: ${returnReason}`,
+        paymentMethod: returnPaymentMethod,
+        lineItems: itemsToReturn.map((item) => ({
+          item: item.item,
+          quantity: item.returnQuantity,
+          rate: item.rate,
+          amount: calculateReturnAmountWithTax(item),
+          itemData: item.itemData,
+          size: item.size,
+          itemGroupId: item.itemGroupId,
+        })),
+        subTotal: returnTotal,
+        finalTotal: -returnTotal,
+        status: "Sent",
+        userId: user?.email,
       };
 
-      // Step 1: Create return invoice
-      const response = await fetch(`${API_URL}/api/sales/invoices`, {
+      const returnResponse = await fetch(`${API_URL}/api/sales/invoices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(returnInvoiceData),
+        body: JSON.stringify(returnInvoicePayload),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create return invoice");
+      if (!returnResponse.ok) {
+        throw new Error("Failed to create return invoice");
       }
 
-      const result = await response.json();
-      
-      // Step 2: Update original invoice - reduce quantities or remove returned items
+      const result = await returnResponse.json();
+
       const updatedLineItems = invoice.lineItems
-        .map((item) => {
+        .map((originalItem) => {
           const returnedItem = itemsToReturn.find(
-            (ri) => ri.item === item.item && ri.itemData?._id === item.itemData?._id
+            (ret) => (ret.itemData?._id || ret.item) === (originalItem.itemData?._id || originalItem.item)
           );
-          
-          if (returnedItem) {
-            const remainingQty = (parseFloat(item.quantity) || 0) - (parseFloat(returnedItem.returnQuantity) || 0);
-            if (remainingQty <= 0) {
-              return null; // Remove item completely
-            }
-            // For inclusive GST: lineTotal = qty × rate (rate already includes tax)
-            const lineTotal = remainingQty * (parseFloat(item.rate) || 0);
-            const cgstPct = parseFloat(item.cgstPercent || 0);
-            const sgstPct = parseFloat(item.sgstPercent || 0);
-            const igstPct = parseFloat(item.igstPercent || 0);
-            const totalTaxPct = cgstPct + sgstPct + igstPct;
-            // Back-calculate base from inclusive total
-            const baseAmount = totalTaxPct > 0 ? lineTotal / (1 + totalTaxPct / 100) : lineTotal;
-            const cgstAmount = (baseAmount * cgstPct) / 100;
-            const sgstAmount = (baseAmount * sgstPct) / 100;
-            const igstAmount = (baseAmount * igstPct) / 100;
-            const lineTaxTotal = cgstAmount + sgstAmount + igstAmount;
-            
-            return {
-              ...item,
-              quantity: remainingQty,
-              amount: baseAmount,
-              baseAmount: baseAmount,
-              cgstAmount: cgstAmount,
-              sgstAmount: sgstAmount,
-              igstAmount: igstAmount,
-              lineTaxTotal: lineTaxTotal,
-              lineTotal: lineTotal,
-            };
+
+          if (!returnedItem) {
+            return originalItem;
           }
-          return item;
+
+          const remainingQty = (originalItem.quantity || 0) - returnedItem.returnQuantity;
+          if (remainingQty <= 0) {
+            return null;
+          }
+
+          return {
+            ...originalItem,
+            quantity: remainingQty,
+            amount: remainingQty * originalItem.rate,
+          };
         })
-        .filter(Boolean); // Remove null items
+        .filter(Boolean);
 
-      // Step 2: Update original invoice with reduced quantities (if items remain)
       if (updatedLineItems.length > 0) {
-        // For inclusive GST: subTotal = sum of lineTotals (inclusive amounts)
-        const newSubTotal = updatedLineItems.reduce((sum, item) => sum + (parseFloat(item.lineTotal) || 0), 0);
-        const newTotalTax = updatedLineItems.reduce(
-          (sum, item) => sum + (parseFloat(item.cgstAmount) || 0) + (parseFloat(item.sgstAmount) || 0) + (parseFloat(item.igstAmount) || 0),
-          0
-        );
-
-        // Recalculate discount, TDS, and adjustment proportionally based on new subtotal
+        const remainingSubTotal = updatedLineItems.reduce((sum, item) => sum + item.amount, 0);
         const originalSubTotal = parseFloat(invoice.subTotal || 0);
-        const newSubTotalRatio = originalSubTotal > 0 ? newSubTotal / originalSubTotal : 1;
-        
-        const originalDiscountAmount = parseFloat(invoice.discountAmount || 0);
-        const newDiscountAmount = originalDiscountAmount * newSubTotalRatio;
-        
-        const originalTdsAmount = parseFloat(invoice.tdsTcsAmount || 0);
-        const newTdsAmount = originalTdsAmount * newSubTotalRatio;
-        
-        const originalAdjustmentAmount = parseFloat(invoice.adjustmentAmount || 0);
-        const newAdjustmentAmount = originalAdjustmentAmount * newSubTotalRatio;
-        
-        // For inclusive GST: finalTotal = subTotal (tax already included) - discount - TDS + adjustment
-        const newFinalTotal = newSubTotal - newDiscountAmount - newTdsAmount + newAdjustmentAmount;
+        const ratio = originalSubTotal > 0 ? remainingSubTotal / originalSubTotal : 1;
 
-        // Update the original invoice with reduced quantities and partial return status
-        const updateResponse = await fetch(`${API_URL}/api/sales/invoices/${invoice._id}`, {
+        const remainingFinalTotal = parseFloat(invoice.finalTotal || 0) * ratio;
+        const remainingTax = parseFloat(invoice.totalTax || 0) * ratio;
+
+        await fetch(`${API_URL}/api/sales/invoices/${invoice._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             lineItems: updatedLineItems,
-            subTotal: newSubTotal,
-            totalTax: newTotalTax,
-            discountAmount: newDiscountAmount,
-            tdsTcsAmount: newTdsAmount,
-            adjustmentAmount: newAdjustmentAmount,
-            finalTotal: newFinalTotal,
-            returnStatus: "partial", // Mark as partially returned
+            subTotal: remainingSubTotal,
+            finalTotal: remainingFinalTotal,
+            totalTax: remainingTax,
+            returnStatus: "partial",
             userId: user?.email,
           }),
         });
-
-        if (!updateResponse.ok) {
-          console.error("Failed to update original invoice, but return invoice was created");
-          // Continue anyway - return invoice is created successfully
-        } else {
-          console.log("✅ Original invoice updated with reduced quantities and marked as partially returned");
-        }
       } else {
-        // All items have been returned - mark invoice as fully returned
-        const updateResponse = await fetch(`${API_URL}/api/sales/invoices/${invoice._id}`, {
+        await fetch(`${API_URL}/api/sales/invoices/${invoice._id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             lineItems: [],
-            returnStatus: "full", // Mark as fully returned
+            returnStatus: "full",
             userId: user?.email,
           }),
         });
-
-        if (!updateResponse.ok) {
-          console.error("Failed to update original invoice, but return invoice was created");
-        } else {
-          console.log("✅ Original invoice marked as fully returned");
-        }
       }
 
-      // Step 3: Return invoice created and original invoice updated (if items remain)
-      console.log("✅ Return invoice created. Original invoice updated with remaining quantities.");
-      
       alert(
         `Return invoice created: ${result.invoiceNumber}\n\n` +
         (updatedLineItems.length > 0 
-          ? `Original invoice ${invoice.invoiceNumber} has been updated to show remaining quantities.\n`
+          ? `Original invoice ${invoice.invoiceNumber} has been updated with remaining quantities.\n`
           : `All items have been returned.\n`) +
-        `Both invoices will appear in Financial Summary and Day Book reports.\n\n` +
         `View return invoices at: Sales > Invoice Returns`
       );
       
       setShowReturnModal(false);
-      // Reload to show updated invoice
       window.location.reload();
     } catch (error) {
       console.error("Return error:", error);
@@ -682,23 +609,16 @@ const SalesInvoiceDetail = () => {
   };
 
   const handleWhatsApp = () => {
-    console.log("Invoice data:", invoice);
-    console.log("Customer phone:", invoice?.customerPhone);
-    
     const phone = invoice?.customerPhone || "";
-    
     if (!phone) {
       alert("Customer phone number not available.");
       return;
     }
   
-    // Clean and format phone number - remove all non-digit characters
     const cleanedPhone = phone.replace(/\D/g, '');
-    
-    // Ensure phone number has country code (India: 91)
     let formattedPhone = cleanedPhone;
     if (!formattedPhone.startsWith('91') && formattedPhone.length === 10) {
-      formattedPhone = '91' + formattedPhone; // Add India country code
+      formattedPhone = '91' + formattedPhone;
     }
   
     const message =
@@ -709,33 +629,22 @@ const SalesInvoiceDetail = () => {
       `Customer: ${invoice.customer}\n` +
       `Phone: ${invoice.customerPhone || 'Not provided'}\n` +
       `Branch: ${invoice.branch}\n\n` +
-      `--- ITEMS ---\n` +
-      `${invoice.lineItems?.map((item, index) => 
-        `${index + 1}. ${item.item || 'Item'} - Qty: ${item.quantity || 0} - Rate: ₹${parseFloat(item.rate || 0).toLocaleString('en-IN')} - Amount: ₹${parseFloat(item.amount || 0).toLocaleString('en-IN')}`
-      ).join('\n') || 'No items'}\n\n` +
       `Sub Total: ₹${parseFloat(invoice.subTotal || 0).toLocaleString('en-IN')}\n` +
-      `Discount: ${invoice.discount?.value || '0'}${invoice.discount?.type || '%'}\n` +
-      `Discount Amount: ₹${parseFloat(invoice.discountAmount || 0).toLocaleString('en-IN')}\n` +
-      `Tax: ₹${parseFloat(invoice.totalTax || 0).toLocaleString('en-IN')}\n` +
-      `Adjustment: ₹${parseFloat(invoice.adjustmentAmount || 0).toLocaleString('en-IN')}\n` +
       `Total Amount: ₹${parseFloat(invoice.finalTotal || 0).toLocaleString('en-IN')}\n\n` +
       `Status: ${invoice.status?.toUpperCase() || 'SENT'}\n` +
       `Terms: ${invoice.terms || 'Due on Receipt'}\n\n` +
       `Thank you for your business!`;
   
     const url = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-  
     window.open(url, "_blank");
   };
-  
-
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f6f9ff] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-[#2563eb] border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-sm text-[#6b7280]">Loading invoice...</p>
+          <div className="animate-spin w-8 h-8 border-2 border-[#8B5CF6] border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wider">Loading invoice details...</p>
         </div>
       </div>
     );
@@ -743,14 +652,15 @@ const SalesInvoiceDetail = () => {
   
   if (error) {
     return (
-      <div className="min-h-screen bg-[#f6f9ff] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-sm text-[#ef4444] mb-4">{error}</p>
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+        <div className="text-center max-w-sm p-6 bg-white border border-[#E5E7EB] shadow-sm">
+          <AlertCircle className="w-10 h-10 text-red-500 mx-auto mb-3" />
+          <p className="text-sm text-red-600 font-semibold mb-4">{error}</p>
           <button
             onClick={() => navigate("/sales/invoices")}
-            className="text-[#2563eb] hover:text-[#1d4ed8] text-sm"
+            className="px-4 py-2 bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] text-xs font-bold uppercase tracking-wider border border-[#E5E7EB] cursor-pointer"
           >
-            Back to Invoices
+            ← Back to Invoices
           </button>
         </div>
       </div>
@@ -759,718 +669,839 @@ const SalesInvoiceDetail = () => {
   
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-[#f6f9ff] flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-sm text-[#6b7280]">Invoice not found</p>
+      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+        <div className="text-center max-w-sm p-6 bg-white border border-[#E5E7EB] shadow-sm">
+          <FileText className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[#111827] mb-4">Invoice Not Found</p>
+          <button
+            onClick={() => navigate("/sales/invoices")}
+            className="px-4 py-2 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider cursor-pointer"
+          >
+            View All Invoices
+          </button>
         </div>
       </div>
     );
   }
   
+  const activeUser = getUserInfo();
+  const { userLocName: activeLocName, userWarehouse: activeWarehouse, locCode: activeLocCode } = getUserStoreDetails(activeUser);
+
+  const filteredSidebarInvoices = invoices.filter((inv) => {
+    // 1. Exclude Return/Refund/Cancel invoices from this sidebar list (matches SalesInvoices.jsx)
+    const categoryLower = (inv.category || "").toLowerCase().trim();
+    const isReturnRefundCancel = ["return", "refund", "cancel"].includes(categoryLower);
+    const invoiceNumber = (inv.invoiceNumber || "").toUpperCase();
+    const hasReturnPrefix =
+      invoiceNumber.startsWith("RTN-") ||
+      invoiceNumber.startsWith("RET-") ||
+      invoiceNumber.startsWith("REFUND-") ||
+      invoiceNumber.startsWith("CANCEL-");
+
+    if (isReturnRefundCancel || hasReturnPrefix) {
+      return false;
+    }
+
+    // 2. Extra client-side store filter safety
+    if (activeWarehouse && activeWarehouse !== "Warehouse" && activeWarehouse !== "All Stores") {
+      const invWarehouse = (inv.warehouse || "").toLowerCase().trim();
+      const invBranch = (inv.branch || "").toLowerCase().trim();
+      const invLocCode = String(inv.locCode || "").trim();
+
+      const targetWarehouse = activeWarehouse.toLowerCase().trim();
+      const targetLocName = (activeLocName || "").toLowerCase().trim();
+      const targetLocCode = String(activeLocCode || "").trim();
+
+      const matchesStore =
+        (targetLocCode && invLocCode && invLocCode === targetLocCode) ||
+        (targetWarehouse && (invWarehouse.includes(targetWarehouse) || invBranch.includes(targetWarehouse))) ||
+        (targetLocName && (invWarehouse.includes(targetLocName) || invBranch.includes(targetLocName)));
+
+      // If the invoice has store attribution and doesn't match this store, exclude it
+      if (!matchesStore && (inv.warehouse || inv.branch || inv.locCode)) {
+        return false;
+      }
+    }
+
+    // 3. Search filter
+    if (invoiceSearch) {
+      const searchLower = invoiceSearch.toLowerCase().trim();
+      return (
+        inv.invoiceNumber?.toLowerCase().includes(searchLower) ||
+        inv.customer?.toLowerCase().includes(searchLower)
+      );
+    }
+    return true;
+  });
+
+  // Financial summary computation
+  const storedSubTotal = parseFloat(invoice.subTotal || 0);
+  const storedTotalTax = parseFloat(invoice.totalTax || 0);
+  const storedFinalTotal = parseFloat(invoice.finalTotal || 0);
+  const lineItems = invoice.lineItems || [];
+  const computedSubTotal = lineItems.reduce((s, i) => s + (parseFloat(i.lineTotal) || (parseFloat(i.quantity || 0) * parseFloat(i.rate || 0))), 0);
+  const computedTotalTax = lineItems.reduce((s, i) => s + (parseFloat(i.cgstAmount || 0)) + (parseFloat(i.sgstAmount || 0)) + (parseFloat(i.igstAmount || 0)), 0);
+  const displaySubTotal = storedSubTotal > 0 ? storedSubTotal : computedSubTotal;
+  const displayTotalTax = storedTotalTax > 0 ? storedTotalTax : computedTotalTax;
+  const displayFinalTotal = storedFinalTotal > 0 ? storedFinalTotal : (computedSubTotal - parseFloat(invoice.discountAmount || 0) - parseFloat(invoice.tdsTcsAmount || 0) + parseFloat(invoice.adjustmentAmount || 0));
+
+  const itemsToDisplay = (invoice.lineItems && invoice.lineItems.length > 0) 
+    ? invoice.lineItems 
+    : returnInvoiceItems;
+
   return (
-    <div className="min-h-screen bg-[#f6f9ff]">
-      <Head title={`Invoice ${invoice.invoiceNumber}`} description={`Invoice details for ${invoice.customer}`} />
-      
-      {/* Print Styles - Hide everything except invoice when printing */}
-      <style>
-        {`
-          @media print {
-            /* Hide the entire page background */
-            html, body {
-              background: white !important;
-              margin: 0 !important;
-              padding: 0 !important;
+    <>
+      <Header title="Sales Invoices" />
+      <div className="invoice-page-wrapper min-h-[calc(100vh-65px)] bg-[#F9FAFB] text-[#111827]">
+        
+        {/* Print Styles */}
+        <style>
+          {`
+            @media print {
+              html, body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+              }
+              
+              nav, aside, header, footer,
+              .ml-64, .w-80, 
+              [class*="sidebar"],
+              [class*="nav-"],
+              .no-print {
+                display: none !important;
+                visibility: hidden !important;
+                width: 0 !important;
+                height: 0 !important;
+              }
+              
+              button, a {
+                display: none !important;
+              }
+              
+              #printable-invoice {
+                display: block !important;
+                visibility: visible !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                max-width: 210mm !important;
+                margin: 0 auto !important;
+                padding: 6mm !important;
+                background: white !important;
+                box-shadow: none !important;
+                border: 1px solid #e5e7eb !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              
+              #printable-invoice * {
+                visibility: visible !important;
+              }
+              
+              @page {
+                size: A4;
+                margin: 6mm;
+              }
             }
-            
-            /* Hide sidebar navigation */
-            nav, aside, header, footer,
-            .ml-64, .w-80, 
-            [class*="sidebar"],
-            [class*="nav-"],
-            .flex-1.px-10 > div:first-child,
-            .flex > div:first-child {
-              display: none !important;
-              visibility: hidden !important;
-              width: 0 !important;
-              height: 0 !important;
-              overflow: hidden !important;
-            }
-            
-            /* Hide all buttons */
-            button, a.flex.items-center {
-              display: none !important;
-            }
-            
-            /* Show and position the invoice */
-            #printable-invoice {
-              display: block !important;
-              visibility: visible !important;
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              max-width: 210mm !important;
-              margin: 0 auto !important;
-              padding: 10mm !important;
-              background: white !important;
-              box-shadow: none !important;
-              border: 2px solid #000 !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            
-            #printable-invoice * {
-              visibility: visible !important;
-            }
-            
-            /* Page settings */
-            @page {
-              size: A4;
-              margin: 5mm;
-            }
-          }
-        `}
-      </style>
+          `}
+        </style>
 
-      <div className="flex">
-  
-        {/* LEFT SIDEBAR — unchanged */}
-        <div className={`transition-all duration-300 w-80 bg-white border-r border-[#e5e7eb] h-screen overflow-y-auto ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-  <div className="p-4 border-b border-[#e5e7eb]">
-    <div className="flex items-center justify-between mb-4">
-      <h2 className="text-lg font-semibold text-[#1f2937]">All Invoices</h2>
-      <Link
-        to="/sales/invoices/new"
-        className="bg-[#2563eb] text-white px-3 py-1 rounded-md text-sm hover:bg-[#1d4ed8] transition-colors"
-      >
-        + New
-      </Link>
-    </div>
-  </div>
-
-  <div className="p-2">
-    {loadingList ? (
-      <div className="text-center py-8">
-        <div className="text-sm text-[#6b7280]">Loading invoices...</div>
-      </div>
-    ) : (
-      <div className="space-y-1">
-        {invoices.map((inv) => (
-          <Link
-            key={inv._id}
-            to={`/sales/invoices/${inv._id}`}
-            className={`block p-3 rounded-lg border transition-colors ${
-              inv._id === id
-                ? 'bg-[#eff6ff] border-[#2563eb] text-[#2563eb]'
-                : 'bg-white border-[#e5e7eb] hover:bg-[#f9fafb] text-[#1f2937]'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm truncate">{inv.customer}</div>
-                <div className="text-xs text-[#6b7280]">{inv.invoiceNumber}</div>
-                <div className="text-xs text-[#6b7280]">{formatDate(inv.invoiceDate)}</div>
-              </div>
-              <div className="text-right flex-shrink-0">
-                <div className="font-semibold text-sm">{formatCurrency(inv.finalTotal)}</div>
-                <div
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    inv.status?.toLowerCase() === 'paid'
-                      ? 'bg-[#d1fae5] text-[#065f46]'
-                      : inv.status?.toLowerCase() === 'draft'
-                      ? 'bg-[#f3f4f6] text-[#374151]'
-                      : 'bg-[#dbeafe] text-[#1e40af]'
-                  }`}
+        <div className="flex">
+          {/* ── LEFT INVOICES LIST SIDEBAR ── */}
+          <div className={`transition-all duration-300 w-80 bg-white border-r border-[#E5E7EB] h-[calc(100vh-65px)] overflow-y-auto shrink-0 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+            <div className="p-4 border-b border-[#E5E7EB] bg-white sticky top-0 z-10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold tracking-wider text-[#111827] uppercase flex items-center gap-1.5">
+                  <span>All Invoices</span>
+                  <span className="text-[10px] font-bold text-[#6B7280] bg-[#F3F4F6] px-1.5 py-0.5 border border-[#E5E7EB]">
+                    {filteredSidebarInvoices.length}
+                  </span>
+                </h2>
+                <Link
+                  to="/sales/invoices/new"
+                  className="inline-flex items-center gap-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white px-3 py-1.5 rounded-none text-xs font-bold uppercase tracking-wider shadow-sm transition-colors cursor-pointer"
                 >
-                  {(inv.status || 'SENT').toUpperCase()}
-                </div>
+                  <Plus size={13} className="text-white" />
+                  New
+                </Link>
+              </div>
+
+              {/* Filter search input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Filter invoices..."
+                  value={invoiceSearch}
+                  onChange={(e) => setInvoiceSearch(e.target.value)}
+                  className="w-full h-8 pl-8 pr-2.5 rounded-none border border-[#E5E7EB] bg-[#F9FAFB] text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:bg-white focus:outline-none transition-colors"
+                />
+                <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#9CA3AF]" />
               </div>
             </div>
-          </Link>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
 
-  
-        {/* MAIN CONTENT */}
-        <div className="flex-1 px-10 pb-16 pt-6">
-  
-          {/* HEADER */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <button onClick={() => navigate("/sales/invoices")} className="flex items-center gap-2 text-[#6b7280] hover:text-[#1f2937]">
-                <ArrowLeft size={20} />
-                <span className="text-sm">All Invoices</span>
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="text-2xl font-semibold text-[#1f2937]">
-                  {invoice.invoiceNumber}
+            <div className="p-2">
+              {loadingList ? (
+                <div className="text-center py-10">
+                  <div className="inline-block animate-spin h-5 w-5 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
+                  <div className="text-xs text-[#6B7280]">Loading invoices...</div>
                 </div>
-                {invoice?.returnStatus === "full" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
-                    <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                    FULLY RETURNED
-                  </span>
-                )}
-                {invoice?.returnStatus === "partial" && (
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">
-                    <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                    PARTIALLY RETURNED
-                  </span>
-                )}
-              </div>
-            </div>
-  
-            <div className="flex items-center gap-2">
-  
-              {/* PRINT BUTTON — Only for admin/warehouse */}
-              {isAdminOrWarehouse && (
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md hover:bg-[#f9fafb]"
-                >
-                  <Printer size={16} />
-                  Print
-                </button>
+              ) : filteredSidebarInvoices.length === 0 ? (
+                <div className="text-center py-10 text-xs text-[#6B7280]">
+                  No invoices found
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {filteredSidebarInvoices.map((inv) => (
+                    <Link
+                      key={inv._id}
+                      to={`/sales/invoices/${inv._id}`}
+                      className={`block p-3 rounded-none border transition-all cursor-pointer ${
+                        inv._id === id
+                          ? 'bg-[#F5F3FF] border-[#DDD6FE] border-l-4 border-l-[#8B5CF6] shadow-xs'
+                          : 'bg-white border-[#E5E7EB] hover:bg-[#F9FAFB] text-[#111827]'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        {/* Customer Avatar Initials */}
+                        <div className={`w-8 h-8 rounded-none flex items-center justify-center font-bold text-xs shrink-0 ${
+                          inv._id === id ? 'bg-[#8B5CF6] text-white' : 'bg-[#F3F4F6] text-[#4B5563]'
+                        }`}>
+                          {(inv.customer || "C").slice(0, 2).toUpperCase()}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-xs font-bold truncate ${inv._id === id ? 'text-[#7C3AED]' : 'text-[#111827]'}`}>
+                            {inv.customer || "Walk-in Customer"}
+                          </div>
+                          <div className="text-[11px] font-semibold text-[#6B7280] font-mono mt-0.5">
+                            {inv.invoiceNumber}
+                          </div>
+                          <div className="text-[10px] text-[#9CA3AF] mt-0.5">
+                            {formatDate(inv.invoiceDate)}
+                          </div>
+                        </div>
+
+                        <div className="text-right flex-shrink-0">
+                          <div className="text-xs font-bold text-[#111827]">
+                            {formatCurrency(inv.finalTotal)}
+                          </div>
+                          <span
+                            className={`inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-none ${
+                              inv.returnStatus === 'full'
+                                ? 'bg-red-50 text-red-700 border border-red-200'
+                                : inv.status?.toLowerCase() === 'paid'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                : inv.status?.toLowerCase() === 'draft'
+                                ? 'bg-gray-100 text-gray-700 border border-gray-200'
+                                : 'bg-[#F5F3FF] text-[#7C3AED] border border-[#DDD6FE]'
+                            }`}
+                          >
+                            {inv.returnStatus === 'full' ? 'RETURNED' : (inv.status || 'SENT').toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               )}
-  
-              {/* SEND DROPDOWN — Only for admin/warehouse */}
-              {isAdminOrWarehouse && (
-                <div className="relative">
-                  <button
-                    onClick={() => setShowSendMenu((prev) => !prev)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md hover:bg-[#f9fafb]"
-                  >
-                    <Mail size={16} />
-                    Send
-                  </button>
-  
-                  {showSendMenu && (
-                    <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                      <button onClick={handleEmail} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                        Send Email
-                      </button>
-  
-                      <button onClick={handleSMS} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100">
-                        Send SMS
-                      </button>
-                      <button
-                        onClick={handleWhatsApp}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100"
-                      >
-                        Send via WhatsApp
-                      </button>
-                    </div>
+            </div>
+          </div>
+
+          {/* ── MAIN CONTENT AREA ── */}
+          <div className="flex-1 px-8 pb-16 pt-6 h-[calc(100vh-65px)] overflow-y-auto">
+            
+            {/* Top Action Toolbar - Single Row */}
+            <div className="flex items-center justify-between gap-4 mb-6 no-print flex-nowrap">
+              <div className="flex items-center gap-3 min-w-0">
+                <button
+                  onClick={() => navigate("/sales/invoices")}
+                  className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+                >
+                  <ArrowLeft size={14} className="text-[#111827]" />
+                  <span>All Invoices</span>
+                </button>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#111827] uppercase font-mono truncate">
+                    {invoice.invoiceNumber}
+                  </h1>
+                  {invoice?.returnStatus === "full" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 text-[11px] font-bold uppercase tracking-wider rounded-none shrink-0">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                      FULLY RETURNED
+                    </span>
+                  )}
+                  {invoice?.returnStatus === "partial" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-bold uppercase tracking-wider rounded-none shrink-0">
+                      <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                      PARTIALLY RETURNED
+                    </span>
                   )}
                 </div>
-              )}
-  
-              {/* SHARE — Only for admin/warehouse */}
-              {isAdminOrWarehouse && (
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md hover:bg-[#f9fafb]"
-                >
-                  <Share2 size={16} />
-                  Share
-                </button>
-              )}
-  
-              {/* RETURN INVOICE — Available for all users, but NOT for return/refund/cancel invoices */}
-              {!["return", "refund", "cancel"].includes((invoice?.category || "").toLowerCase()) && (
-                <button
-                  onClick={handleOpenReturnModal}
-                  disabled={invoice?.returnStatus === "full"}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-medium text-white border rounded-md ${
-                    invoice?.returnStatus === "full"
-                      ? "bg-gray-400 border-gray-400 cursor-not-allowed opacity-60"
-                      : "bg-[#ef4444] border-[#ef4444] hover:bg-[#dc2626]"
-                  }`}
-                  title={invoice?.returnStatus === "full" ? "This invoice has been fully returned and cannot be returned again" : ""}
-                >
-                  ↩ Return
-                </button>
-              )}
-
-              {/* EDIT — Only for admin/warehouse */}
-              {isAdminOrWarehouse && (
-                <Link
-                  to={`/sales/invoices/${id}/edit`}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#2563eb] border border-[#2563eb] rounded-md hover:bg-[#1d4ed8]"
-                >
-                  <Edit size={16} />
-                  Edit
-                </Link>
-              )}
-  
-              {/* MORE OPTIONS — Only for admin/warehouse */}
-              {isAdminOrWarehouse && (
-                <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md hover:bg-[#f9fafb]">
-                  <MoreHorizontal size={16} />
-                </button>
-              )}
-            </div>
-          </div>
-  
-
-        {/* Invoice Document - Zoho Template Style */}
-        <div id="printable-invoice" className="bg-white shadow-lg border-2 border-[#000] max-w-4xl mx-auto">
-          {/* Green PAID Banner */}
-          <div className="relative">
-            <div className="absolute top-4 left-4 bg-[#10b981] text-white px-3 py-1 text-sm font-bold transform -rotate-45 origin-top-left">
-              PAID
-            </div>
-          </div>
-
-          {/* Invoice Content */}
-          <div className="p-8">
-            {/* Header Section */}
-            <div className="border-2 border-[#000]">
-              <div className="grid grid-cols-2">
-                {/* Left - Company Info */}
-                <div className="border-r-2 border-[#000] p-4">
-                  <h1 className="text-xl font-bold text-[#000] mb-3">
-                    {storeInfo?.name || invoice.branch || "Grooms Wedding Hub"}
-                  </h1>
-                  <div className="text-sm text-[#000] space-y-1">
-                    {storeInfo?.address && <div>{storeInfo.address}</div>}
-                    {storeInfo?.city && <div>{storeInfo.city}</div>}
-                    {storeInfo?.state && <div>{storeInfo.state}</div>}
-                    {!storeInfo?.address && !storeInfo?.city && <div>Kerala</div>}
-                    {!storeInfo?.state && <div>INDIA</div>}
-                    <div>GSTIN: 32AEHCR4208L1ZS</div>
-                  </div>
-                </div>
-
-                {/* Right - Invoice Details */}
-                <div className="p-4">
-                  <div className="text-right mb-4">
-                    <h2 className="text-2xl font-bold text-[#000]">TAX INVOICE</h2>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-[#000]">Invoice Date</div>
-                    <div className="font-medium">: {formatDate(invoice.invoiceDate)}</div>
-                    <div className="text-[#000]">Terms</div>
-                    <div className="font-medium">: {invoice.terms}</div>
-                  </div>
-                </div>
               </div>
 
-              {/* Invoice Number Section */}
-              <div className="border-t-2 border-[#000] grid grid-cols-2">
-                <div className="border-r-2 border-[#000] p-3">
-                  <div className="text-sm text-[#000]">
-                    <div>Invoice Date: {formatDate(invoice.invoiceDate)}</div>
-                    <div>Place Of Supply: Kerala (32)</div>
-                    <div>Sales person: {invoice.salesperson || "NIYAS"}</div>
-                  </div>
-                </div>
-                <div className="p-3 text-right">
-                  <div className="text-lg font-bold text-[#000]">{invoice.invoiceNumber}</div>
-                </div>
-              </div>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                {isAdminOrWarehouse && (
+                  <button
+                    onClick={handlePrint}
+                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Printer size={14} className="text-[#111827]" />
+                    <span>Print</span>
+                  </button>
+                )}
 
-              {/* Bill To Section */}
-              <div className="border-t-2 border-[#000] p-4">
-                <div className="text-sm font-semibold text-[#000] mb-2">Bill To</div>
-                <div className="text-base font-bold text-[#000]">{invoice.customer}</div>
-                {invoice.customerPhone && (
-                  <div className="text-sm text-[#000] mt-1">Phone: {invoice.customerPhone}</div>
+                {/* RETURN BUTTON */}
+                {!["return", "refund", "cancel"].includes((invoice?.category || "").toLowerCase()) && (
+                  invoice?.returnStatus === "full" ? (
+                    <Link
+                      to="/sales/invoices/returns"
+                      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-bold uppercase tracking-wider text-red-700 shadow-xs transition-colors cursor-pointer"
+                      title="This invoice is fully returned. Click to view return invoice."
+                    >
+                      <RotateCcw size={13} className="text-red-600" />
+                      <span>View Return</span>
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={handleOpenReturnModal}
+                      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none text-xs font-bold uppercase tracking-wider bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-xs transition-colors cursor-pointer"
+                    >
+                      <RotateCcw size={13} className="text-white" />
+                      <span>Return</span>
+                    </button>
+                  )
+                )}
+
+                {/* EDIT BUTTON (Purple Primary) */}
+                {isAdminOrWarehouse && (
+                  <Link
+                    to={`/sales/invoices/${id}/edit`}
+                    className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-xs font-bold uppercase tracking-wider shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Edit size={14} className="text-white" />
+                    <span>Edit</span>
+                  </Link>
+                )}
+
+                {/* MORE OPTIONS */}
+                {isAdminOrWarehouse && (
+                  <button className="inline-flex items-center justify-center h-9 w-9 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] shadow-xs transition-colors cursor-pointer">
+                    <MoreHorizontal size={15} />
+                  </button>
                 )}
               </div>
+            </div>
 
-               {/* Items Table */}
-               <div className="border-t-2 border-[#000]">
-                 <table className="w-full text-sm">
-                   <thead>
-                     <tr className="border-b-2 border-[#000]">
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">#</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-left font-semibold text-[#000]">Item & Description</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">Size</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">HSN/SAC</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">Qty</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">Rate</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">CGST</th>
-                       <th className="border-r border-[#000] px-2 py-2 text-center font-semibold text-[#000]">SGST</th>
-                       <th className="px-2 py-2 text-center font-semibold text-[#000]">Amount</th>
-                     </tr>
-                   </thead>
-                   <tbody>
-                     {(() => {
-                       // Use return invoice items if available, otherwise use invoice line items
-                       const itemsToDisplay = (invoice.lineItems && invoice.lineItems.length > 0) 
-                         ? invoice.lineItems 
-                         : returnInvoiceItems;
+            {/* ── REDESIGNED INVOICE DOCUMENT SHEET ── */}
+            <div id="printable-invoice" className="bg-white border border-[#E5E7EB] shadow-md max-w-4xl mx-auto rounded-none overflow-hidden my-4">
+              
+              {/* Brand Top Accent Line */}
+              <div className="h-1.5 bg-[#8B5CF6] w-full" />
 
-                       if (!itemsToDisplay || itemsToDisplay.length === 0) {
-                         return (
-                           <tr>
-                             <td colSpan="9" className="px-4 py-8 text-center text-[#666]">
-                               <div className="text-sm">
-                                 This invoice has been fully returned. Line items were cleared.
-                               </div>
-                               <div className="text-xs mt-2">
-                                 Unable to retrieve item details from return invoice.
-                               </div>
-                             </td>
-                           </tr>
-                         );
-                       }
-
-                       return itemsToDisplay.map((item, index) => {
-                       // Get real data from itemData or use defaults
-                       const itemData = item.itemData || {};
-                       const hsnCode = itemData.hsnCode || itemData.hsn || "61051010";
-                       const cgstPercent = parseFloat(item.cgstPercent || 0);
-                       const sgstPercent = parseFloat(item.sgstPercent || 0);
-                       const cgstAmount = parseFloat(item.cgstAmount || 0);
-                       const sgstAmount = parseFloat(item.sgstAmount || 0);
-                       const baseAmount = parseFloat(item.baseAmount || item.amount || 0);
-                       
-                       return (
-                         <tr key={index} className="border-b border-[#000]">
-                           <td className="border-r border-[#000] px-2 py-2 text-center text-[#000]">{index + 1}</td>
-                           <td className="border-r border-[#000] px-2 py-2 text-[#000]">
-                             <div className="font-medium">{item.item || itemData.itemName}</div>
-                             {itemData.description && (
-                               <div className="text-xs text-[#666] mt-1">{itemData.description}</div>
-                             )}
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-center text-[#000]">
-                             {item.size || itemData.size || "42"}
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-center text-[#000]">
-                             {hsnCode}
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-center font-medium text-[#000]">
-                             {parseFloat(item.quantity || 0).toFixed(2)}<br/>
-                             <span className="text-xs">pcs</span>
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-right font-medium text-[#000]">
-                             {parseFloat(item.rate || 0).toLocaleString('en-IN', {
-                               minimumFractionDigits: 2,
-                               maximumFractionDigits: 2
-                             })}
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-center text-[#000]">
-                             <div>{cgstPercent > 0 ? cgstPercent.toFixed(1) : '2.5'}%</div>
-                             <div className="font-medium">{cgstAmount > 0 ? cgstAmount.toFixed(2) : (baseAmount * 0.025).toFixed(2)}</div>
-                           </td>
-                           <td className="border-r border-[#000] px-2 py-2 text-center text-[#000]">
-                             <div>{sgstPercent > 0 ? sgstPercent.toFixed(1) : '2.5'}%</div>
-                             <div className="font-medium">{sgstAmount > 0 ? sgstAmount.toFixed(2) : (baseAmount * 0.025).toFixed(2)}</div>
-                           </td>
-                           <td className="px-2 py-2 text-right font-bold text-[#000]">
-                             {parseFloat(item.rate || 0).toLocaleString('en-IN', {
-                               minimumFractionDigits: 2,
-                               maximumFractionDigits: 2
-                             })}
-                           </td>
-                         </tr>
-                       );
-                     })})()}
-                   </tbody>
-                 </table>
-               </div>
-
-              {/* Totals Section */}
-              <div className="border-t-2 border-[#000] grid grid-cols-2">
-                {/* Left - Notes */}
-                <div className="border-r-2 border-[#000] p-4">
-                  <div className="mb-4">
-                    <div className="text-sm font-semibold text-[#000] mb-2">Total in Words</div>
-                    <div className="text-sm text-[#000] italic">
-                      Rupees One Thousand One Hundred Only
+              <div className="p-8 space-y-7">
+                {/* 1. Document Header: Company & Tax Invoice */}
+                <div className="flex flex-wrap items-start justify-between gap-6 pb-6 border-b border-[#E5E7EB]">
+                  {/* Company Info */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <Building2 size={20} className="text-[#8B5CF6]" />
+                      <h1 className="text-xl font-extrabold tracking-tight text-[#111827] uppercase">
+                        {storeInfo?.name || invoice.branch || "Grooms Wedding Hub"}
+                      </h1>
+                    </div>
+                    <div className="text-xs text-[#4B5563] space-y-0.5 leading-relaxed">
+                      {storeInfo?.address && <div>{storeInfo.address}</div>}
+                      {storeInfo?.city && <div>{storeInfo.city}</div>}
+                      {storeInfo?.state && <div>{storeInfo.state}</div>}
+                      {!storeInfo?.address && !storeInfo?.city && <div>Kerala, INDIA</div>}
+                    </div>
+                    <div className="pt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 bg-[#F3F4F6] border border-[#E5E7EB] text-[#111827] text-[11px] font-bold tracking-wider font-mono">
+                        GSTIN: 32AEHCR4208L1ZS
+                      </span>
                     </div>
                   </div>
-                  
-                  <div>
-                    <div className="text-sm font-semibold text-[#000] mb-2">Notes</div>
-                    <div className="text-sm text-[#000]">
-                      {invoice.customerNotes || "Thanks for your business."}
+
+                  {/* Tax Invoice Title & Status Pill */}
+                  <div className="text-right space-y-2">
+                    <h2 className="text-2xl font-black tracking-tight text-[#111827] uppercase">
+                      TAX INVOICE
+                    </h2>
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-xs font-mono font-bold text-[#6B7280]">{invoice.invoiceNumber}</span>
+                      {invoice?.returnStatus === "full" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-red-50 text-red-700 border border-red-200 text-[10px] font-bold uppercase tracking-wider rounded-none">
+                          <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                          FULLY RETURNED
+                        </span>
+                      ) : invoice?.returnStatus === "partial" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase tracking-wider rounded-none">
+                          <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                          PARTIALLY RETURNED
+                        </span>
+                      ) : (invoice.status || "").toLowerCase() === "paid" ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold uppercase tracking-wider rounded-none">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                          PAID
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-violet-50 text-[#7C3AED] border border-[#DDD6FE] text-[10px] font-bold uppercase tracking-wider rounded-none">
+                          <span className="w-1.5 h-1.5 bg-[#8B5CF6] rounded-full" />
+                          {(invoice.status || "SENT").toUpperCase()}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Right - Calculations */}
-                <div className="p-4">
-                  {(() => {
-                    // Compute from lineItems as fallback when stored totals are 0/missing
-                    const storedSubTotal = parseFloat(invoice.subTotal || 0);
-                    const storedTotalTax = parseFloat(invoice.totalTax || 0);
-                    const storedFinalTotal = parseFloat(invoice.finalTotal || 0);
+                {/* 2. Metadata Grid: Bill To + Invoice Meta */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-[#F9FAFB] border border-[#E5E7EB]">
+                  {/* Bill To */}
+                  <div>
+                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block mb-1">
+                      Bill To
+                    </span>
+                    <div className="text-base font-bold text-[#111827]">
+                      {invoice.customer || "Walk-in Customer"}
+                    </div>
+                    {invoice.customerPhone && (
+                      <div className="text-xs text-[#4B5563] mt-1 font-medium flex items-center gap-1.5">
+                        <Phone size={12} className="text-[#6B7280]" />
+                        <span className="font-mono text-[#111827]">{invoice.customerPhone}</span>
+                      </div>
+                    )}
+                  </div>
 
-                    const lineItems = invoice.lineItems || [];
-                    const computedSubTotal = lineItems.reduce((s, i) => s + (parseFloat(i.lineTotal) || (parseFloat(i.quantity || 0) * parseFloat(i.rate || 0))), 0);
-                    const computedTotalTax = lineItems.reduce((s, i) => s + (parseFloat(i.cgstAmount || 0)) + (parseFloat(i.sgstAmount || 0)) + (parseFloat(i.igstAmount || 0)), 0);
+                  {/* Invoice Meta Grid */}
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                    <div>
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                        Invoice Date
+                      </span>
+                      <span className="font-semibold text-[#111827]">
+                        {formatDate(invoice.invoiceDate)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                        Terms
+                      </span>
+                      <span className="font-semibold text-[#111827]">
+                        {invoice.terms || "Due on Receipt"}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                        Place of Supply
+                      </span>
+                      <span className="font-semibold text-[#111827]">
+                        Kerala (32)
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                        Sales Person
+                      </span>
+                      <span className="font-semibold text-[#111827]">
+                        {invoice.salesperson || "NIYAS"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-                    const displaySubTotal = storedSubTotal > 0 ? storedSubTotal : computedSubTotal;
-                    const displayTotalTax = storedTotalTax > 0 ? storedTotalTax : computedTotalTax;
-                    const displayFinalTotal = storedFinalTotal > 0 ? storedFinalTotal : (computedSubTotal - parseFloat(invoice.discountAmount || 0) - parseFloat(invoice.tdsTcsAmount || 0) + parseFloat(invoice.adjustmentAmount || 0));
+                {/* 3. Items Table */}
+                <div className="border border-[#E5E7EB] overflow-hidden">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="bg-[#1e1e1e] text-white">
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-12 border-r border-[#333333]">#</th>
+                        <th className="py-2.5 px-3 text-left font-bold uppercase tracking-wider text-[11px] border-r border-[#333333]">Item & Description</th>
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-16 border-r border-[#333333]">Size</th>
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-24 border-r border-[#333333]">HSN/SAC</th>
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-16 border-r border-[#333333]">Qty</th>
+                        <th className="py-2.5 px-3 text-right font-bold uppercase tracking-wider text-[11px] w-24 border-r border-[#333333]">Rate</th>
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-20 border-r border-[#333333]">CGST</th>
+                        <th className="py-2.5 px-3 text-center font-bold uppercase tracking-wider text-[11px] w-20 border-r border-[#333333]">SGST</th>
+                        <th className="py-2.5 px-3 text-right font-bold uppercase tracking-wider text-[11px] w-28">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E5E7EB]">
+                      {!itemsToDisplay || itemsToDisplay.length === 0 ? (
+                        <tr>
+                          <td colSpan="9" className="px-4 py-8 text-center bg-[#F9FAFB]">
+                            <div className="inline-flex items-center gap-2 text-sm font-semibold text-[#6B7280]">
+                              <RotateCcw size={16} className="text-red-500" />
+                              <span>This invoice has been fully returned. Line items were cleared.</span>
+                            </div>
+                            <p className="text-xs text-[#9CA3AF] mt-1">
+                              Unable to retrieve item details from return invoice.
+                            </p>
+                          </td>
+                        </tr>
+                      ) : (
+                        itemsToDisplay.map((item, index) => {
+                          const itemData = item.itemData || {};
+                          const hsnCode = itemData.hsnCode || itemData.hsn || "61051010";
+                          const cgstPercent = parseFloat(item.cgstPercent || 0);
+                          const sgstPercent = parseFloat(item.sgstPercent || 0);
+                          const cgstAmount = parseFloat(item.cgstAmount || 0);
+                          const sgstAmount = parseFloat(item.sgstAmount || 0);
+                          const baseAmount = parseFloat(item.baseAmount || item.amount || 0);
 
-                    return (
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-[#000]">Sub Total</span>
-                      <span className="font-medium text-[#000]">{displaySubTotal.toFixed(2)}</span>
+                          return (
+                            <tr key={index} className="hover:bg-[#F9FAFB] transition-colors">
+                              <td className="py-3 px-3 text-center text-[#6B7280] font-medium border-r border-[#E5E7EB]">
+                                {index + 1}
+                              </td>
+                              <td className="py-3 px-3 text-left border-r border-[#E5E7EB]">
+                                <div className="font-bold text-[#111827] text-xs">
+                                  {item.item || itemData.itemName}
+                                </div>
+                                {itemData.description && (
+                                  <div className="text-[11px] text-[#6B7280] mt-0.5">
+                                    {itemData.description}
+                                  </div>
+                                )}
+                              </td>
+                              <td className="py-3 px-3 text-center border-r border-[#E5E7EB]">
+                                <span className="inline-block px-2 py-0.5 bg-[#F3F4F6] border border-[#E5E7EB] text-[#111827] font-bold text-[11px]">
+                                  {item.size || itemData.size || "42"}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-center font-mono text-[11px] text-[#6B7280] border-r border-[#E5E7EB]">
+                                {hsnCode}
+                              </td>
+                              <td className="py-3 px-3 text-center font-bold text-[#111827] border-r border-[#E5E7EB]">
+                                {parseFloat(item.quantity || 0).toFixed(2)}
+                                <span className="text-[10px] text-[#6B7280] block font-normal">pcs</span>
+                              </td>
+                              <td className="py-3 px-3 text-right font-medium text-[#111827] border-r border-[#E5E7EB]">
+                                {parseFloat(item.rate || 0).toLocaleString('en-IN', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </td>
+                              <td className="py-3 px-3 text-center text-[#4B5563] border-r border-[#E5E7EB]">
+                                <div className="text-[10px] text-[#6B7280]">{cgstPercent > 0 ? cgstPercent.toFixed(1) : '2.5'}%</div>
+                                <div className="font-semibold text-[#111827]">
+                                  {cgstAmount > 0 ? cgstAmount.toFixed(2) : (baseAmount * 0.025).toFixed(2)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 text-center text-[#4B5563] border-r border-[#E5E7EB]">
+                                <div className="text-[10px] text-[#6B7280]">{sgstPercent > 0 ? sgstPercent.toFixed(1) : '2.5'}%</div>
+                                <div className="font-semibold text-[#111827]">
+                                  {sgstAmount > 0 ? sgstAmount.toFixed(2) : (baseAmount * 0.025).toFixed(2)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-[#111827]">
+                                {parseFloat(item.rate || 0).toLocaleString('en-IN', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 4. Totals & Notes Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+                  {/* Left Column: Total in Words & Notes */}
+                  <div className="space-y-4">
+                    <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB]">
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block mb-1">
+                        Total in Words
+                      </span>
+                      <p className="text-xs font-bold text-[#111827] italic leading-relaxed">
+                        {numberToWords(displayFinalTotal)}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB]">
+                      <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block mb-1">
+                        Notes & Terms
+                      </span>
+                      <p className="text-xs text-[#4B5563] leading-relaxed">
+                        {invoice.customerNotes || "Thanks for your business. Subject to standard warranty and store terms."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Financial Breakdown */}
+                  <div className="space-y-2 p-5 bg-[#F9FAFB] border border-[#E5E7EB]">
+                    <div className="flex justify-between text-xs py-1">
+                      <span className="text-[#6B7280] font-medium">Sub Total</span>
+                      <span className="font-bold text-[#111827]">{formatCurrency(displaySubTotal)}</span>
                     </div>
 
                     {parseFloat(invoice.discountAmount || 0) > 0 && (
-                      <div className="flex justify-between text-[#ef4444]">
-                        <span>Discount ({invoice.discount?.value || '0'}{invoice.discount?.type || '%'})</span>
-                        <span>(-) {parseFloat(invoice.discountAmount || 0).toFixed(2)}</span>
+                      <div className="flex justify-between text-xs py-1 text-red-600">
+                        <span className="font-medium">Discount ({invoice.discount?.value || '0'}{invoice.discount?.type || '%'})</span>
+                        <span className="font-bold">(-) {formatCurrency(invoice.discountAmount)}</span>
                       </div>
                     )}
-                    
-                    <div className="flex justify-between">
-                      <span className="text-[#000]">CGST @ 2.5%</span>
-                      <span className="font-medium text-[#000]">{(displayTotalTax / 2).toFixed(2)}</span>
+
+                    <div className="flex justify-between text-xs py-1 text-[#4B5563]">
+                      <span className="font-medium">CGST @ 2.5%</span>
+                      <span className="font-semibold text-[#111827]">{formatCurrency(displayTotalTax / 2)}</span>
                     </div>
-                    
-                    <div className="flex justify-between">
-                      <span className="text-[#000]">SGST @ 2.5%</span>
-                      <span className="font-medium text-[#000]">{(displayTotalTax / 2).toFixed(2)}</span>
+
+                    <div className="flex justify-between text-xs py-1 text-[#4B5563]">
+                      <span className="font-medium">SGST @ 2.5%</span>
+                      <span className="font-semibold text-[#111827]">{formatCurrency(displayTotalTax / 2)}</span>
                     </div>
-                    
-                    <div className="flex justify-between font-bold border-t border-[#000] pt-2">
-                      <span className="text-[#000]">Total</span>
-                      <span className="text-[#000]">₹{displayFinalTotal.toFixed(2)}</span>
-                    </div>
-                    
+
                     {invoice.tdsTcsAmount > 0 && (
-                      <div className="flex justify-between text-[#ef4444]">
-                        <span>Payment Made</span>
-                        <span>(-) ₹{parseFloat(invoice.tdsTcsAmount || 0).toFixed(2)}</span>
+                      <div className="flex justify-between text-xs py-1 text-red-600">
+                        <span className="font-medium">Payment Made</span>
+                        <span className="font-bold">(-) {formatCurrency(invoice.tdsTcsAmount)}</span>
                       </div>
                     )}
 
                     {parseFloat(invoice.adjustmentAmount || 0) !== 0 && (
-                      <div className="flex justify-between text-[#000]">
-                        <span>Adjustment</span>
-                        <span>
-                          {parseFloat(invoice.adjustmentAmount || 0) > 0 ? "(+)" : "(-)"} ₹{Math.abs(parseFloat(invoice.adjustmentAmount || 0)).toFixed(2)}
+                      <div className="flex justify-between text-xs py-1 text-[#4B5563]">
+                        <span className="font-medium">Adjustment</span>
+                        <span className="font-semibold text-[#111827]">
+                          {parseFloat(invoice.adjustmentAmount || 0) > 0 ? "(+)" : "(-)"} {formatCurrency(Math.abs(parseFloat(invoice.adjustmentAmount || 0)))}
                         </span>
                       </div>
                     )}
-                    
-                    <div className="flex justify-between font-bold">
-                      <span className="text-[#000]">Balance Due</span>
-                      <span className="text-[#000]">₹{displayFinalTotal.toFixed(2)}</span>
+
+                    <div className="border-t border-[#E5E7EB] pt-2 mt-2 flex justify-between text-sm font-extrabold text-[#111827]">
+                      <span>Total</span>
+                      <span>{formatCurrency(displayFinalTotal)}</span>
+                    </div>
+
+                    <div className="bg-[#F5F3FF] border border-[#DDD6FE] p-3.5 mt-3 flex justify-between items-center">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#7C3AED]">Balance Due</span>
+                      <span className="text-lg font-black text-[#7C3AED]">{formatCurrency(displayFinalTotal)}</span>
                     </div>
                   </div>
-                    );
-                  })()}
                 </div>
-              </div>
 
-              {/* Signature Section */}
-              <div className="border-t-2 border-[#000] col-span-2 p-4 text-right">
-                <div className="text-sm font-semibold text-[#000] mb-8">Authorised Signature</div>
+                {/* 5. Signature Section */}
+                <div className="pt-6 border-t border-[#E5E7EB] flex flex-wrap items-end justify-between gap-6">
+                  <div className="text-[11px] text-[#9CA3AF]">
+                    This is a computer-generated tax invoice. No physical signature required.
+                  </div>
+                  <div className="text-right">
+                    <div className="w-52 border-b border-[#111827] mb-2 ml-auto" />
+                    <div className="text-xs font-bold text-[#111827] uppercase tracking-wider">
+                      Authorised Signature
+                    </div>
+                    <div className="text-[11px] text-[#6B7280] mt-0.5">
+                      For {storeInfo?.name || invoice.branch || "Grooms Wedding Hub"}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      </div>
 
-      {/* RETURN INVOICE MODAL */}
-      {showReturnModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-white border-b border-[#e5e7eb] px-6 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Return Invoice</h2>
-              <button
-                onClick={() => setShowReturnModal(false)}
-                className="text-[#6b7280] hover:text-[#1f2937]"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-6">
-              {/* Original Invoice Info */}
-              <div className="bg-[#f9fafb] border border-[#e5e7eb] rounded-lg p-4">
-                <p className="text-sm text-[#6b7280] mb-2">Original Invoice</p>
-                <p className="text-lg font-semibold text-[#1f2937]">{invoice.invoiceNumber}</p>
-                <p className="text-sm text-[#6b7280] mt-1">{invoice.customer}</p>
+        {/* ── RETURN INVOICE MODAL ── */}
+        {showReturnModal && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-none shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-[#E5E7EB]">
+              {/* Modal Header */}
+              <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between z-10">
+                <h2 className="text-base font-bold text-[#111827] uppercase tracking-wide">Return Invoice</h2>
+                <button
+                  onClick={() => setShowReturnModal(false)}
+                  className="text-[#6B7280] hover:text-[#111827] text-lg font-bold transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
 
-              {/* Return Reason */}
-              <div>
-                <label className="block text-sm font-semibold text-[#6b7280] mb-2">
-                  Reason for Return <span className="text-[#ef4444]">*</span>
-                </label>
-                <textarea
-                  value={returnReason}
-                  onChange={(e) => setReturnReason(e.target.value)}
-                  placeholder="e.g., Damaged product, Wrong item, Customer request..."
-                  className="w-full px-3 py-2 border border-[#d1d5db] rounded-lg text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-2 focus:ring-[#2563eb]/20"
-                  rows="3"
-                />
-              </div>
-
-              {/* ✅ NEW: Payment Method Selection */}
-              <div>
-                <label className="block text-sm font-semibold text-[#6b7280] mb-2">
-                  Refund Payment Method <span className="text-[#ef4444]">*</span>
-                </label>
-                <div className="flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="returnPaymentMethod"
-                      value="Cash"
-                      checked={returnPaymentMethod === "Cash"}
-                      onChange={(e) => setReturnPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-[#2563eb] border-[#d1d5db] focus:ring-2 focus:ring-[#2563eb]/20"
-                    />
-                    <span className="text-sm text-[#1f2937]">Cash</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="returnPaymentMethod"
-                      value="RBL"
-                      checked={returnPaymentMethod === "RBL"}
-                      onChange={(e) => setReturnPaymentMethod(e.target.value)}
-                      className="w-4 h-4 text-[#2563eb] border-[#d1d5db] focus:ring-2 focus:ring-[#2563eb]/20"
-                    />
-                    <span className="text-sm text-[#1f2937]">Razorpay</span>
-                  </label>
+              {/* Modal Content */}
+              <div className="p-6 space-y-6">
+                {/* Original Invoice Info */}
+                <div className="bg-[#F9FAFB] border border-[#E5E7EB] rounded-none p-4">
+                  <p className="text-xs uppercase font-bold text-[#6B7280] tracking-wider mb-1">Original Invoice</p>
+                  <p className="text-base font-bold text-[#111827]">{invoice.invoiceNumber}</p>
+                  <p className="text-xs text-[#6B7280] mt-1 font-medium">{invoice.customer}</p>
                 </div>
-                <p className="text-xs text-[#6b7280] mt-2">
-                  Select how the refund amount will be returned to the customer
-                </p>
-              </div>
 
-              {/* Items to Return */}
-              <div>
-                <label className="block text-sm font-semibold text-[#6b7280] mb-3">
-                  Select Items to Return
-                </label>
-                <div className="space-y-3 max-h-64 overflow-y-auto">
-                  {returnItems.map((item, index) => {
-                    const isReturnable = item.itemData?.returnable === true; // Only true if explicitly returnable
-                    return (
-                      <div 
-                        key={index} 
-                        className={`border rounded-lg p-4 ${
-                          isReturnable 
-                            ? "border-[#e5e7eb]" 
-                            : "border-[#fecaca] bg-[#fef2f2] opacity-75"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium text-[#1f2937]">{item.item}</p>
-                              {!isReturnable && (
-                                <span className="text-xs px-2 py-1 bg-[#fee2e2] text-[#991b1b] rounded-md font-medium">
-                                  Not Returnable
-                                </span>
-                              )}
+                {/* Return Reason */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-[#4B5563] tracking-wider mb-2">
+                    Reason for Return <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <textarea
+                    value={returnReason}
+                    onChange={(e) => setReturnReason(e.target.value)}
+                    placeholder="e.g., Damaged product, Wrong item, Customer request..."
+                    className="w-full px-3 py-2 border border-[#E5E7EB] rounded-none text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                    rows="3"
+                  />
+                </div>
+
+                {/* Refund Payment Method */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-[#4B5563] tracking-wider mb-2">
+                    Refund Payment Method <span className="text-[#EF4444]">*</span>
+                  </label>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#111827]">
+                      <input
+                        type="radio"
+                        name="returnPaymentMethod"
+                        value="Cash"
+                        checked={returnPaymentMethod === "Cash"}
+                        onChange={(e) => setReturnPaymentMethod(e.target.value)}
+                        className="w-4 h-4 accent-[#8B5CF6]"
+                      />
+                      <span>Cash</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#111827]">
+                      <input
+                        type="radio"
+                        name="returnPaymentMethod"
+                        value="RBL"
+                        checked={returnPaymentMethod === "RBL"}
+                        onChange={(e) => setReturnPaymentMethod(e.target.value)}
+                        className="w-4 h-4 accent-[#8B5CF6]"
+                      />
+                      <span>Razorpay</span>
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-[#6B7280] mt-1.5">
+                    Select how the refund amount will be returned to the customer
+                  </p>
+                </div>
+
+                {/* Items to Return */}
+                <div>
+                  <label className="block text-xs uppercase font-bold text-[#4B5563] tracking-wider mb-3">
+                    Select Items to Return
+                  </label>
+                  <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+                    {returnItems.map((item, index) => {
+                      const isReturnable = item.itemData?.returnable === true;
+                      return (
+                        <div 
+                          key={index} 
+                          className={`border rounded-none p-3.5 transition-colors ${
+                            isReturnable 
+                              ? "border-[#E5E7EB] bg-white hover:border-[#D1D5DB]" 
+                              : "border-red-200 bg-red-50/50 opacity-80"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2.5">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-xs text-[#111827]">{item.item}</p>
+                                {!isReturnable && (
+                                  <span className="text-[10px] px-1.5 py-0.5 bg-red-100 text-red-800 rounded-none font-bold uppercase tracking-wider">
+                                    Not Returnable
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-[#6B7280] mt-1">
+                                Original Qty: {parseFloat(item.quantity || 0).toFixed(2)} pcs
+                              </p>
                             </div>
-                            <p className="text-sm text-[#6b7280] mt-1">
-                              Original Qty: {parseFloat(item.quantity || 0).toFixed(2)} pcs
+                            <p className="text-xs font-bold text-[#111827]">
+                              ₹{parseFloat(item.rate || 0).toLocaleString('en-IN')}
                             </p>
                           </div>
-                          <p className="text-sm font-medium text-[#1f2937]">
-                            ₹{parseFloat(item.rate || 0).toLocaleString('en-IN')}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <label className="text-sm text-[#6b7280]">Return Qty:</label>
-                          <input
-                            type="number"
-                            min="0"
-                            max={parseFloat(item.quantity || 0)}
-                            step="0.01"
-                            value={item.returnQuantity || 0}
-                            onChange={(e) => handleReturnQuantityChange(index, e.target.value)}
-                            onFocus={(e) => {
-                              if (!isReturnable) {
-                                e.target.blur();
-                                alert(`Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned as it is not marked as returnable. Please enable the "Returnable Item" option in the product settings to return this item.`);
-                              }
-                            }}
-                            disabled={!isReturnable}
-                            className={`w-24 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 ${
-                              isReturnable
-                                ? "border-[#d1d5db] text-[#1f2937] focus:border-[#2563eb] focus:ring-[#2563eb]/20"
-                                : "border-[#fecaca] bg-[#fee2e2] text-[#991b1b] cursor-not-allowed opacity-60"
-                            }`}
-                            title={!isReturnable ? `Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned. Enable "Returnable Item" in product settings.` : ""}
-                          />
-                          <span className="text-sm text-[#6b7280]">pcs</span>
-                          {item.returnQuantity > 0 && isReturnable && (
-                            <span className="text-sm font-medium text-[#ef4444]">
-                              - ₹{calculateReturnAmountWithTax(item).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
-                            </span>
+                          <div className="flex items-center gap-2.5">
+                            <label className="text-xs font-medium text-[#6B7280]">Return Qty:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={parseFloat(item.quantity || 0)}
+                              step="0.01"
+                              value={item.returnQuantity || 0}
+                              onChange={(e) => handleReturnQuantityChange(index, e.target.value)}
+                              onFocus={(e) => {
+                                if (!isReturnable) {
+                                  e.target.blur();
+                                  alert(`Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned as it is not marked as returnable. Please enable the "Returnable Item" option in the product settings to return this item.`);
+                                }
+                              }}
+                              disabled={!isReturnable}
+                              className={`w-24 px-2.5 py-1.5 border rounded-none text-xs focus:outline-none ${
+                                isReturnable
+                                  ? "border-[#E5E7EB] text-[#111827] focus:border-[#8B5CF6]"
+                                  : "border-red-200 bg-red-100/50 text-red-800 cursor-not-allowed opacity-60"
+                              }`}
+                              title={!isReturnable ? `Item "${item.item || item.itemData?.itemName || 'Unknown'}" cannot be returned. Enable "Returnable Item" in product settings.` : ""}
+                            />
+                            <span className="text-xs text-[#6B7280]">pcs</span>
+                            {item.returnQuantity > 0 && isReturnable && (
+                              <span className="text-xs font-bold text-red-600 ml-auto">
+                                - ₹{calculateReturnAmountWithTax(item).toLocaleString('en-IN', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
+                            )}
+                          </div>
+                          {!isReturnable && (
+                            <p className="text-[11px] text-red-700 mt-2 italic font-medium">
+                              This item cannot be returned as it is not marked as returnable.
+                            </p>
                           )}
                         </div>
-                        {!isReturnable && (
-                          <p className="text-xs text-[#991b1b] mt-2 italic">
-                            This item cannot be returned as it is not marked as returnable.
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Return Summary */}
-              {returnItems.some((item) => item.returnQuantity > 0) && (
-                <div className="bg-[#fef2f2] border border-[#fee2e2] rounded-lg p-4">
-                  <p className="text-sm text-[#6b7280] mb-2">Return Summary</p>
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-[#6b7280]">Items to Return:</span>
-                      <span className="font-medium text-[#1f2937]">
-                        {returnItems.reduce((sum, item) => sum + (item.returnQuantity || 0), 0).toFixed(2)} pcs
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm font-semibold border-t border-[#fee2e2] pt-2 mt-2">
-                      <span className="text-[#1f2937]">Return Amount:</span>
-                      <span className="text-[#ef4444]">
-                        - ₹{calculateTotalReturnAmountWithTax().toLocaleString('en-IN', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
+                      );
+                    })}
                   </div>
                 </div>
-              )}
-            </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-white border-t border-[#e5e7eb] px-6 py-4 flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowReturnModal(false)}
-                className="px-4 py-2 text-sm font-medium text-[#374151] bg-white border border-[#d1d5db] rounded-md hover:bg-[#f9fafb]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitReturn}
-                disabled={returningInvoice}
-                className="px-4 py-2 text-sm font-medium text-white bg-[#ef4444] rounded-md hover:bg-[#dc2626] disabled:opacity-50"
-              >
-                {returningInvoice ? "Creating..." : "Create Return Invoice"}
-              </button>
+                {/* Return Summary */}
+                {returnItems.some((item) => item.returnQuantity > 0) && (
+                  <div className="bg-red-50 border border-red-200 rounded-none p-4">
+                    <p className="text-xs uppercase font-bold text-red-900 tracking-wider mb-2">Return Summary</p>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-red-700">Items to Return:</span>
+                        <span className="font-bold text-red-950">
+                          {returnItems.reduce((sum, item) => sum + (item.returnQuantity || 0), 0).toFixed(2)} pcs
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-xs font-bold border-t border-red-200 pt-2 mt-1.5">
+                        <span className="text-red-950 uppercase tracking-wider">Return Amount:</span>
+                        <span className="text-red-600 text-sm">
+                          - ₹{calculateTotalReturnAmountWithTax().toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="sticky bottom-0 bg-white border-t border-[#E5E7EB] px-6 py-3.5 flex items-center justify-end gap-3 z-10">
+                <button
+                  onClick={() => setShowReturnModal(false)}
+                  className="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-[#111827] bg-[#EEEEEE] hover:bg-[#E2E2E2] border border-[#E5E7EB] rounded-none transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReturn}
+                  disabled={returningInvoice}
+                  className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#EF4444] hover:bg-[#DC2626] rounded-none disabled:opacity-50 shadow-sm transition-colors cursor-pointer"
+                >
+                  {returningInvoice ? "Creating..." : "Create Return Invoice"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 

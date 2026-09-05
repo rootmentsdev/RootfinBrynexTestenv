@@ -1731,21 +1731,22 @@ const Datewisedaybook = () => {
                       filename={`${fromDate} to ${toDate} report.csv`}
                     >
                       <button
-                        style={{ backgroundColor: '#9B48D7', color: '#ffffff' }}
-                        className="h-[42px] rounded-none text-white px-5 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer shadow-sm hover:opacity-90"
+                        type="button"
+                        style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
+                        className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
                       >
                         <span>Export CSV</span>
-                        <FiDownload className="w-4 h-4 text-white" />
+                        <FiDownload className="w-4 h-4 text-[#111827]" />
                       </button>
                     </CSVLink>
                     <button
                       type='button'
                       onClick={handlePrint}
-                      style={{ backgroundColor: '#9B48D7', color: '#ffffff' }}
-                      className="h-[42px] rounded-none text-white px-5 text-sm font-medium flex items-center gap-2 transition-colors cursor-pointer shadow-sm hover:opacity-90"
+                      style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
+                      className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
                     >
                       <span>Print PDF</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-white"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#111827]"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
                     </button>
                   </div>
                 </div>

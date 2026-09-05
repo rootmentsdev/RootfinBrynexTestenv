@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, ChevronDown, Search, Check, Settings, X, Package, DollarSign, ShoppingCart, Warehouse, Image, Info, AlertCircle } from "lucide-react";
-import Head from "../components/Head";
+import Header from "../components/Header";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
@@ -16,7 +16,6 @@ const STORAGE_KEYS = {
 };
 
 const loadStoredList = (key) => {
-  const isSidebarOpen = useSidebar();
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(key);
@@ -133,6 +132,7 @@ const initialFormData = {
 };
 
 const ShoeSalesItemCreate = () => {
+  const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const { id: groupId, itemId } = useParams(); // Get groupId and itemId from URL
   const isEditMode = !!itemId; // If itemId exists, we're in edit mode
@@ -997,498 +997,487 @@ const handleCheckboxChange = (field) => (event) => {
     : null;
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      {/* Enhanced Header */}
-      <div className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="px-4 sm:px-8 py-4 sm:py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">{pageTitle}</h1>
-              <p className="text-sm text-slate-600">{pageDescription}</p>
+    <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+      <Header title={isEditMode ? "Edit Item" : (groupId ? "Add Item to Group" : "Create Item")} />
+
+      <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        {/* Top Action Toolbar */}
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link
+              to={backUrl}
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+            >
+              <ArrowLeft size={14} className="text-[#111827]" />
+              <span>{backText}</span>
+            </Link>
+            <div className="min-w-0">
+              <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#111827] uppercase font-mono truncate">
+                {pageTitle}
+              </h1>
+              <p className="text-xs text-[#6B7280] font-medium mt-0.5">
+                {pageDescription}
+              </p>
             </div>
-          <Link
-            to={backUrl}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md w-full sm:w-auto justify-center sm:justify-start"
-          >
-            <ArrowLeft size={16} />
-            {backText}
-          </Link>
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="px-4 sm:px-8 py-4 sm:py-8">
-        <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+        {/* Main Content Form */}
+        <form onSubmit={handleSubmit} className="max-w-7xl mx-auto space-y-6">
           {/* Error Alert */}
-        {status.error && (
-            <div className="rounded-xl border border-red-200 bg-red-50/80 backdrop-blur-sm px-6 py-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
-                  <span className="text-red-600 text-sm">⚠</span>
+          {status.error && (
+            <div className="rounded-none border border-red-200 bg-red-50 px-5 py-3.5 shadow-xs flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+              <p className="text-xs font-bold text-red-800 uppercase tracking-wide">{status.error}</p>
+            </div>
+          )}
+
+          {/* Card 1: Basic Information */}
+          <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+            <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Package className="w-4 h-4 text-[#8B5CF6]" />
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Basic Information</h2>
+                  <p className="text-[11px] text-[#6B7280]">Configure the fundamental details of your item</p>
                 </div>
-                <p className="text-sm font-medium text-red-800">{status.error}</p>
               </div>
-          </div>
-        )}
-
-          {/* Basic Information Section */}
-          <div className="space-y-8">
-            <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-              <div className="space-y-8">
-                {/* Section Header */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100">
-                    <Package className="w-4 h-4 text-blue-600" />
-                </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-slate-900">Basic Information</h2>
-                    <p className="text-sm text-slate-600">Configure the fundamental details of your item</p>
-                  </div>
-                </div>
-
-                {/* Core Fields */}
+            </div>
+            <div className="p-6 md:p-8">
+              <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
+                {/* Core Fields Column */}
                 <div className="space-y-6">
-                  <div className="grid gap-6 md:grid-cols-2">
-                <FloatingField
-                  label="Item Name*"
-                  placeholder="Enter item name"
-                  required
-                  name="itemName"
-                  value={formData.itemName}
-                  onChange={handleChange("itemName")}
-                  disabled={status.loading}
-                />
-                <FloatingField
-                  label="Size"
-                  placeholder="Select size"
-                  name="size"
-                  value={formData.size}
-                  onChange={handleChange("size")}
-                  disabled={status.loading}
-                />
-                <FloatingField
-                  label="SKU"
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <FloatingField
+                      label="Item Name*"
+                      placeholder="Enter item name"
+                      required
+                      name="itemName"
+                      value={formData.itemName}
+                      onChange={handleChange("itemName")}
+                      disabled={status.loading}
+                    />
+                    <FloatingField
+                      label="Size"
+                      placeholder="Select size"
+                      name="size"
+                      value={formData.size}
+                      onChange={handleChange("size")}
+                      disabled={status.loading}
+                    />
+                    <FloatingField
+                      label="SKU"
                       placeholder="Auto-generated or enter manually"
-                  name="sku"
-                  value={formData.sku}
-                  onChange={handleSkuChange}
-                  disabled={status.loading}
+                      name="sku"
+                      value={formData.sku}
+                      onChange={handleSkuChange}
+                      disabled={status.loading}
                       hint={
-                        <div className="flex items-center gap-1 text-xs text-slate-500">
-                          <Info className="w-3 h-3" />
+                        <div className="flex items-center gap-1 text-[11px] text-[#6B7280]">
+                          <Info className="w-3 h-3 text-[#8B5CF6]" />
                           Auto-generated
                         </div>
                       }
-                />
-                <UnitSelect
-                  label="Unit*"
-                  placeholder="Select or type to add"
-                  value={formData.unit}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, unit: value }))}
-                  options={unitOptions}
-                />
-                  <FloatingField
-                    label="HSN Code"
+                    />
+                    <UnitSelect
+                      label="Unit*"
+                      placeholder="Select or type to add"
+                      value={formData.unit}
+                      onChange={(value) => setFormData((prev) => ({ ...prev, unit: value }))}
+                      options={unitOptions}
+                    />
+                    <FloatingField
+                      label="HSN Code"
                       placeholder="Enter HSN code"
-                    name="hsnCode"
-                    value={formData.hsnCode}
-                    onChange={handleChange("hsnCode")}
-                    disabled={status.loading}
-                  />
-              </div>
+                      name="hsnCode"
+                      value={formData.hsnCode}
+                      onChange={handleChange("hsnCode")}
+                      disabled={status.loading}
+                    />
+                  </div>
 
                   {/* Brand & Manufacturer */}
-                  <div className="grid gap-6 md:grid-cols-2">
-                <ManufacturerSelect
-                  label="Manufacturer"
-                  placeholder="Select or add manufacturer"
-                  value={selectedManufacturer}
-                  onChange={handleManufacturerSelect}
-                  options={manufacturers}
-                  onManageClick={() => setShowManufacturerModal(true)}
-                  disabled={status.loading}
-                />
-                <BrandSelect
-                  label="Brand"
-                  placeholder="Select or add brand"
-                  value={selectedBrand}
-                  onChange={handleBrandSelect}
-                  options={brands}
-                  onManageClick={() => setShowBrandModal(true)}
-                  disabled={status.loading}
-                />
-                <fieldset className="space-y-3">
-                  <legend className="text-xs font-semibold uppercase tracking-[0.18em] text-[#ef4444]">
-                    Category*
-                  </legend>
-                  <div className="flex flex-wrap gap-4 text-sm font-medium text-[#1f2937]">
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="category"
-                        value="shirt"
-                        checked={category === "shirt"}
-                        onChange={(e) => handleCategorySelect(e.target.value)}
-                        className="text-[#4285f4]"
-                        disabled={status.loading}
-                      />
-                      Shirt Sales
-                    </label>
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="category"
-                        value="shoe"
-                        checked={category === "shoe"}
-                        onChange={(e) => handleCategorySelect(e.target.value)}
-                        className="text-[#4285f4]"
-                        disabled={status.loading}
-                      />
-                      Shoe Sales
-                    </label>
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="category"
-                        value="other"
-                        checked={category === "other"}
-                        onChange={(e) => handleCategorySelect(e.target.value)}
-                        className="text-[#4285f4]"
-                        disabled={status.loading}
-                      />
-                      Other
-                    </label>
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <ManufacturerSelect
+                      label="Manufacturer"
+                      placeholder="Select or add manufacturer"
+                      value={selectedManufacturer}
+                      onChange={handleManufacturerSelect}
+                      options={manufacturers}
+                      onManageClick={() => setShowManufacturerModal(true)}
+                      disabled={status.loading}
+                    />
+                    <BrandSelect
+                      label="Brand"
+                      placeholder="Select or add brand"
+                      value={selectedBrand}
+                      onChange={handleBrandSelect}
+                      options={brands}
+                      onManageClick={() => setShowBrandModal(true)}
+                      disabled={status.loading}
+                    />
                   </div>
-                </fieldset>
+
+                  {/* Category Radio Group */}
+                  <div className="p-4 bg-[#F9FAFB] border border-[#E5E7EB] rounded-none">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-red-600 mb-2.5">
+                      Category*
+                    </label>
+                    <div className="flex flex-wrap gap-5 text-xs font-bold uppercase tracking-wider text-[#111827]">
+                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="category"
+                          value="shirt"
+                          checked={category === "shirt"}
+                          onChange={(e) => handleCategorySelect(e.target.value)}
+                          className="accent-[#8B5CF6]"
+                          disabled={status.loading}
+                        />
+                        <span>Shirt Sales</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="category"
+                          value="shoe"
+                          checked={category === "shoe"}
+                          onChange={(e) => handleCategorySelect(e.target.value)}
+                          className="accent-[#8B5CF6]"
+                          disabled={status.loading}
+                        />
+                        <span>Shoe Sales</span>
+                      </label>
+                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="category"
+                          value="other"
+                          checked={category === "other"}
+                          onChange={(e) => handleCategorySelect(e.target.value)}
+                          className="accent-[#8B5CF6]"
+                          disabled={status.loading}
+                        />
+                        <span>Other</span>
+                      </label>
+                    </div>
                   </div>
 
                   {/* Variant Attributes */}
-                {itemGroup && Array.isArray(itemGroup.attributeRows) && itemGroup.attributeRows.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
+                  {itemGroup && Array.isArray(itemGroup.attributeRows) && itemGroup.attributeRows.length > 0 && (
+                    <div className="rounded-none border border-[#E5E7EB] bg-[#F9FAFB] p-5">
                       <div className="mb-4 flex items-center gap-2">
-                        <Settings className="w-4 h-4 text-slate-500" />
+                        <Settings className="w-4 h-4 text-[#8B5CF6]" />
                         <div>
-                          <h3 className="text-sm font-semibold text-slate-900">Variant Attributes</h3>
-                          <p className="text-xs text-slate-600">Configure attributes for this item variant</p>
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Variant Attributes</h3>
+                          <p className="text-[11px] text-[#6B7280]">Configure attributes for this item variant</p>
                         </div>
                       </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {itemGroup.attributeRows.map((row, idx) => {
-                        const label = row?.attribute || `Attribute ${idx + 1}`;
-                        const currentVal = (attributeValues && attributeValues[idx]) || "";
-                        const options = Array.isArray(row?.options) ? row.options : [];
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {itemGroup.attributeRows.map((row, idx) => {
+                          const label = row?.attribute || `Attribute ${idx + 1}`;
+                          const currentVal = (attributeValues && attributeValues[idx]) || "";
+                          const options = Array.isArray(row?.options) ? row.options : [];
                           const optionsHint = options.length > 0 ? `Available: ${options.join(", ")}` : "Enter custom value";
-                        return (
-                            <div key={`${label}-${idx}`} className="space-y-2">
-                              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              {label}
-                            </label>
-                            <input
-                              type="text"
-                              value={currentVal}
-                              onChange={handleAttributeValueChange(idx, label)}
-                              placeholder={options.length ? `e.g. ${options[0]}` : "Enter value"}
-                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
-                              disabled={status.loading}
-                            />
-                              <p className="text-xs text-slate-500">{optionsHint}</p>
-                          </div>
-                        );
-                      })}
+                          return (
+                            <div key={`${label}-${idx}`} className="space-y-1.5">
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
+                                {label}
+                              </label>
+                              <input
+                                type="text"
+                                value={currentVal}
+                                onChange={handleAttributeValueChange(idx, label)}
+                                placeholder={options.length ? `e.g. ${options[0]}` : "Enter value"}
+                                className="w-full rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6] transition"
+                                disabled={status.loading}
+                              />
+                              <p className="text-[10px] text-[#6B7280]">{optionsHint}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                   {/* Additional Settings */}
-                  <div className="grid gap-6 md:grid-cols-2">
+                  <div className="grid gap-5 md:grid-cols-2">
                     <div className="space-y-4">
-                <FloatingCheckbox
-                  label="Returnable Item"
-                  name="returnable"
-                  checked={formData.returnable}
-                  onChange={handleCheckboxChange("returnable")}
-                  disabled={status.loading}
-                />
+                      <FloatingCheckbox
+                        label="Returnable Item"
+                        name="returnable"
+                        checked={formData.returnable}
+                        onChange={handleCheckboxChange("returnable")}
+                        disabled={status.loading}
+                      />
                     </div>
                     <div className="space-y-4">
-                <SearchableSelect
-                  label="Tax Preference*"
-                  placeholder="Select tax preference"
-                  value={formData.taxPreference}
-                  onChange={handleSelectChange("taxPreference")}
-                  groups={taxPreferenceGroups}
-                  required
-                  disabled={status.loading}
-                />
-                {formData.taxPreference === "non-taxable" && (
+                      <SearchableSelect
+                        label="Tax Preference*"
+                        placeholder="Select tax preference"
+                        value={formData.taxPreference}
+                        onChange={handleSelectChange("taxPreference")}
+                        groups={taxPreferenceGroups}
+                        required
+                        disabled={status.loading}
+                      />
+                      {formData.taxPreference === "non-taxable" && (
                         <div className="relative">
-                    <FloatingField
-                      label="Exemption Reason*"
+                          <FloatingField
+                            label="Exemption Reason*"
                             placeholder="Enter exemption reason"
-                      name="exemptionReason"
-                      value={formData.exemptionReason}
-                      onChange={handleChange("exemptionReason")}
-                      disabled={status.loading}
-                      required
-                    />
+                            name="exemptionReason"
+                            value={formData.exemptionReason}
+                            onChange={handleChange("exemptionReason")}
+                            disabled={status.loading}
+                            required
+                          />
                           <div className="absolute -top-1 -right-1">
                             <AlertCircle className="w-4 h-4 text-amber-500" />
                           </div>
-                  </div>
-                )}
-              </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-            </div>
 
-              {/* Image Upload Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Image className="w-4 h-4 text-slate-500" />
-                  <div>
-                    <h3 className="text-sm font-semibold text-slate-900">Product Images</h3>
-                    <p className="text-xs text-slate-600">Upload high-quality images of your item</p>
+                {/* Product Images Column */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-[#E5E7EB]">
+                    <Image className="w-4 h-4 text-[#8B5CF6]" />
+                    <div>
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Product Images</h3>
+                      <p className="text-[11px] text-[#6B7280]">Upload images of your item</p>
+                    </div>
                   </div>
+                  <ImageUpload
+                    onImagesSelect={(images) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        images: images,
+                      }))
+                    }
+                    existingImages={formData.images}
+                    onRemoveImage={(index) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== index),
+                      }));
+                    }}
+                    multiple={true}
+                  />
                 </div>
-            <ImageUpload
-              onImagesSelect={(images) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  images: images,
-                }))
-              }
-              existingImages={formData.images}
-              onRemoveImage={(index) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  images: prev.images.filter((_, i) => i !== index),
-                }));
-              }}
-              multiple={true}
-            />
               </div>
             </div>
           </div>
 
-          {/* Sales & Purchase Information */}
-          <div className="space-y-6 sm:space-y-8">
-              <div className="grid gap-6 sm:gap-8 lg:grid-cols-2">
+          {/* Card 2: Sales & Purchase Information */}
+          <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+            <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Sales & Purchase Information</h2>
+                  <p className="text-[11px] text-[#6B7280]">Configure pricing and procurement settings</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 md:p-8">
+              <div className="grid gap-8 lg:grid-cols-2">
                 {/* Sales Information */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-green-100">
-                        <DollarSign className="w-4 h-4 text-green-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900">Sales Information</h3>
-                        <p className="text-sm text-slate-600">Configure pricing and sales settings</p>
-                      </div>
-                    </div>
-                    <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      name="sellable"
-                      checked={formData.sellable}
-                      onChange={handleCheckboxChange("sellable")}
-                      disabled={status.loading}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
-                    />
-                    Sellable
-                  </label>
-                  </div>
-
-                {formData.taxPreference === "taxable" && (
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-sm font-semibold text-slate-900 mb-4">Tax Configuration</h4>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <TaxRateSelect
-                        label="Intra State Tax Rate"
-                        value={formData.taxRateIntra}
-                        onChange={(value) => setFormData((prev) => ({ ...prev, taxRateIntra: value }))}
-                        type="intra"
-                      />
-                      <TaxRateSelect
-                        label="Inter State Tax Rate"
-                        value={formData.taxRateInter}
-                        onChange={(value) => setFormData((prev) => ({ ...prev, taxRateInter: value }))}
-                        type="inter"
-                      />
-                    </div>
-                        <div className="mt-4">
-                          <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-700">
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Sales Details</h3>
+                    <label className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#111827] cursor-pointer">
                       <input
                         type="checkbox"
-                        name="priceIncludesGST"
-                        checked={priceIncludesGST}
-                        onChange={(event) => setPriceIncludesGST(event.target.checked)}
+                        name="sellable"
+                        checked={formData.sellable}
+                        onChange={handleCheckboxChange("sellable")}
                         disabled={status.loading}
-                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        className="h-4 w-4 rounded-none border-[#D1D5DB] accent-[#8B5CF6] cursor-pointer"
                       />
-                            Price includes GST
+                      <span>Sellable</span>
                     </label>
-                        </div>
-                      </div>
                   </div>
-                )}
 
-                <FloatingField
-                  label="Selling Price"
-                  placeholder="0.00"
+                  {formData.taxPreference === "taxable" && (
+                    <div className="space-y-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <TaxRateSelect
+                          label="Intra State Tax Rate"
+                          value={formData.taxRateIntra}
+                          onChange={(value) => setFormData((prev) => ({ ...prev, taxRateIntra: value }))}
+                          type="intra"
+                        />
+                        <TaxRateSelect
+                          label="Inter State Tax Rate"
+                          value={formData.taxRateInter}
+                          onChange={(value) => setFormData((prev) => ({ ...prev, taxRateInter: value }))}
+                          type="inter"
+                        />
+                      </div>
+                      <div>
+                        <label className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#4B5563] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="priceIncludesGST"
+                            checked={priceIncludesGST}
+                            onChange={(event) => setPriceIncludesGST(event.target.checked)}
+                            disabled={status.loading}
+                            className="h-4 w-4 rounded-none border-[#D1D5DB] accent-[#8B5CF6] cursor-pointer"
+                          />
+                          <span>Price includes GST</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  <FloatingField
+                    label="Selling Price"
+                    placeholder="0.00"
                     prefix="₹"
-                  name="sellingPrice"
-                  value={formData.sellingPrice}
-                  onChange={handleChange("sellingPrice")}
-                  disabled={!formData.sellable || status.loading}
-                />
+                    name="sellingPrice"
+                    value={formData.sellingPrice}
+                    onChange={handleChange("sellingPrice")}
+                    disabled={!formData.sellable || status.loading}
+                  />
 
                   {/* GST Summary */}
-                {shouldShowGSTSummary && gstDetails && (
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-6">
-                      <h4 className="text-sm font-semibold text-slate-900 mb-4">Price Breakdown</h4>
+                  {shouldShowGSTSummary && gstDetails && (
+                    <div className="rounded-none border border-[#E5E7EB] bg-[#F9FAFB] p-5">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#111827] mb-3">Price Breakdown</h4>
                       {priceIncludesGST ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                          <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Base Price (Excl. GST)
-                        </label>
-                            <div className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-3">
-                              <span className="text-sm font-semibold text-slate-600">₹</span>
-                              <span className="text-lg font-bold text-slate-900 ml-2">{gstDetails.basePrice}</span>
-                        </div>
-                      </div>
-                          <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                              GST Amount ({gstDetails.percentage}%)
-                        </label>
-                            <div className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-3">
-                              <span className="text-sm font-semibold text-slate-600">₹</span>
-                              <span className="text-lg font-bold text-slate-900 ml-2">{gstDetails.gstAmount}</span>
-                        </div>
-                      </div>
-                          <div className="md:col-span-2 pt-4 border-t border-slate-200">
-                            <p className="text-sm text-slate-600">
-                              Total inclusive price: <span className="font-bold text-slate-900">₹{gstDetails.finalPrice}</span>
-                        </p>
-                      </div>
-                    </div>
-                  ) : (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Price with GST
-                      </label>
-                            <div className="flex items-center rounded-lg border border-slate-200 bg-white px-4 py-3">
-                              <span className="text-sm font-semibold text-slate-600">₹</span>
-                              <span className="text-lg font-bold text-slate-900 ml-2">{gstDetails.finalPrice}</span>
-                      </div>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
+                              Base Price (Excl. GST)
+                            </label>
+                            <div className="flex items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 font-mono">
+                              <span className="text-xs font-semibold text-[#6B7280]">₹</span>
+                              <span className="text-sm font-bold text-[#111827] ml-2">{gstDetails.basePrice}</span>
+                            </div>
                           </div>
-                          <p className="text-sm text-slate-600">
-                            GST Amount ({gstDetails.percentage}%): ₹{gstDetails.gstAmount}
-                      </p>
-                    </div>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
+                              GST Amount ({gstDetails.percentage}%)
+                            </label>
+                            <div className="flex items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 font-mono">
+                              <span className="text-xs font-semibold text-[#6B7280]">₹</span>
+                              <span className="text-sm font-bold text-[#111827] ml-2">{gstDetails.gstAmount}</span>
+                            </div>
+                          </div>
+                          <div className="md:col-span-2 pt-3 border-t border-[#E5E7EB]">
+                            <p className="text-xs text-[#6B7280] font-medium">
+                              Total inclusive price: <span className="font-bold font-mono text-[#111827] text-sm">₹{gstDetails.finalPrice}</span>
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
+                              Price with GST
+                            </label>
+                            <div className="flex items-center rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 font-mono">
+                              <span className="text-xs font-semibold text-[#6B7280]">₹</span>
+                              <span className="text-sm font-bold text-[#111827] ml-2">{gstDetails.finalPrice}</span>
+                            </div>
+                          </div>
+                          <p className="text-xs text-[#6B7280] font-medium">
+                            GST Amount ({gstDetails.percentage}%): <span className="font-bold font-mono text-[#111827]">₹{gstDetails.gstAmount}</span>
+                          </p>
+                        </div>
                       )}
                     </div>
-                )}
+                  )}
                 </div>
 
                 {/* Purchase Information */}
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100">
-                        <ShoppingCart className="w-4 h-4 text-orange-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-slate-900">Purchase Information</h3>
-                        <p className="text-sm text-slate-600">Configure cost and procurement settings</p>
-                      </div>
-                    </div>
-                    <label className="inline-flex items-center gap-3 text-sm font-medium text-slate-700">
-                    <input
-                      type="checkbox"
-                      name="purchasable"
-                      checked={formData.purchasable}
-                      onChange={handleCheckboxChange("purchasable")}
-                      disabled={status.loading}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:cursor-not-allowed"
-                    />
-                    Purchasable
-                  </label>
+                <div className="space-y-5">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Purchase Details</h3>
+                    <label className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#111827] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="purchasable"
+                        checked={formData.purchasable}
+                        onChange={handleCheckboxChange("purchasable")}
+                        disabled={status.loading}
+                        className="h-4 w-4 rounded-none border-[#D1D5DB] accent-[#8B5CF6] cursor-pointer"
+                      />
+                      <span>Purchasable</span>
+                    </label>
                   </div>
 
-                <FloatingField
-                  label="Cost Price"
-                  placeholder="0.00"
+                  <FloatingField
+                    label="Cost Price"
+                    placeholder="0.00"
                     prefix="₹"
-                  name="costPrice"
-                  value={formData.costPrice}
-                  onChange={handleChange("costPrice")}
-                  disabled={!formData.purchasable || status.loading}
-                />
+                    name="costPrice"
+                    value={formData.costPrice}
+                    onChange={handleChange("costPrice")}
+                    disabled={!formData.purchasable || status.loading}
+                  />
                 </div>
-              </div>
-
-            {/* Inventory & Tracking */}
-            <div className="border-t border-slate-200 pt-8">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100">
-                    <Warehouse className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-slate-900">Inventory & Tracking</h3>
-                    <p className="text-sm text-slate-600">Configure inventory management settings</p>
-                  </div>
-                </div>
-
-                <div className="grid gap-6 md:grid-cols-2">
-              <FloatingField
-                label="Reorder Point"
-                    placeholder="Enter quantity threshold"
-                name="reorderPoint"
-                value={formData.reorderPoint}
-                onChange={handleChange("reorderPoint")}
-                disabled={status.loading}
-              />
-                </div>
-              </div>
-            </div>
-
-            {/* Form Actions */}
-            <div className="border-t border-slate-200 pt-6 sm:pt-8">
-              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <div className="text-sm text-slate-600 text-center sm:text-left">
-                  {groupId ? "This item will be added to the selected group" : "A new standalone item will be created"}
-                </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                <Link
-                  to={backUrl}
-                    className="w-full sm:w-auto rounded-lg border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 hover:shadow-md text-center"
-                >
-                  Cancel
-                </Link>
-                <button
-                  type="submit"
-                  disabled={status.loading}
-                    className="w-full sm:w-auto rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600"
-                >
-                    {status.loading ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        {groupId ? "Adding to Group..." : "Saving..."}
-                      </span>
-                    ) : (
-                      groupId ? "Add to Group" : "Save Item"
-                    )}
-                </button>
               </div>
             </div>
           </div>
-        </div>
-      </form>
+
+          {/* Card 3: Inventory & Tracking */}
+          <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+            <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Warehouse className="w-4 h-4 text-purple-600" />
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Inventory & Tracking</h2>
+                  <p className="text-[11px] text-[#6B7280]">Configure inventory management thresholds</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 md:p-8">
+              <div className="grid gap-6 md:grid-cols-2">
+                <FloatingField
+                  label="Reorder Point"
+                  placeholder="Enter quantity threshold"
+                  name="reorderPoint"
+                  value={formData.reorderPoint}
+                  onChange={handleChange("reorderPoint")}
+                  disabled={status.loading}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Form Actions Footer */}
+          <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs p-5 flex items-center justify-between gap-4 flex-wrap">
+            <div className="text-xs text-[#6B7280] font-medium">
+              {groupId ? "This item will be saved in the selected group." : "A standalone item will be saved."}
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                to={backUrl}
+                className="inline-flex items-center justify-center h-10 px-5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={status.loading}
+                className="inline-flex items-center justify-center h-10 px-6 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {status.loading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    {groupId ? "Saving..." : "Saving..."}
+                  </span>
+                ) : (
+                  groupId ? (isEditMode ? "Update Item" : "Add to Group") : (isEditMode ? "Update Item" : "Save Item")
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
       </div>
       {showManufacturerModal && (
         <ManufacturerModal
@@ -1604,10 +1593,10 @@ const FloatingField = ({
   onChange,
   disabled = false,
 }) => (
-  <div className="space-y-2">
-    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+  <div className="space-y-1.5">
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="text-[#EF4444] ml-1">*</span>}
     </label>
     {inputType === "textarea" ? (
       <textarea
@@ -1617,7 +1606,7 @@ const FloatingField = ({
         placeholder={placeholder}
         rows={3}
         disabled={disabled}
-        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+        className="w-full rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6] transition disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF] outline-none"
       />
     ) : inputType === "select" ? (
       <select
@@ -1625,32 +1614,32 @@ const FloatingField = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+        className="w-full h-10 rounded-none border border-[#E5E7EB] bg-white px-3.5 text-sm text-[#111827] focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6] transition disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF] outline-none"
       >
         <option value="">{placeholder}</option>
       </select>
     ) : (
       <div className="relative">
-        <div className="flex items-center rounded-lg border border-slate-200 bg-white focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition">
+        <div className={`flex items-center rounded-none border border-[#E5E7EB] bg-white focus-within:border-[#8B5CF6] focus-within:ring-1 focus-within:ring-[#8B5CF6] transition ${disabled ? "bg-[#F3F4F6]" : ""}`}>
           {prefix && (
-            <div className="flex items-center pl-4 pr-2 border-r border-slate-200">
-              <span className="text-sm font-semibold text-slate-600">{prefix}</span>
+            <div className="flex items-center pl-3.5 pr-2.5 border-r border-[#E5E7EB] h-10 bg-[#F9FAFB] shrink-0">
+              <span className="text-xs font-bold text-[#6B7280]">{prefix}</span>
             </div>
           )}
-        <input
-          type="text"
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          disabled={disabled}
-            className="w-full rounded-lg px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
-        />
+          <input
+            type="text"
+            name={name}
+            value={value}
+            onChange={onChange}
+            placeholder={placeholder}
+            disabled={disabled}
+            className="w-full h-10 px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:outline-none disabled:cursor-not-allowed disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF] bg-transparent"
+          />
           {hint && (
-            <div className="pr-4">
-              <span className="text-xs text-slate-400">{hint}</span>
-      </div>
-    )}
+            <div className="pr-3.5 shrink-0">
+              <span className="text-[11px] font-medium text-[#9CA3AF]">{hint}</span>
+            </div>
+          )}
         </div>
       </div>
     )}
@@ -1658,21 +1647,21 @@ const FloatingField = ({
 );
 
 const FloatingCheckbox = ({ label, name, checked, onChange, disabled = false }) => (
-  <label className="inline-flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 cursor-pointer hover:border-slate-300 transition">
+  <label className="inline-flex items-center gap-2.5 rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider text-[#111827] cursor-pointer hover:border-[#8B5CF6] transition select-none">
     <input
       type="checkbox"
       name={name}
       checked={checked}
       onChange={onChange}
       disabled={disabled}
-      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 disabled:cursor-not-allowed"
+      className="h-4 w-4 rounded-none border-[#D1D5DB] text-[#8B5CF6] focus:ring-[#8B5CF6] focus:ring-offset-0 disabled:cursor-not-allowed cursor-pointer accent-[#8B5CF6]"
     />
     {label}
   </label>
 );
 
 const FloatingRadio = ({ name, label, value, checked, onChange, disabled = false }) => (
-  <label className="inline-flex items-center gap-2 rounded-full border border-[#dbe4ff] bg-white px-4 py-2 text-sm font-medium text-[#1f2937] shadow-sm">
+  <label className={`inline-flex items-center gap-2 rounded-none border px-3.5 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer transition select-none ${checked ? "border-[#8B5CF6] bg-[#F5F3FF] text-[#7C3AED]" : "border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#D1D5DB]"}`}>
     <input
       type="radio"
       name={name}
@@ -1680,7 +1669,7 @@ const FloatingRadio = ({ name, label, value, checked, onChange, disabled = false
       checked={checked}
       onChange={onChange}
       disabled={disabled}
-      className="text-[#4285f4] focus:ring-[#4285f4] disabled:cursor-not-allowed"
+      className="text-[#8B5CF6] focus:ring-[#8B5CF6] accent-[#8B5CF6] disabled:cursor-not-allowed cursor-pointer"
     />
     {label}
   </label>
@@ -1740,57 +1729,42 @@ const SearchableSelect = ({ label, placeholder, value, onChange, groups, disable
   const displayValue = value ? optionMap.get(value) || value : "";
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">
+    <div className="relative flex w-full flex-col gap-1.5 text-sm" ref={containerRef}>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
         {label}
-        {required && <span className="text-[#ef4444]"> *</span>}
+        {required && <span className="text-[#EF4444] ml-1">*</span>}
       </span>
       <div
-        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
-          open ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.08)]" : "border-[#d7dcf5]"
-        } ${disabled ? "bg-[#f1f5f9] text-[#9ca3af]" : "bg-white text-[#1f2937]"} ${disabled ? "" : "cursor-pointer"}`}
+        className={`flex h-10 items-center justify-between rounded-none border px-3.5 text-sm transition ${
+          open ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]" : "border-[#E5E7EB]"
+        } ${disabled ? "bg-[#F3F4F6] text-[#9CA3AF]" : "bg-white text-[#111827]"} ${disabled ? "" : "cursor-pointer"}`}
         onClick={() => !disabled && setOpen((prev) => !prev)}
       >
-        <span className={value ? "text-[#1f2937]" : "text-[#9ca3af]"}>{displayValue || placeholder}</span>
+        <span className={value ? "text-[#111827]" : "text-[#9CA3AF]"}>{displayValue || placeholder}</span>
         <ChevronDown
           size={16}
-          className={`ml-3 text-[#9ca3af] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
+          className={`ml-3 text-[#9CA3AF] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </div>
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl border border-[#d7dcf5] bg-white shadow-[0_24px_48px_-28px_rgba(15,23,42,0.45)]">
-          <div className="flex items-center gap-2 border-b border-[#edf1ff] px-3 py-2 text-[#475569]">
-            <Search size={14} className="text-[#9ca3af]" />
+        <div className="absolute top-full z-50 mt-1 w-full rounded-none border border-[#E5E7EB] bg-white shadow-xl">
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3.5 py-2.5 text-[#4B5563]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search"
-              className="h-8 w-full border-none text-sm text-[#1f2937] outline-none placeholder:text-[#9ca3af]"
+              placeholder="Search..."
+              className="h-7 w-full border-none text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF] bg-transparent"
+              autoFocus
             />
           </div>
-          <div className="max-h-60 overflow-y-scroll py-2 searchable-select-scroll" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
-            <style>{`
-              .searchable-select-scroll::-webkit-scrollbar {
-                width: 8px;
-              }
-              .searchable-select-scroll::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 4px;
-              }
-              .searchable-select-scroll::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 4px;
-              }
-              .searchable-select-scroll::-webkit-scrollbar-thumb:hover {
-                background: #94a3b8;
-              }
-            `}</style>
+          <div className="max-h-60 overflow-y-auto py-1">
             {filteredGroups.length === 0 && (
-              <p className="px-4 py-6 text-center text-xs text-[#9ca3af]">No matching results</p>
+              <p className="px-4 py-6 text-center text-xs text-[#9CA3AF]">No matching results</p>
             )}
             {filteredGroups.map((group) => (
               <div key={group.group}>
-                <p className="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-[#9ca3af]">
+                <p className="px-3.5 pb-1 pt-2.5 text-[10px] font-bold uppercase tracking-wider text-[#9CA3AF]">
                   {group.group}
                 </p>
                 {group.options.map((option) => {
@@ -1804,10 +1778,10 @@ const SearchableSelect = ({ label, placeholder, value, onChange, groups, disable
                         setOpen(false);
                         setSearch("");
                       }}
-                      className={`select-option flex w-full items-center rounded-md px-4 py-2 text-left text-sm transition ${
+                      className={`flex w-full items-center px-3.5 py-2 text-left text-xs transition ${
                         isSelected
-                          ? "bg-[#e9f0ff] font-semibold text-[#1f2937]"
-                          : "bg-white text-[#475569] hover:bg-[#f6f8ff]"
+                          ? "bg-[#F5F3FF] font-bold text-[#7C3AED]"
+                          : "text-[#111827] hover:bg-[#F9FAFB]"
                       }`}
                     >
                       {option.label}
@@ -1824,11 +1798,11 @@ const SearchableSelect = ({ label, placeholder, value, onChange, groups, disable
 };
 
 const InfoCard = ({ title, children, fullWidth, actions }) => (
-  <div className={`space-y-6 ${fullWidth ? "" : ""}`}>
+  <div className={`space-y-4 ${fullWidth ? "" : ""}`}>
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-        <p className="text-sm text-slate-600 mt-1">Configure {title.toLowerCase()} settings</p>
+        <h3 className="text-sm font-bold uppercase tracking-wider text-[#111827]">{title}</h3>
+        <p className="text-xs text-[#6B7280] mt-0.5">Configure {title.toLowerCase()} settings</p>
       </div>
       {actions}
     </div>
@@ -1864,39 +1838,24 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
   const displayValue = value || "";
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">{label}</span>
+    <div className="relative flex w-full flex-col gap-1.5 text-sm" ref={containerRef}>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">{label}</span>
       <div
-        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all duration-200 ease-in-out ${
-          open ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.08)]" : "border-[#d7dcf5] hover:border-[#94a3b8]"
-        } bg-white text-[#1f2937] cursor-pointer`}
+        className={`flex h-10 items-center justify-between rounded-none border px-3.5 text-sm transition ${
+          open ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]" : "border-[#E5E7EB] hover:border-[#D1D5DB]"
+        } bg-white text-[#111827] cursor-pointer`}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className={`transition-colors duration-150 ${value ? "text-[#1f2937]" : "text-[#9ca3af]"}`}>{displayValue || placeholder}</span>
+        <span className={value ? "text-[#111827]" : "text-[#9CA3AF]"}>{displayValue || placeholder}</span>
         <ChevronDown
           size={16}
-          className={`ml-3 text-[#9ca3af] transition-transform duration-200 ease-in-out ${open ? "rotate-180" : "rotate-0"}`}
+          className={`ml-3 text-[#9CA3AF] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </div>
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl border border-[#d7dcf5] bg-white shadow-[0_24px_48px_-28px_rgba(15,23,42,0.45)] dropdown-animate">
-          <style>{`
-            @keyframes dropdownFadeIn {
-              from {
-                opacity: 0;
-                transform: translateY(-8px);
-              }
-              to {
-                opacity: 1;
-                transform: translateY(0);
-              }
-            }
-            .dropdown-animate {
-              animation: dropdownFadeIn 0.2s ease-out;
-            }
-          `}</style>
-          <div className="flex items-center gap-2 bg-[#2563eb] px-3 py-2 text-white rounded-t-xl">
-            <Search size={14} className="text-white" />
+        <div className="absolute top-full z-50 mt-1 w-full rounded-none border border-[#E5E7EB] bg-white shadow-xl">
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3.5 py-2.5 bg-[#F9FAFB]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -1908,28 +1867,13 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
                   setSearch("");
                 }
               }}
-              placeholder="Select or type to add"
-              className="h-8 w-full border-none bg-transparent text-sm text-white outline-none placeholder:text-white/80"
+              placeholder="Select or type to add..."
+              className="h-7 w-full border-none bg-transparent text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
               onClick={(e) => e.stopPropagation()}
+              autoFocus
             />
           </div>
-          <div className="max-h-60 overflow-y-scroll py-2 unit-select-scroll bg-white rounded-b-xl" style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
-            <style>{`
-              .unit-select-scroll::-webkit-scrollbar {
-                width: 8px;
-              }
-              .unit-select-scroll::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 4px;
-              }
-              .unit-select-scroll::-webkit-scrollbar-thumb {
-                background: #cbd5e1;
-                border-radius: 4px;
-              }
-              .unit-select-scroll::-webkit-scrollbar-thumb:hover {
-                background: #94a3b8;
-              }
-            `}</style>
+          <div className="max-h-60 overflow-y-auto py-1">
             {filteredOptions.length === 0 && search.trim() ? (
               <div
                 onClick={() => {
@@ -1937,12 +1881,12 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
                   setOpen(false);
                   setSearch("");
                 }}
-                className="flex w-full items-center px-4 py-2 text-left text-sm cursor-pointer transition-all duration-150 ease-in-out text-[#2563eb] hover:bg-[#e9f0ff] font-semibold"
+                className="flex w-full items-center px-3.5 py-2 text-left text-xs cursor-pointer transition font-bold text-[#8B5CF6] hover:bg-[#F5F3FF]"
               >
-                Add "{search.trim()}"
+                + Add "{search.trim()}"
               </div>
             ) : filteredOptions.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs text-[#9ca3af]">No matching results</p>
+              <p className="px-4 py-6 text-center text-xs text-[#9CA3AF]">No matching results</p>
             ) : (
               <>
                 {search.trim() && !filteredOptions.includes(search.trim()) && (
@@ -1952,9 +1896,9 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
                       setOpen(false);
                       setSearch("");
                     }}
-                    className="flex w-full items-center px-4 py-2 text-left text-sm cursor-pointer transition-all duration-150 ease-in-out text-[#2563eb] hover:bg-[#e9f0ff] font-semibold border-b border-[#e7ebf8]"
+                    className="flex w-full items-center px-3.5 py-2 text-left text-xs cursor-pointer transition font-bold text-[#8B5CF6] hover:bg-[#F5F3FF] border-b border-[#E5E7EB]"
                   >
-                    Add "{search.trim()}"
+                    + Add "{search.trim()}"
                   </div>
                 )}
                 {filteredOptions.map((option) => {
@@ -1967,10 +1911,10 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
                         setOpen(false);
                         setSearch("");
                       }}
-                      className={`flex w-full items-center px-4 py-2 text-left text-sm cursor-pointer transition-all duration-150 ease-in-out ${
+                      className={`flex w-full items-center px-3.5 py-2 text-left text-xs cursor-pointer transition ${
                         isSelected
-                          ? "text-[#2563eb] font-semibold"
-                          : "text-[#475569] hover:text-[#2563eb]"
+                          ? "bg-[#F5F3FF] font-bold text-[#7C3AED]"
+                          : "text-[#111827] hover:bg-[#F9FAFB]"
                       }`}
                     >
                       {option}
@@ -1989,10 +1933,8 @@ const UnitSelect = ({ label, placeholder, value, onChange, options = [] }) => {
 const TaxRateSelect = ({ label, value, onChange, type }) => {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [hoveredIndex, setHoveredIndex] = useState(-1);
   const containerRef = useRef(null);
 
-  // Tax rate options based on type
   const taxRateOptions = type === "intra" 
     ? [
         "GST0 [0%]",
@@ -2014,7 +1956,6 @@ const TaxRateSelect = ({ label, value, onChange, type }) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setOpen(false);
         setSearch("");
-        setHoveredIndex(-1);
       }
     };
 
@@ -2033,92 +1974,63 @@ const TaxRateSelect = ({ label, value, onChange, type }) => {
   const displayValue = value || "";
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <label className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b] cursor-pointer border-b border-dotted border-[#64748b] pb-0.5 inline-block w-fit">
+    <div className="relative flex w-full flex-col gap-1.5 text-sm" ref={containerRef}>
+      <label className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
         {label}
       </label>
       <div
-        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-all duration-200 ease-in-out ${
-          open ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.08)]" : "border-[#d7dcf5] hover:border-[#94a3b8]"
-        } bg-white text-[#1f2937] cursor-pointer`}
+        className={`flex h-10 items-center justify-between rounded-none border px-3.5 text-sm transition ${
+          open ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]" : "border-[#E5E7EB] hover:border-[#D1D5DB]"
+        } bg-white text-[#111827] cursor-pointer`}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className={`transition-colors duration-150 ${value ? "text-[#1f2937]" : "text-[#9ca3af]"}`}>
+        <span className={value ? "text-[#111827]" : "text-[#9CA3AF]"}>
           {displayValue || "Select tax rate"}
         </span>
         <ChevronDown
           size={16}
-          className={`ml-3 text-[#9ca3af] transition-transform duration-200 ease-in-out ${open ? "rotate-180" : "rotate-0"}`}
+          className={`ml-3 text-[#9CA3AF] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </div>
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl border border-[#d7dcf5] bg-white shadow-[0_24px_48px_-28px_rgba(15,23,42,0.45)]">
-          <div className="flex items-center gap-2 border-b border-[#edf1ff] px-3 py-2 bg-[#2563eb] rounded-t-xl">
-            <Search size={14} className="text-white" />
+        <div className="absolute top-full z-50 mt-1 w-full rounded-none border border-[#E5E7EB] bg-white shadow-xl">
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3.5 py-2.5 bg-[#F9FAFB]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search"
-              className="h-8 w-full border-none bg-transparent text-sm text-white outline-none placeholder:text-white/80"
+              placeholder="Search tax rate..."
+              className="h-7 w-full border-none bg-transparent text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
               onClick={(e) => e.stopPropagation()}
               autoFocus
             />
           </div>
-          <div className="py-2">
-            <div className="px-4 py-2 text-xs font-semibold uppercase tracking-[0.1em] text-[#64748b]">
-              Tax
-            </div>
-            <div className="max-h-60 overflow-y-scroll tax-rate-select-scroll">
-              <style>{`
-                .tax-rate-select-scroll::-webkit-scrollbar {
-                  width: 8px;
-                }
-                .tax-rate-select-scroll::-webkit-scrollbar-track {
-                  background: #f1f5f9;
-                  border-radius: 4px;
-                }
-                .tax-rate-select-scroll::-webkit-scrollbar-thumb {
-                  background: #cbd5e1;
-                  border-radius: 4px;
-                }
-                .tax-rate-select-scroll::-webkit-scrollbar-thumb:hover {
-                  background: #94a3b8;
-                }
-              `}</style>
-              {filteredOptions.length === 0 ? (
-                <p className="px-4 py-6 text-center text-xs text-[#9ca3af]">No matching results</p>
-              ) : (
-                filteredOptions.map((option, index) => {
-                  const isSelected = value === option;
-                  const isHovered = hoveredIndex === index;
-                  return (
-                    <div
-                      key={option}
-                      onClick={() => {
-                        onChange(option);
-                        setOpen(false);
-                        setSearch("");
-                        setHoveredIndex(-1);
-                      }}
-                      onMouseEnter={() => setHoveredIndex(index)}
-                      onMouseLeave={() => setHoveredIndex(-1)}
-                      className={`flex items-center justify-between px-4 py-2.5 text-sm cursor-pointer transition-all duration-150 ease-in-out ${
-                        isSelected
-                          ? "bg-[#2563eb] text-white"
-                          : isHovered
-                          ? "bg-[#2563eb] text-white"
-                          : "bg-white text-[#475569] hover:bg-[#f8fafc]"
-                      }`}
-                    >
-                      <span>{option}</span>
-                      {isSelected && (
-                        <Check size={16} className="text-white" />
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
+          <div className="max-h-60 overflow-y-auto py-1">
+            {filteredOptions.length === 0 ? (
+              <p className="px-4 py-6 text-center text-xs text-[#9CA3AF]">No matching results</p>
+            ) : (
+              filteredOptions.map((option) => {
+                const isSelected = value === option;
+                return (
+                  <div
+                    key={option}
+                    onClick={() => {
+                      onChange(option);
+                      setOpen(false);
+                      setSearch("");
+                    }}
+                    className={`flex items-center justify-between px-3.5 py-2 text-xs cursor-pointer transition ${
+                      isSelected
+                        ? "bg-[#F5F3FF] font-bold text-[#7C3AED]"
+                        : "text-[#111827] hover:bg-[#F9FAFB]"
+                    }`}
+                  >
+                    <span>{option}</span>
+                    {isSelected && <Check size={14} className="text-[#8B5CF6]" />}
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       )}
@@ -2154,37 +2066,38 @@ const ManufacturerSelect = ({ label, placeholder, value, onChange, options = [],
   const displayValue = value || "";
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">{label}</span>
+    <div className="relative flex w-full flex-col gap-1.5 text-sm" ref={containerRef}>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">{label}</span>
       <div
-        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
-          open ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.08)]" : "border-[#d7dcf5]"
-        } ${disabled ? "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed" : "bg-white text-[#1f2937] cursor-pointer"}`}
+        className={`flex h-10 items-center justify-between rounded-none border px-3.5 text-sm transition ${
+          open ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]" : "border-[#E5E7EB]"
+        } ${disabled ? "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed" : "bg-white text-[#111827] cursor-pointer"}`}
         onClick={() => {
           if (!disabled) setOpen((prev) => !prev);
         }}
       >
-        <span className={displayValue ? "text-[#1f2937]" : "text-[#9ca3af]"}>{displayValue || placeholder}</span>
+        <span className={displayValue ? "text-[#111827]" : "text-[#9CA3AF]"}>{displayValue || placeholder}</span>
         <ChevronDown
           size={16}
-          className={`ml-3 text-[#9ca3af] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
+          className={`ml-3 text-[#9CA3AF] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </div>
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl border border-[#d7dcf5] bg-white shadow-[0_24px_48px_-28px_rgba(15,23,42,0.45)]">
-          <div className="flex items-center gap-2 border-b border-[#edf1ff] px-3 py-2 text-[#475569]">
-            <Search size={14} className="text-[#9ca3af]" />
+        <div className="absolute top-full z-50 mt-1 w-full rounded-none border border-[#E5E7EB] bg-white shadow-xl">
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3.5 py-2.5 bg-[#F9FAFB]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search manufacturer"
-              className="h-8 w-full border-none text-sm text-[#1f2937] outline-none placeholder:text-[#9ca3af]"
+              placeholder="Search manufacturer..."
+              className="h-7 w-full border-none bg-transparent text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
               onClick={(e) => e.stopPropagation()}
+              autoFocus
             />
           </div>
-          <div className="max-h-56 overflow-y-auto py-2 manufacturer-select-scroll">
+          <div className="max-h-56 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs text-[#9ca3af]">No matching results</p>
+              <p className="px-4 py-6 text-center text-xs text-[#9CA3AF]">No matching results</p>
             ) : (
               filteredOptions.map((option) => (
                 <button
@@ -2195,10 +2108,10 @@ const ManufacturerSelect = ({ label, placeholder, value, onChange, options = [],
                     setOpen(false);
                     setSearch("");
                   }}
-                  className={`select-option flex w-full items-center rounded-md px-4 py-2 text-left text-sm transition ${
+                  className={`flex w-full items-center px-3.5 py-2 text-left text-xs transition ${
                     value === option
-                      ? "bg-[#f6f8ff] font-semibold text-[#2563eb]"
-                      : "bg-white text-[#475569] hover:bg-[#f6f8ff]"
+                      ? "bg-[#F5F3FF] font-bold text-[#7C3AED]"
+                      : "text-[#111827] hover:bg-[#F9FAFB]"
                   }`}
                 >
                   {option}
@@ -2207,7 +2120,7 @@ const ManufacturerSelect = ({ label, placeholder, value, onChange, options = [],
             )}
           </div>
           {onManageClick && (
-            <div className="border-t border-[#edf1ff] px-3 py-2">
+            <div className="border-t border-[#E5E7EB] px-3.5 py-2 bg-[#F9FAFB]">
               <button
                 type="button"
                 onClick={(e) => {
@@ -2216,9 +2129,9 @@ const ManufacturerSelect = ({ label, placeholder, value, onChange, options = [],
                   setOpen(false);
                   setSearch("");
                 }}
-                className="flex w-full items-center gap-2 text-sm font-medium text-[#2563eb] hover:text-[#1d4ed8] transition"
+                className="flex w-full items-center gap-2 text-xs font-bold text-[#8B5CF6] hover:text-[#7C3AED] transition uppercase tracking-wider"
               >
-                <Settings size={14} />
+                <Settings size={13} />
                 Manage Manufacturers
               </button>
             </div>
@@ -2257,37 +2170,38 @@ const BrandSelect = ({ label, placeholder, value, onChange, options = [], onMana
   const displayValue = value || "";
 
   return (
-    <div className="relative flex w-full flex-col gap-1 text-sm text-[#475569]" ref={containerRef}>
-      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">{label}</span>
+    <div className="relative flex w-full flex-col gap-1.5 text-sm" ref={containerRef}>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">{label}</span>
       <div
-        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition ${
-          open ? "border-[#2563eb] shadow-[0_0_0_3px_rgba(37,99,235,0.08)]" : "border-[#d7dcf5]"
-        } ${disabled ? "bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed" : "bg-white text-[#1f2937] cursor-pointer"}`}
+        className={`flex h-10 items-center justify-between rounded-none border px-3.5 text-sm transition ${
+          open ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]" : "border-[#E5E7EB]"
+        } ${disabled ? "bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed" : "bg-white text-[#111827] cursor-pointer"}`}
         onClick={() => {
           if (!disabled) setOpen((prev) => !prev);
         }}
       >
-        <span className={displayValue ? "text-[#1f2937]" : "text-[#9ca3af]"}>{displayValue || placeholder}</span>
+        <span className={displayValue ? "text-[#111827]" : "text-[#9CA3AF]"}>{displayValue || placeholder}</span>
         <ChevronDown
           size={16}
-          className={`ml-3 text-[#9ca3af] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
+          className={`ml-3 text-[#9CA3AF] transition-transform ${open ? "rotate-180" : "rotate-0"}`}
         />
       </div>
       {open && (
-        <div className="absolute z-50 mt-2 w-full rounded-xl border border-[#d7dcf5] bg-white shadow-[0_24px_48px_-28px_rgba(15,23,42,0.45)]">
-          <div className="flex items-center gap-2 border-b border-[#edf1ff] px-3 py-2 text-[#475569]">
-            <Search size={14} className="text-[#9ca3af]" />
+        <div className="absolute top-full z-50 mt-1 w-full rounded-none border border-[#E5E7EB] bg-white shadow-xl">
+          <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3.5 py-2.5 bg-[#F9FAFB]">
+            <Search size={14} className="text-[#9CA3AF]" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search brand"
-              className="h-8 w-full border-none text-sm text-[#1f2937] outline-none placeholder:text-[#9ca3af]"
+              placeholder="Search brand..."
+              className="h-7 w-full border-none bg-transparent text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
               onClick={(e) => e.stopPropagation()}
+              autoFocus
             />
           </div>
-          <div className="max-h-56 overflow-y-auto py-2 brand-select-scroll">
+          <div className="max-h-56 overflow-y-auto py-1">
             {filteredOptions.length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs text-[#9ca3af]">No matching results</p>
+              <p className="px-4 py-6 text-center text-xs text-[#9CA3AF]">No matching results</p>
             ) : (
               filteredOptions.map((option) => (
                 <div
@@ -2297,10 +2211,10 @@ const BrandSelect = ({ label, placeholder, value, onChange, options = [], onMana
                     setOpen(false);
                     setSearch("");
                   }}
-                  className={`flex w-full items-center px-4 py-2 text-left text-sm cursor-pointer transition ${
+                  className={`flex w-full items-center px-3.5 py-2 text-left text-xs cursor-pointer transition ${
                     value === option
-                      ? "text-[#2563eb] font-semibold"
-                      : "text-[#475569] hover:text-[#2563eb]"
+                      ? "bg-[#F5F3FF] font-bold text-[#7C3AED]"
+                      : "text-[#111827] hover:bg-[#F9FAFB]"
                   }`}
                 >
                   {option}
@@ -2309,7 +2223,7 @@ const BrandSelect = ({ label, placeholder, value, onChange, options = [], onMana
             )}
           </div>
           {onManageClick && (
-            <div className="border-t border-[#edf1ff] px-3 py-2">
+            <div className="border-t border-[#E5E7EB] px-3.5 py-2 bg-[#F9FAFB]">
               <button
                 type="button"
                 onClick={(e) => {
@@ -2318,9 +2232,9 @@ const BrandSelect = ({ label, placeholder, value, onChange, options = [], onMana
                   setOpen(false);
                   setSearch("");
                 }}
-                className="flex w-full items-center gap-2 text-sm font-medium text-[#2563eb] hover:text-[#1d4ed8] transition"
+                className="flex w-full items-center gap-2 text-xs font-bold text-[#8B5CF6] hover:text-[#7C3AED] transition uppercase tracking-wider"
               >
-                <Settings size={14} />
+                <Settings size={13} />
                 Manage Brands
               </button>
             </div>
@@ -2341,42 +2255,42 @@ const ManufacturerModal = ({ onClose, onAdd, newManufacturer, setNewManufacturer
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-          <h2 className="text-xl font-semibold text-slate-900">Add Manufacturer</h2>
+      <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Add Manufacturer</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+            className="p-1.5 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] transition"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-6">
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Manufacturer Name <span className="text-red-500">*</span>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
+              Manufacturer Name <span className="text-[#EF4444]">*</span>
             </label>
             <input
               type="text"
               value={newManufacturer}
               onChange={(e) => setNewManufacturer(e.target.value)}
               placeholder="Enter manufacturer name"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              className="w-full h-10 rounded-none border border-[#E5E7EB] bg-white px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6] transition outline-none"
               autoFocus
             />
           </div>
-          <div className="mt-8 flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="rounded-none border border-[#E5E7EB] bg-[#EEEEEE] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#111827] transition hover:bg-[#E0E0E0]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!newManufacturer.trim()}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+              className="rounded-none bg-[#8B5CF6] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#7C3AED] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add Manufacturer
             </button>
@@ -2397,42 +2311,42 @@ const BrandModal = ({ onClose, onAdd, newBrand, setNewBrand }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
-      <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-          <h2 className="text-xl font-semibold text-slate-900">Add Brand</h2>
+      <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-4">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-[#111827]">Add Brand</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+            className="p-1.5 text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] transition"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-6">
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
-              Brand Name <span className="text-red-500">*</span>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-1.5">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4B5563]">
+              Brand Name <span className="text-[#EF4444]">*</span>
             </label>
             <input
               type="text"
               value={newBrand}
               onChange={(e) => setNewBrand(e.target.value)}
               placeholder="Enter brand name"
-              className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition"
+              className="w-full h-10 rounded-none border border-[#E5E7EB] bg-white px-3.5 text-sm text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6] transition outline-none"
               autoFocus
             />
           </div>
-          <div className="mt-8 flex items-center justify-end gap-3">
+          <div className="flex items-center justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="rounded-none border border-[#E5E7EB] bg-[#EEEEEE] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#111827] transition hover:bg-[#E0E0E0]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!newBrand.trim()}
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+              className="rounded-none bg-[#8B5CF6] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white transition hover:bg-[#7C3AED] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Add Brand
             </button>

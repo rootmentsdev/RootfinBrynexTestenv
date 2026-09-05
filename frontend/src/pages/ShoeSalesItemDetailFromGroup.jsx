@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link, useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { Edit, X, Building2, Info, Camera, Settings, Star, Warehouse, ChevronDown, Plus, Copy, Pause, Trash2, ArrowUpRight, XCircle } from "lucide-react";
-import Head from "../components/Head";
+import { Edit, X, Building2, Info, Camera, Settings, Star, Warehouse, ChevronDown, Plus, Copy, Pause, Trash2, ArrowUpRight, XCircle, ArrowLeft, Clock } from "lucide-react";
+import Header from "../components/Header";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
@@ -120,7 +120,6 @@ const ALLOWED_WAREHOUSES_DISPLAY = [
 
 // Get all possible actual warehouse names that map to allowed warehouses
 const getAllowedActualNames = () => {
-  const isSidebarOpen = useSidebar();
   const actualNames = new Set();
   Object.keys(WAREHOUSE_NAME_MAPPING).forEach(actualName => {
     if (ALLOWED_WAREHOUSES_DISPLAY.includes(WAREHOUSE_NAME_MAPPING[actualName])) {
@@ -157,6 +156,7 @@ const normalizeWarehouseName = (warehouseName) => {
 };
 
 const ShoeSalesItemDetailFromGroup = () => {
+  const isSidebarOpen = useSidebar();
   const { id, itemId } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -761,15 +761,19 @@ const ShoeSalesItemDetailFromGroup = () => {
 
   if (!itemGroup || !item) {
     return (
-      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
-          <p className="text-lg font-medium text-[#475569]">Item not found</p>
-          <Link
-            to={`/shoe-sales/item-groups/${id}`}
-            className="mt-4 inline-block text-sm font-medium text-[#475569] hover:text-[#1f2937]"
-          >
-            Back to Item Group
-          </Link>
+      <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+        <Header title="Item Details" />
+        <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+          <div className="bg-white border border-[#E5E7EB] rounded-none p-12 text-center shadow-xs">
+            <p className="text-base font-bold text-[#111827] uppercase tracking-wide">Item not found</p>
+            <Link
+              to={`/shoe-sales/item-groups/${id}`}
+              className="mt-4 inline-flex items-center gap-1.5 h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors"
+            >
+              <ArrowLeft size={14} />
+              <span>Back to Item Group</span>
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -1116,723 +1120,784 @@ const ShoeSalesItemDetailFromGroup = () => {
   };
 
   return (
-    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      <Head
-        title={item.name || "Item Detail"}
-        description={item.sku ? `SKU: ${item.sku}` : itemGroup.name}
-        actions={
-          <div className="flex items-center gap-3">
+    <div className="invoice-page-wrapper min-h-screen bg-[#F9FAFB] text-[#111827]">
+      <Header title="Item Details" />
+
+      <div className={`transition-all duration-300 p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        {/* Top Action Toolbar */}
+        <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate(`/shoe-sales/item-groups/${id}`)}
+              className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer shrink-0"
+            >
+              <ArrowLeft size={14} className="text-[#111827]" />
+              <span>Item Group</span>
+            </button>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-[#111827] uppercase font-mono truncate">
+                  {item.name || "Item Detail"}
+                </h1>
+                {item.sku && (
+                  <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none bg-[#F3F4F6] text-[#4B5563] border border-[#E5E7EB] uppercase tracking-wider font-mono">
+                    SKU: {item.sku}
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-[#6B7280] font-medium mt-0.5">
+                Group: <span className="font-semibold text-[#111827]">{itemGroup.name}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
             {isAdmin && (
               <>
                 <Link
                   to={`/shoe-sales/item-groups/${id}/items/${itemId}/edit`}
-                  className="no-blue-button h-10 px-4 inline-flex items-center justify-center gap-2 text-sm font-medium text-white bg-[#1a1a2e] rounded-lg hover:bg-[#2d2d44] transition-colors"
+                  className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer"
                 >
-                  <Edit size={16} />
-                  Edit
+                  <Edit size={13} className="text-white" />
+                  <span>Edit</span>
                 </Link>
+
                 <div className="relative" ref={moreMenuRef}>
                   <button 
                     onClick={() => setShowMoreMenu(!showMoreMenu)}
-                    className={`no-blue-button h-10 px-4 inline-flex items-center justify-center gap-2 text-sm font-medium border rounded-lg transition-colors ${
-                      showMoreMenu 
-                        ? "bg-[#f3f4f6] border-[#d1d5db] text-[#1f2937]" 
-                        : "bg-white border-[#e5e7eb] text-[#374151] hover:bg-[#f9fafb] hover:border-[#d1d5db]"
-                    }`}
+                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
                   >
-                    More
+                    <span>More</span>
                     <ChevronDown 
-                      size={16} 
-                      className={`transition-transform ${showMoreMenu ? "rotate-180" : ""}`} 
+                      size={14} 
+                      className={`text-[#6B7280] transition-transform ${showMoreMenu ? "rotate-180" : ""}`} 
                     />
                   </button>
                   {showMoreMenu && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-lg border border-[#e5e7eb] bg-white shadow-lg z-50 flex flex-col divide-y divide-[#e5e7eb]">
-                      <button
-                        onClick={handleCloneItem}
-                        className="no-blue-button w-full px-4 py-3.5 text-left text-sm text-[#374151] hover:bg-[#f9fafb] transition-colors flex items-center gap-3 bg-white"
-                      >
-                        <Copy size={16} className="text-[#6b7280]" />
-                        <span>Clone Item</span>
-                      </button>
+                    <div className="absolute right-0 mt-1 w-56 rounded-none border border-[#E5E7EB] bg-white shadow-lg z-50 py-1 divide-y divide-[#E5E7EB]">
+                      <div className="py-0.5">
+                        <button
+                          onClick={handleCloneItem}
+                          className="w-full px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Copy size={14} className="text-[#6B7280]" />
+                          <span>Clone Item</span>
+                        </button>
+                      </div>
                       
-                      <button
-                        onClick={() => {
-                          setShowInactiveModal(true);
-                          setShowMoreMenu(false);
-                        }}
-                        className="no-blue-button w-full px-4 py-3.5 text-left text-sm text-[#374151] hover:bg-[#f9fafb] transition-colors flex items-center gap-3 bg-white"
-                      >
-                        <Pause size={16} className="text-[#6b7280]" />
-                        <span>Mark as Inactive</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setShowDeleteModal(true);
-                          setShowMoreMenu(false);
-                        }}
-                        className="no-blue-button w-full px-4 py-3.5 text-left text-sm text-[#dc2626] hover:bg-[#fef2f2] transition-colors flex items-center gap-3 bg-white"
-                      >
-                        <Trash2 size={16} className="text-[#dc2626]" />
-                        <span>Delete</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => {
-                          setShowMoveModal(true);
-                          setShowMoreMenu(false);
-                        }}
-                        className="no-blue-button w-full px-4 py-3.5 text-left text-sm text-[#374151] hover:bg-[#f9fafb] transition-colors flex items-center gap-3 bg-white"
-                      >
-                        <ArrowUpRight size={16} className="text-[#6b7280]" />
-                    <span>Move to another group</span>
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowRemoveModal(true);
-                      setShowMoreMenu(false);
-                    }}
-                    className="no-blue-button w-full px-4 py-3.5 text-left text-sm text-[#374151] hover:bg-[#f9fafb] transition-colors flex items-center gap-3 bg-white"
-                  >
-                    <XCircle size={16} className="text-[#6b7280]" />
-                    <span>Remove from Group</span>
-                  </button>
+                      <div className="py-0.5">
+                        <button
+                          onClick={() => {
+                            setShowInactiveModal(true);
+                            setShowMoreMenu(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Pause size={14} className="text-[#6B7280]" />
+                          <span>Mark as Inactive</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setShowMoveModal(true);
+                            setShowMoreMenu(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <ArrowUpRight size={14} className="text-[#6B7280]" />
+                          <span>Move to another group</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setShowRemoveModal(true);
+                            setShowMoreMenu(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-[#374151] hover:bg-[#F9FAFB] transition-colors flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <XCircle size={14} className="text-[#6B7280]" />
+                          <span>Remove from Group</span>
+                        </button>
+                      </div>
+
+                      <div className="py-0.5">
+                        <button
+                          onClick={() => {
+                            setShowDeleteModal(true);
+                            setShowMoreMenu(false);
+                          }}
+                          className="w-full px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2.5 cursor-pointer"
+                        >
+                          <Trash2 size={14} className="text-red-600" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+
                 <Link
                   to={`/shoe-sales/item-groups/${id}`}
-                  className="no-blue-button h-10 w-10 inline-flex items-center justify-center rounded-lg border border-[#e5e7eb] bg-white text-[#6b7280] hover:bg-[#f9fafb] hover:border-[#d1d5db] transition-colors"
+                  className="inline-flex items-center justify-center h-9 w-9 rounded-none border border-[#E5E7EB] bg-white hover:bg-[#F3F4F6] text-[#6B7280] shadow-xs transition-colors cursor-pointer"
+                  title="Close"
                 >
-                  <X size={18} />
+                  <X size={15} />
                 </Link>
               </>
             )}
           </div>
-        }
-      />
-
-      <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.18)]">
-        {/* Tabs */}
-        <div className="flex items-center gap-6 px-6">
-          {["Overview", "Stocks", ...(isAdmin || user?.power === 'warehouse' ? ["History"] : [])].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`no-blue-button py-4 text-sm font-medium transition ${
-                activeTab === tab
-                  ? "text-[#1f2937] font-semibold"
-                  : "text-[#64748b] hover:text-[#1f2937]"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
         </div>
 
-        {/* Content */}
-        <div className="p-8">
-          {activeTab === "Overview" && (
-            <div className="space-y-8">
-              {/* Stock Summary Cards */}
-              <div className="grid grid-cols-3 gap-6" key={`stock-summary-${warehouseStocks.length}-${JSON.stringify(stockTotals)}`}>
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-[#64748b] mb-2">Stock on Hand</p>
-                  <p className="text-3xl font-bold text-[#1a1a2e]">{stockTotals.accounting.stockOnHand.toFixed(0)}</p>
-                </div>
-                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-[#64748b] mb-2">Available for Sale</p>
-                  <p className="text-3xl font-bold text-[#1a1a2e]">{stockTotals.accounting.availableForSale.toFixed(0)}</p>
-                </div>
-                <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-5">
-                  <p className="text-sm font-medium text-[#64748b] mb-2">Reorder Point</p>
-                  <p className="text-3xl font-bold text-[#1a1a2e]">{item.reorderPoint || "—"}</p>
-                </div>
-              </div>
+        {/* Main Card */}
+        <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs overflow-hidden">
+          {/* Tabs Navigation */}
+          <div className="flex items-center gap-1 px-6 border-b border-[#E5E7EB] bg-[#F9FAFB]/70">
+            {[
+              { id: "Overview", label: "Overview", icon: Info },
+              { id: "Stocks", label: "Stocks", icon: Warehouse, badge: warehouseStocks.length },
+              ...(isAdmin || user?.power === 'warehouse' ? [{ id: "History", label: "History", icon: Clock }] : [])
+            ].map(({ id: tabId, label, icon: TabIcon, badge }) => {
+              const isActive = activeTab === tabId;
+              return (
+                <button
+                  key={tabId}
+                  type="button"
+                  onClick={() => setActiveTab(tabId)}
+                  className={`inline-flex items-center gap-2 px-4 py-3.5 text-sm font-semibold transition-all cursor-pointer border-b-2 -mb-[1px] outline-none ${
+                    isActive
+                      ? "border-[#8B5CF6] text-[#7C3AED] bg-white font-bold"
+                      : "border-transparent text-[#6B7280] hover:text-[#111827] hover:border-[#D1D5DB]"
+                  }`}
+                  style={{
+                    color: isActive ? "#7C3AED" : undefined,
+                  }}
+                >
+                  <TabIcon size={15} className={isActive ? "text-[#8B5CF6]" : "text-[#9CA3AF]"} />
+                  <span>{label}</span>
+                  {badge !== undefined && (
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-none font-mono font-bold border ${
+                        isActive
+                          ? "bg-[#EDE9FE] text-[#7C3AED] border-[#DDD6FE]"
+                          : "bg-white text-[#6B7280] border-[#E5E7EB]"
+                      }`}
+                    >
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-              {/* Images Section */}
-              {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
-                <div>
-                  <AttachmentDisplay attachments={itemGroup.groupImages} />
-                </div>
-              )}
-
-              {/* Two Column Layout */}
-              <div className="grid grid-cols-2 gap-x-16 gap-y-10">
-                {/* Left Column */}
-                <div className="space-y-10">
-                  {/* Pricing */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Pricing</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Cost Price</span>
-                        <span className="text-sm font-semibold text-[#1a1a2e]">₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Selling Price</span>
-                        <span className="text-sm font-semibold text-[#10b981]">₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">HSN Code</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{item.hsnCode || "—"}</span>
-                      </div>
-                    </div>
+          {/* Content */}
+          <div className="p-6 md:p-8">
+            {activeTab === "Overview" && (
+              <div className="space-y-8">
+                {/* Stock Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6" key={`stock-summary-${warehouseStocks.length}-${JSON.stringify(stockTotals)}`}>
+                  <div className="bg-[#EFF6FF] border border-[#DBEAFE] rounded-none p-5 shadow-2xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#3B82F6] mb-1.5">Stock on Hand</p>
+                    <p className="text-3xl font-extrabold text-[#1E3A8A] font-mono">{stockTotals.accounting.stockOnHand.toFixed(0)}</p>
                   </div>
+                  <div className="bg-[#ECFDF5] border border-[#D1FAE5] rounded-none p-5 shadow-2xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#10B981] mb-1.5">Available for Sale</p>
+                    <p className="text-3xl font-extrabold text-[#065F46] font-mono">{stockTotals.accounting.availableForSale.toFixed(0)}</p>
+                  </div>
+                  <div className="bg-[#FFFBEB] border border-[#FEF3C7] rounded-none p-5 shadow-2xs">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#D97706] mb-1.5">Reorder Point</p>
+                    <p className="text-3xl font-extrabold text-[#92400E] font-mono">{item.reorderPoint || "—"}</p>
+                  </div>
+                </div>
 
-                  {/* Tax */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Tax</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Tax Preference</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.taxPreference === "taxable" ? "Taxable" : "Non-Taxable"}</span>
+                {/* Images Section */}
+                {itemGroup.groupImages && itemGroup.groupImages.length > 0 && (
+                  <div className="bg-[#F9FAFB] border border-[#E5E7EB] p-4 rounded-none">
+                    <AttachmentDisplay attachments={itemGroup.groupImages} />
+                  </div>
+                )}
+
+                {/* Two Column Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Left Column */}
+                  <div className="space-y-6">
+                    {/* Pricing */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Pricing</h3>
                       </div>
-                      {itemGroup.intraStateTaxRate && (
-                        <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                          <span className="text-sm text-[#64748b]">Intra State Tax</span>
-                          <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.intraStateTaxRate}</span>
+                      <div className="p-5 space-y-3">
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Cost Price</span>
+                          <span className="text-sm font-bold text-[#111827] font-mono">₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}</span>
                         </div>
-                      )}
-                      {itemGroup.interStateTaxRate && (
-                        <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                          <span className="text-sm text-[#64748b]">Inter State Tax</span>
-                          <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.interStateTaxRate}</span>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Selling Price</span>
+                          <span className="text-sm font-bold text-[#10B981] font-mono">₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}</span>
                         </div>
-                      )}
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">HSN Code</span>
+                          <span className="text-xs font-bold text-[#111827] font-mono">{item.hsnCode || "—"}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Status */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Status</h3>
-                    <div className="flex flex-wrap gap-3">
-                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${itemGroup.sellable !== false ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                        <span className={`w-2 h-2 rounded-full ${itemGroup.sellable !== false ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
-                        Sellable
-                      </span>
-                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${itemGroup.purchasable !== false ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                        <span className={`w-2 h-2 rounded-full ${itemGroup.purchasable !== false ? 'bg-blue-500' : 'bg-gray-400'}`}></span>
-                        Purchasable
-                      </span>
-                      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${item.returnable === true ? 'bg-purple-50 text-purple-700' : 'bg-gray-100 text-gray-500'}`}>
-                        <span className={`w-2 h-2 rounded-full ${item.returnable === true ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
-                        {item.returnable === true ? 'Returnable' : 'Non-Returnable'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Column */}
-                <div className="space-y-10">
-                  {/* Details */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Details</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Item Group</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.name}</span>
+                    {/* Tax */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Tax</h3>
                       </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Item Type</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.itemType === "goods" ? "Inventory Item" : "Service"}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">SKU</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{item.sku || "—"}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Unit</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.unit || "pcs"}</span>
-                      </div>
-                      {itemGroup.attributeRows && itemGroup.attributeRows.map((attrRow, idx) => {
-                        const attrValue = item.attributeCombination && item.attributeCombination[idx] 
-                          ? item.attributeCombination[idx] 
-                          : getAttributeValue(attrRow.attribute);
-                        return attrRow.attribute ? (
-                          <div key={idx} className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                            <span className="text-sm text-[#64748b]">{attrRow.attribute}</span>
-                            <span className="text-sm font-medium text-[#1a1a2e]">{attrValue || "—"}</span>
+                      <div className="p-5 space-y-3">
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Tax Preference</span>
+                          <span className="text-xs font-bold text-[#111827]">{itemGroup.taxPreference === "taxable" ? "Taxable" : "Non-Taxable"}</span>
+                        </div>
+                        {itemGroup.intraStateTaxRate && (
+                          <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                            <span className="text-xs font-medium text-[#6B7280]">Intra State Tax</span>
+                            <span className="text-xs font-bold text-[#111827] font-mono">{itemGroup.intraStateTaxRate}</span>
                           </div>
-                        ) : null;
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Inventory */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Inventory</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Inventory Account</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">Inventory Asset</span>
+                        )}
+                        {itemGroup.interStateTaxRate && (
+                          <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                            <span className="text-xs font-medium text-[#6B7280]">Inter State Tax</span>
+                            <span className="text-xs font-bold text-[#111827] font-mono">{itemGroup.interStateTaxRate}</span>
+                          </div>
+                        )}
                       </div>
-                      {itemGroup.inventoryValuationMethod && (
-                        <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                          <span className="text-sm text-[#64748b]">Valuation Method</span>
-                          <span className="text-sm font-medium text-[#1a1a2e]">{itemGroup.inventoryValuationMethod}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Track Inventory</span>
-                        <span className={`text-sm font-medium ${itemGroup.trackInventory ? 'text-emerald-600' : 'text-gray-500'}`}>
-                          {itemGroup.trackInventory ? "Enabled" : "Disabled"}
+                    </div>
+
+                    {/* Status */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Status</h3>
+                      </div>
+                      <div className="p-5 flex flex-wrap gap-2.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${itemGroup.sellable !== false ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-none ${itemGroup.sellable !== false ? 'bg-emerald-500' : 'bg-gray-400'}`}></span>
+                          Sellable
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${itemGroup.purchasable !== false ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-none ${itemGroup.purchasable !== false ? 'bg-blue-500' : 'bg-gray-400'}`}></span>
+                          Purchasable
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-none text-xs font-bold uppercase tracking-wider border ${item.returnable === true ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                          <span className={`w-1.5 h-1.5 rounded-none ${item.returnable === true ? 'bg-purple-500' : 'bg-gray-400'}`}></span>
+                          {item.returnable === true ? 'Returnable' : 'Non-Returnable'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Accounts */}
-                  <div>
-                    <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Accounts</h3>
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Sales Account</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">Sales</span>
+                  {/* Right Column */}
+                  <div className="space-y-6">
+                    {/* Details */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Details</h3>
                       </div>
-                      <div className="flex justify-between items-center py-2 border-b border-[#f1f5f9]">
-                        <span className="text-sm text-[#64748b]">Purchase Account</span>
-                        <span className="text-sm font-medium text-[#1a1a2e]">Cost of Goods Sold</span>
+                      <div className="p-5 space-y-3">
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Item Group</span>
+                          <span className="text-xs font-bold text-[#111827] uppercase">{itemGroup.name}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Item Type</span>
+                          <span className="text-xs font-bold text-[#111827] uppercase">{itemGroup.itemType === "goods" ? "Inventory Item" : "Service"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">SKU</span>
+                          <span className="text-xs font-bold text-[#111827] font-mono">{item.sku || "—"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Unit</span>
+                          <span className="text-xs font-bold text-[#111827] uppercase">{itemGroup.unit || "pcs"}</span>
+                        </div>
+                        {itemGroup.attributeRows && itemGroup.attributeRows.map((attrRow, idx) => {
+                          const attrValue = item.attributeCombination && item.attributeCombination[idx] 
+                            ? item.attributeCombination[idx] 
+                            : getAttributeValue(attrRow.attribute);
+                          return attrRow.attribute ? (
+                            <div key={idx} className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                              <span className="text-xs font-medium text-[#6B7280]">{attrRow.attribute}</span>
+                              <span className="text-xs font-bold text-[#111827]">{attrValue || "—"}</span>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Inventory */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Inventory</h3>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Inventory Account</span>
+                          <span className="text-xs font-bold text-[#111827]">Inventory Asset</span>
+                        </div>
+                        {itemGroup.inventoryValuationMethod && (
+                          <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                            <span className="text-xs font-medium text-[#6B7280]">Valuation Method</span>
+                            <span className="text-xs font-bold text-[#111827] uppercase">{itemGroup.inventoryValuationMethod}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Track Inventory</span>
+                          <span className={`text-xs font-bold uppercase tracking-wider ${itemGroup.trackInventory ? 'text-emerald-600' : 'text-gray-500'}`}>
+                            {itemGroup.trackInventory ? "Enabled" : "Disabled"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Accounts */}
+                    <div className="bg-white border border-[#E5E7EB] rounded-none shadow-xs">
+                      <div className="px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                        <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Accounts</h3>
+                      </div>
+                      <div className="p-5 space-y-3">
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Sales Account</span>
+                          <span className="text-xs font-bold text-[#111827]">Sales</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Purchase Account</span>
+                          <span className="text-xs font-bold text-[#111827]">Cost of Goods Sold</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === "Stocks" && (
-            <div className="space-y-6">
-              {/* Stock Location Header */}
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#e4e6f2]">
+            {activeTab === "Stocks" && (
+              <div className="space-y-6">
+                {/* Stock Location Header */}
+                <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB]">
+                  <button
+                    onClick={() => {
+                      navigate(`/shoe-sales/item-groups/${id}/items/${itemId}/stocks?type=${stockType}`);
+                    }}
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
+                  >
+                    <Settings size={15} className="text-[#6B7280]" />
+                    <span className="text-sm font-bold uppercase tracking-wider text-[#111827]">Stock Locations</span>
+                    <ChevronDown size={15} className="text-[#6B7280]" />
+                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setStockType("accounting")}
+                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-none border transition-colors cursor-pointer ${
+                        stockType === "accounting"
+                          ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
+                          : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
+                      }`}
+                    >
+                      Accounting Stock
+                    </button>
+                    <button
+                      onClick={() => setStockType("physical")}
+                      className={`h-8 px-3.5 text-xs font-bold uppercase tracking-wider rounded-none border transition-colors cursor-pointer ${
+                        stockType === "physical"
+                          ? "bg-[#8B5CF6] text-white border-[#8B5CF6]"
+                          : "bg-[#EEEEEE] text-[#4B5563] border-[#E5E7EB] hover:bg-[#E2E2E2]"
+                      }`}
+                    >
+                      Physical Stock
+                    </button>
+                  </div>
+                </div>
+
+                {/* Warehouses Table */}
+                {allWarehouses.length > 0 || warehouseStocks.length > 0 ? (
+                  <div className="overflow-x-auto border border-[#E5E7EB] rounded-none shadow-xs">
+                    <table className="min-w-full divide-y divide-[#E5E7EB]">
+                      <thead>
+                        <tr className="bg-[#1e1e1e] text-white">
+                          <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider">
+                            Warehouse Name
+                          </th>
+                          <th colSpan={3} className="px-5 py-3 text-center text-[11px] font-bold uppercase tracking-wider border-l border-[#333333]">
+                            {stockType === "accounting" ? "Accounting Stock" : "Physical Stock"}
+                          </th>
+                        </tr>
+                        <tr className="bg-[#2a2a2a] text-gray-200 border-t border-[#333333]">
+                          <th className="px-5 py-2"></th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Stock on Hand
+                          </th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Committed Stock
+                          </th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Available for Sale
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                        {warehouseStocks
+                          .filter((stock) => true)
+                          .map((stock, idx) => {
+                          const accountingOnHand = stock.stockOnHand !== undefined && stock.stockOnHand !== null
+                            ? parseFloat(stock.stockOnHand)
+                            : parseFloat(stock.openingStock || 0);
+                          const accountingCommitted = parseFloat(stock.committedStock || 0);
+                          const accountingAvailable = stock.availableForSale !== undefined && stock.availableForSale !== null
+                            ? parseFloat(stock.availableForSale)
+                            : parseFloat(accountingOnHand - accountingCommitted);
+
+                          const physicalOnHand = stock.physicalStockOnHand !== undefined && stock.physicalStockOnHand !== null
+                            ? parseFloat(stock.physicalStockOnHand)
+                            : parseFloat(stock.physicalOpeningStock || 0);
+                          const physicalCommitted = parseFloat(stock.physicalCommittedStock || 0);
+                          const physicalAvailable = stock.physicalAvailableForSale !== undefined && stock.physicalAvailableForSale !== null
+                            ? parseFloat(stock.physicalAvailableForSale)
+                            : parseFloat(physicalOnHand - physicalCommitted || 0);
+
+                          const stockOnHandValue = stockType === "accounting" ? accountingOnHand : (isNaN(physicalOnHand) ? 0 : physicalOnHand);
+                          const committedStockValue = stockType === "accounting" ? accountingCommitted : (isNaN(physicalCommitted) ? 0 : physicalCommitted);
+                          const availableForSaleValue = stockType === "accounting" ? accountingAvailable : (isNaN(physicalAvailable) ? 0 : physicalAvailable);
+                          const isMainWarehouse = stock.warehouse === "Warehouse";
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-[#F9FAFB] transition-colors">
+                              <td className="px-5 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  {isMainWarehouse && (
+                                    <Star size={14} className="text-amber-500 fill-amber-500 shrink-0" />
+                                  )}
+                                  <span className="text-xs font-bold text-[#111827] uppercase">
+                                    {stock.warehouse}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="px-5 py-3 whitespace-nowrap text-xs font-mono font-semibold text-[#111827] border-l border-[#E5E7EB]">
+                                {stockOnHandValue.toFixed(2)}
+                              </td>
+                              <td className="px-5 py-3 whitespace-nowrap text-xs font-mono font-medium text-[#6B7280] border-l border-[#E5E7EB]">
+                                {committedStockValue.toFixed(2)}
+                              </td>
+                              <td className="px-5 py-3 whitespace-nowrap text-xs font-mono font-bold text-emerald-600 border-l border-[#E5E7EB]">
+                                {availableForSaleValue.toFixed(2)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="rounded-none border border-[#E5E7EB] bg-white p-12 text-center">
+                    <Warehouse size={40} className="mx-auto mb-3 text-[#9CA3AF]" />
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#111827] mb-1">No stock locations added yet</p>
+                    <p className="text-xs text-[#6B7280] mb-4">Click "Stock Locations" above to add stocks to warehouses</p>
+                    <button
+                      onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}/stocks?type=${stockType}`)}
+                      className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer"
+                    >
+                      <Plus size={14} className="text-[#6B7280]" />
+                      <span>Add Stock Locations</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Show Inactive Warehouses Link */}
+                {warehouseStocks.length > 0 && (
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      onClick={() => setShowInactiveWarehouses(!showInactiveWarehouses)}
+                      className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#4B5563] hover:text-[#111827] transition-colors cursor-pointer"
+                    >
+                      <span>Show Inactive Warehouses</span>
+                      <ChevronDown 
+                        size={14} 
+                        className={`text-[#6B7280] transition-transform duration-200 ${
+                          showInactiveWarehouses ? "rotate-180" : "rotate-0"
+                        }`} 
+                      />
+                    </button>
+                  </div>
+                )}
+
+                {/* Inactive Warehouses (if shown) */}
+                {showInactiveWarehouses && warehouseStocks.length > 0 && (
+                  <div className="mt-3 overflow-x-auto rounded-none border border-[#E5E7EB] bg-white">
+                    <table className="min-w-full divide-y divide-[#E5E7EB]">
+                      <thead>
+                        <tr className="bg-[#1e1e1e] text-white">
+                          <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider">
+                            Warehouse Name
+                          </th>
+                          <th colSpan={3} className="px-5 py-3 text-center text-[11px] font-bold uppercase tracking-wider border-l border-[#333333]">
+                            {stockType === "accounting" ? "Accounting Stock" : "Physical Stock"}
+                          </th>
+                        </tr>
+                        <tr className="bg-[#2a2a2a] text-gray-200 border-t border-[#333333]">
+                          <th className="px-5 py-2"></th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Stock on Hand
+                          </th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Committed Stock
+                          </th>
+                          <th className="px-5 py-2 text-left text-[10px] font-bold uppercase tracking-wider text-gray-300 border-l border-[#333333]">
+                            Available for Sale
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                        <tr className="opacity-60 hover:bg-[#F9FAFB]">
+                          <td className="px-5 py-3 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <Warehouse size={14} className="text-gray-400" />
+                              <span className="text-xs font-bold text-gray-500 uppercase">Inactive Warehouse</span>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3 whitespace-nowrap text-xs font-mono text-gray-500 border-l border-[#E5E7EB]">0.00</td>
+                          <td className="px-5 py-3 whitespace-nowrap text-xs font-mono text-gray-500 border-l border-[#E5E7EB]">0.00</td>
+                          <td className="px-5 py-3 whitespace-nowrap text-xs font-mono font-medium text-gray-500 border-l border-[#E5E7EB]">0.00</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "History" && (isAdmin || user?.power === 'warehouse') && (
+              <div className="py-2">
+                {loadingHistory ? (
+                  <div className="py-12 text-center text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                    Loading history...
+                  </div>
+                ) : history.length === 0 ? (
+                  <div className="py-12 text-center text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                    No history available
+                  </div>
+                ) : (
+                  <div className="rounded-none border border-[#E5E7EB] bg-white overflow-hidden shadow-xs">
+                    <table className="min-w-full divide-y divide-[#E5E7EB]">
+                      <thead className="bg-[#1e1e1e] text-white">
+                        <tr>
+                          <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider">
+                            DATE
+                          </th>
+                          <th className="px-5 py-3 text-left text-[11px] font-bold uppercase tracking-wider border-l border-[#333333]">
+                            DETAILS
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                        {history.map((entry, idx) => {
+                          const dateValue = entry.changedAt || entry.createdAt || new Date();
+                          const date = new Date(dateValue);
+                          
+                          if (isNaN(date.getTime())) {
+                            console.error("Invalid date for history entry:", entry);
+                          }
+                          
+                          const formattedDate = date.toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          });
+                          const formattedTime = date.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true
+                          });
+                          let detailsText = entry.details || "updated";
+                          if (entry.changedBy) {
+                            if (entry.changeType === "CREATE") {
+                              detailsText = `created by - ${entry.changedBy}`;
+                            } else {
+                              detailsText = entry.details && entry.details !== "updated" 
+                                ? `${entry.details} - ${entry.changedBy}`
+                                : `updated by - ${entry.changedBy}`;
+                            }
+                          }
+                          
+                          return (
+                            <tr key={idx} className="hover:bg-[#F9FAFB] transition-colors">
+                              <td className="px-5 py-3.5 whitespace-nowrap text-xs font-mono font-bold text-[#111827]">
+                                {formattedDate} {formattedTime}
+                              </td>
+                              <td className="px-5 py-3.5 text-xs text-[#374151] border-l border-[#E5E7EB]">
+                                {detailsText}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab !== "Overview" && activeTab !== "Stocks" && activeTab !== "History" && (
+              <div className="py-12 text-center text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                {activeTab} content coming soon...
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Delete Item</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-[#111827]">"{item?.name}"</span>? This action cannot be undone.
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none bg-red-600 hover:bg-red-700 text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mark as Inactive Confirmation Modal */}
+        {showInactiveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Mark as Inactive</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Are you sure you want to mark <span className="font-bold text-[#111827]">"{item?.name}"</span> as inactive? This will remove the item from the group.
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
+                <button
+                  onClick={() => setShowInactiveModal(false)}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMarkAsInactive}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? "Updating..." : "Mark as Inactive"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Move to Another Group Modal */}
+        {showMoveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Move to Another Group</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-xs text-[#4B5563] mb-3">
+                  Select a target group to move <span className="font-bold text-[#111827]">"{item?.name}"</span> to:
+                </p>
+                {loadingGroups ? (
+                  <div className="text-center py-4 text-xs font-bold uppercase tracking-wider text-[#6B7280]">Loading groups...</div>
+                ) : allItemGroups.length === 0 ? (
+                  <div className="text-center py-4 text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                    No other item groups available.
+                  </div>
+                ) : (
+                  <select
+                    value={selectedTargetGroupId}
+                    onChange={(e) => setSelectedTargetGroupId(e.target.value)}
+                    className="w-full rounded-none border border-[#E5E7EB] bg-white px-3.5 py-2 text-xs font-bold text-[#111827] focus:border-[#8B5CF6] focus:outline-none"
+                  >
+                    <option value="">Select a group...</option>
+                    {allItemGroups.map((group) => (
+                      <option key={group._id || group.id} value={group._id || group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
                 <button
                   onClick={() => {
-                    navigate(`/shoe-sales/item-groups/${id}/items/${itemId}/stocks?type=${stockType}`);
+                    setShowMoveModal(false);
+                    setSelectedTargetGroupId("");
                   }}
-                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  <Settings size={16} className="text-[#64748b]" />
-                  <span className="text-base font-semibold text-[#1f2937]">Stock Locations</span>
-                  <ChevronDown size={16} className="text-[#64748b]" />
+                  Cancel
                 </button>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setStockType("accounting")}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
-                      stockType === "accounting"
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm hover:bg-blue-700"
-                        : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-                    }`}
-                  >
-                    Accounting Stock
-                  </button>
-                  <button
-                    onClick={() => setStockType("physical")}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-200 ${
-                      stockType === "physical"
-                        ? "bg-blue-600 text-white border-blue-600 shadow-sm hover:bg-blue-700"
-                        : "bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100"
-                    }`}
-                  >
-                    Physical Stock
-                  </button>
-                </div>
-              </div>
-
-              {/* Warehouses Table - Matching Image Layout */}
-              {allWarehouses.length > 0 || warehouseStocks.length > 0 ? (
-                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">
-                          Warehouse Name
-                        </th>
-                        <th colSpan={3} className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-700 border-l border-gray-200">
-                          {stockType === "accounting" ? "Accounting Stock" : "Physical Stock"}
-                        </th>
-                      </tr>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-6 py-2"></th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 border-l border-gray-200">
-                          Stock on Hand
-                        </th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                          Committed Stock
-                        </th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                          Available for Sale
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {warehouseStocks
-                        .filter((stock) => {
-                          // Always show warehouse stocks, including those with 0 stock
-                          // This allows users to see which stores they've sent stock to, even if it's now 0
-                          return true;
-                        })
-                        .map((stock, idx) => {
-                        // Accounting values - don't fallback to opening if stockOnHand is 0
-                        const accountingOnHand = stock.stockOnHand !== undefined && stock.stockOnHand !== null
-                          ? parseFloat(stock.stockOnHand)
-                          : parseFloat(stock.openingStock || 0);
-                        const accountingCommitted = parseFloat(stock.committedStock || 0);
-                        const accountingAvailable = stock.availableForSale !== undefined && stock.availableForSale !== null
-                          ? parseFloat(stock.availableForSale)
-                          : parseFloat(accountingOnHand - accountingCommitted);
-
-                        // Physical values - don't fallback to opening if physicalStockOnHand is 0
-                        const physicalOnHand = stock.physicalStockOnHand !== undefined && stock.physicalStockOnHand !== null
-                          ? parseFloat(stock.physicalStockOnHand)
-                          : parseFloat(stock.physicalOpeningStock || 0);
-                        const physicalCommitted = parseFloat(stock.physicalCommittedStock || 0);
-                        const physicalAvailable = stock.physicalAvailableForSale !== undefined && stock.physicalAvailableForSale !== null
-                          ? parseFloat(stock.physicalAvailableForSale)
-                          : parseFloat(physicalOnHand - physicalCommitted || 0);
-
-                        // Display depends on selected stock type
-                        const stockOnHandValue = stockType === "accounting" ? accountingOnHand : (isNaN(physicalOnHand) ? 0 : physicalOnHand);
-                        const committedStockValue = stockType === "accounting" ? accountingCommitted : (isNaN(physicalCommitted) ? 0 : physicalCommitted);
-                        const availableForSaleValue = stockType === "accounting" ? accountingAvailable : (isNaN(physicalAvailable) ? 0 : physicalAvailable);
-                        const isMainWarehouse = stock.warehouse === "Warehouse";
-                        
-                        return (
-                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center gap-2">
-                                {isMainWarehouse && (
-                                  <Star size={16} className="text-yellow-500 fill-yellow-500 flex-shrink-0" />
-                                )}
-                                <span className="text-sm font-medium text-gray-900">
-                                  {stock.warehouse}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-l border-gray-100">
-                              {stockOnHandValue.toFixed(2)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {availableForSaleValue.toFixed(2)}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="rounded-lg border border-[#e4e6f2] bg-white p-12 text-center">
-                  <Warehouse size={48} className="mx-auto mb-4 text-[#94a3b8]" />
-                  <p className="text-sm font-medium text-[#475569] mb-2">No stock locations added yet</p>
-                  <p className="text-xs text-[#64748b] mb-4">Click "Stock Locations" above to add stocks to warehouses</p>
-                  <button
-                    onClick={() => navigate(`/shoe-sales/item-groups/${id}/items/${itemId}/stocks?type=${stockType}`)}
-                    className="no-blue-button inline-flex items-center gap-2 rounded-lg border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] shadow-sm transition-all duration-200 hover:bg-[#f8fafc] hover:border-[#cbd5f5] hover:shadow-md"
-                  >
-                    <Plus size={16} className="text-[#64748b]" />
-                    <span>Add Stock Locations</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Show Inactive Warehouses Link - Only show if there are stocks */}
-              {warehouseStocks.length > 0 && (
-                <div className="flex items-center gap-2 pt-4">
-                  <button
-                    onClick={() => setShowInactiveWarehouses(!showInactiveWarehouses)}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-                  >
-                    <span>Show Inactive Warehouses</span>
-                    <ChevronDown 
-                      size={16} 
-                      className={`text-gray-500 transition-transform duration-200 ${
-                        showInactiveWarehouses ? "rotate-180" : "rotate-0"
-                      }`} 
-                    />
-                  </button>
-                </div>
-              )}
-
-              {/* Inactive Warehouses (if shown) */}
-              {showInactiveWarehouses && warehouseStocks.length > 0 && (
-                <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                          Warehouse Name
-                        </th>
-                        <th colSpan={3} className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-gray-600 border-l border-gray-200">
-                          {stockType === "accounting" ? "Accounting Stock" : "Physical Stock"}
-                        </th>
-                      </tr>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-6 py-2"></th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 border-l border-gray-200">
-                          Stock on Hand
-                        </th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Committed Stock
-                        </th>
-                        <th className="px-6 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                          Available for Sale
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      <tr className="opacity-60 hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <Warehouse size={16} className="text-gray-400" />
-                            <span className="text-sm font-medium text-gray-500">Inactive Warehouse</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-l border-gray-100">0.00</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">0.00</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">0.00</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === "History" && (isAdmin || user?.power === 'warehouse') && (
-            <div className="py-6">
-              {loadingHistory ? (
-                <div className="py-12 text-center text-sm text-[#64748b]">
-                  Loading history...
-                </div>
-              ) : history.length === 0 ? (
-                <div className="py-12 text-center text-sm text-[#64748b]">
-                  No history available
-                </div>
-              ) : (
-                <div className="rounded-lg border border-[#e4e6f2] bg-white overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                          DATE
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                          DETAILS
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {history.map((entry, idx) => {
-                        // Use changedAt, createdAt, or current date as fallback
-                        const dateValue = entry.changedAt || entry.createdAt || new Date();
-                        const date = new Date(dateValue);
-                        
-                        // Check if date is valid
-                        if (isNaN(date.getTime())) {
-                          console.error("Invalid date for history entry:", entry);
-                        }
-                        
-                        const formattedDate = date.toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        });
-                        const formattedTime = date.toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          hour12: true
-                        });
-                        let detailsText = entry.details || "updated";
-                        // Format details to match expected format: "updated by - [Entity]" or "created by - [Entity]"
-                        if (entry.changedBy) {
-                          if (entry.changeType === "CREATE") {
-                            detailsText = `created by - ${entry.changedBy}`;
-                          } else {
-                            detailsText = entry.details && entry.details !== "updated" 
-                              ? `${entry.details} - ${entry.changedBy}`
-                              : `updated by - ${entry.changedBy}`;
-                          }
-                        }
-                        
-                        return (
-                          <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {formattedDate} {formattedTime}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900">
-                              {detailsText}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab !== "Overview" && activeTab !== "Stocks" && activeTab !== "History" && (
-            <div className="py-12 text-center text-sm text-[#64748b]">
-              {activeTab} content coming soon...
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Delete Item</h2>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b]">
-                Are you sure you want to delete "{item?.name}"? This action cannot be undone.
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="no-blue-button rounded-md bg-[#ef4444] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#dc2626] disabled:opacity-50"
-              >
-                {loading ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mark as Inactive Confirmation Modal */}
-      {showInactiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Mark as Inactive</h2>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b]">
-                Are you sure you want to mark "{item?.name}" as inactive? This will remove the item from the group.
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowInactiveModal(false)}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkAsInactive}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f8fafc] hover:border-[#cbd5f5] disabled:opacity-50"
-              >
-                {loading ? "Updating..." : "Mark as Inactive"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Move to Another Group Modal */}
-      {showMoveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Move to Another Group</h2>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b] mb-4">
-                Select a target group to move "{item?.name}" to:
-              </p>
-              {loadingGroups ? (
-                <div className="text-center py-4 text-sm text-[#64748b]">Loading groups...</div>
-              ) : allItemGroups.length === 0 ? (
-                <div className="text-center py-4 text-sm text-[#64748b]">
-                  No other item groups available.
-                </div>
-              ) : (
-                <select
-                  value={selectedTargetGroupId}
-                  onChange={(e) => setSelectedTargetGroupId(e.target.value)}
-                  className="w-full rounded-lg border border-[#d7dcf5] bg-white px-4 py-2.5 text-sm text-[#1f2937] focus:border-[#cbd5f5] focus:outline-none focus:ring-2 focus:ring-[#e7ebf8]"
+                <button
+                  onClick={handleMoveToGroup}
+                  disabled={loading || !selectedTargetGroupId || loadingGroups || allItemGroups.length === 0}
+                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">Select a group...</option>
-                  {allItemGroups.map((group) => (
-                    <option key={group._id || group.id} value={group._id || group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowMoveModal(false);
-                  setSelectedTargetGroupId("");
-                }}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMoveToGroup}
-                disabled={loading || !selectedTargetGroupId || loadingGroups || allItemGroups.length === 0}
-                className="no-blue-button rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Moving..." : "Move"}
-              </button>
+                  {loading ? "Moving..." : "Move"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Remove from Item Group Modal */}
-      {showRemoveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="relative w-full max-w-md rounded-2xl border border-[#d7dcf5] bg-white shadow-xl">
-            <div className="px-6 py-4 border-b border-[#e7ebf8]">
-              <h2 className="text-lg font-semibold text-[#1f2937]">Remove from Item Group</h2>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-[#64748b]">
-                Are you sure you want to remove "{item?.name}" from this item group? This action cannot be undone.
-              </p>
-            </div>
-            <div className="px-6 py-4 border-t border-[#e7ebf8] flex items-center justify-end gap-3">
-              <button
-                onClick={() => setShowRemoveModal(false)}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f1f5f9] disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkAsInactive}
-                disabled={loading}
-                className="no-blue-button rounded-md border border-[#d7dcf5] bg-white px-4 py-2 text-sm font-medium text-[#475569] transition hover:bg-[#f8fafc] hover:border-[#cbd5f5] disabled:opacity-50"
-              >
-                {loading ? "Removing..." : "Remove"}
-              </button>
+        {/* Remove from Item Group Modal */}
+        {showRemoveModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+            <div className="relative w-full max-w-md rounded-none border border-[#E5E7EB] bg-white shadow-2xl">
+              <div className="px-6 py-4 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-[#111827]">Remove from Item Group</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  Are you sure you want to remove <span className="font-bold text-[#111827]">"{item?.name}"</span> from this item group? This action cannot be undone.
+                </p>
+              </div>
+              <div className="px-6 py-4 border-t border-[#E5E7EB] bg-[#F9FAFB] flex items-center justify-end gap-2.5">
+                <button
+                  onClick={() => setShowRemoveModal(false)}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleMarkAsInactive}
+                  disabled={loading}
+                  className="h-9 px-4 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] text-xs font-bold uppercase tracking-wider text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? "Removing..." : "Remove"}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
