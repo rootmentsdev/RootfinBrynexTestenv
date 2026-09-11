@@ -232,6 +232,9 @@ const Header = (prop) => {
         <nav className="bg-white border-b border-gray-200 shadow-sm">
             <div className="max-w-full px-6 py-3.5 flex flex-wrap items-center justify-between mx-auto">
                 <div className="flex items-center gap-3">
+                    {prop.title && (
+                        <h1 className="text-xl font-bold text-gray-800">{prop.title}</h1>
+                    )}
                     <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
                         {hasBetaAccess && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md animate-pulse">

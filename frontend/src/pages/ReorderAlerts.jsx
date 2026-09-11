@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { AlertTriangle, CheckCircle, Trash2, Bell, Mail } from "lucide-react";
-import Head from "../components/Head";
+import { AlertTriangle, CheckCircle, Trash2, Bell, Mail, Package } from "lucide-react";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
@@ -24,13 +24,9 @@ const ReorderAlerts = () => {
     try {
       setLoading(true);
       let url = `${API_URL}/api/reorder-alerts?status=${filter}`;
-      if (warehouse) {
-        url += `&warehouse=${warehouse}`;
-      }
-
+      if (warehouse) url += `&warehouse=${warehouse}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch alerts");
-
       const data = await response.json();
       setAlerts(data);
     } catch (error) {
@@ -43,58 +39,37 @@ const ReorderAlerts = () => {
 
   const handleResolve = async (alertId) => {
     try {
-      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}/resolve`, {
-        method: "PUT",
-      });
-
+      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}/resolve`, { method: "PUT" });
       if (!response.ok) throw new Error("Failed to resolve alert");
-
       setAlerts(alerts.map(a => a._id === alertId ? { ...a, status: "resolved" } : a));
     } catch (error) {
-      console.error("Error resolving alert:", error);
       alert("Failed to resolve alert");
     }
   };
 
   const handleDelete = async (alertId) => {
     if (!window.confirm("Delete this alert?")) return;
-
     try {
-      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}`, {
-        method: "DELETE",
-      });
-
+      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}`, { method: "DELETE" });
       if (!response.ok) throw new Error("Failed to delete alert");
-
       setAlerts(alerts.filter(a => a._id !== alertId));
     } catch (error) {
-      console.error("Error deleting alert:", error);
       alert("Failed to delete alert");
     }
   };
 
   const handleNotify = async (alertId) => {
     try {
-      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}/notify`, {
-        method: "PUT",
-      });
-
-      if (!response.ok) throw new Error("Failed to mark as notified");
-
-      setAlerts(alerts.map(a => a._id === alertId ? { ...a, notifiedAt: new Date() } : a));
-      alert("Admin and users have been notified!");
+      const response = await fetch(`${API_URL}/api/reorder-alerts/${alertId}/notify`, { method: "PUT" });
+      if (!response.ok) throw new Error("Failed to notify");
+      alert("Notification sent!");
     } catch (error) {
-      console.error("Error notifying:", error);
       alert("Failed to send notification");
     }
   };
 
   const handleTestEmail = async () => {
-    if (!testEmail.trim()) {
-      alert("Please enter an email address");
-      return;
-    }
-
+    if (!testEmail) { alert("Please enter an email address"); return; }
     try {
       setTestingEmail(true);
       const response = await fetch(`${API_URL}/api/reorder-alerts/test-email`, {
@@ -102,18 +77,15 @@ const ReorderAlerts = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: testEmail }),
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Failed to send test email");
       }
-
-      alert("✅ Test email sent successfully! Check your inbox.");
+      alert("✅ Test email sent successfully!");
       setShowTestEmail(false);
       setTestEmail("");
     } catch (error) {
-      console.error("Error sending test email:", error);
-      alert(`❌ Failed to send test email: ${error.message}`);
+      alert(`❌ Failed: ${error.message}`);
     } finally {
       setTestingEmail(false);
     }
@@ -121,184 +93,264 @@ const ReorderAlerts = () => {
 
   const activeAlerts = alerts.filter(a => a.status === "active");
   const resolvedAlerts = alerts.filter(a => a.status === "resolved");
+  const displayedAlerts = filter === "active" ? activeAlerts : resolvedAlerts;
+
+  const stockPercent = (alert) => {
+    if (!alert.reorderPoint || alert.reorderPoint === 0) return 100;
+    return Math.min(100, Math.round((alert.currentStock / (alert.reorderPoint * 2)) * 100));
+  };
 
   return (
-    <div className="min-h-screen bg-[#f6f9ff]">
-      <Head title="Reorder Alerts" description="Manage product reorder alerts" />
+    <>
+      <Header title="Reorder Alerts" />
+      <div className={`transition-all duration-300 min-h-screen bg-slate-50 flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
-      <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <header className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-[#111827]">Reorder Alerts</h1>
-            <p className="text-sm text-[#6b7280]">Monitor products that need reordering</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter("active")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filter === "active"
-                  ? "bg-[#ef4444] text-white"
-                  : "bg-white text-[#64748b] border border-[#d1d5db] hover:bg-[#f8fafc]"
-              }`}
-            >
-              Active ({activeAlerts.length})
-            </button>
-            <button
-              onClick={() => setFilter("resolved")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filter === "resolved"
-                  ? "bg-[#10b981] text-white"
-                  : "bg-white text-[#64748b] border border-[#d1d5db] hover:bg-[#f8fafc]"
-              }`}
-            >
-              Resolved ({resolvedAlerts.length})
-            </button>
-            <button
-              onClick={() => setShowTestEmail(!showTestEmail)}
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition flex items-center gap-2"
-              title="Test email configuration"
-            >
-              <Mail size={16} />
-              Test Email
-            </button>
-          </div>
-        </header>
+        {/* ── Filter / Action Bar ── */}
+        <div className="bg-white border-b border-gray-200 shadow-sm no-print">
+          <div className="px-6 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
 
-        {/* Test Email Modal */}
-        {showTestEmail && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-              <h2 className="text-lg font-semibold text-[#1f2937] mb-4">Test Email Configuration</h2>
-              <p className="text-sm text-[#6b7280] mb-4">
-                Send a test email to verify your email configuration is working correctly.
-              </p>
-              
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-[#d1d5db] rounded-lg text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-[#3b82f6]"
-              />
-
-              <div className="flex gap-3">
+              {/* Status Tabs */}
+              <div className="flex items-center gap-1 border border-gray-200 bg-gray-50 p-1 rounded-none">
                 <button
-                  onClick={() => {
-                    setShowTestEmail(false);
-                    setTestEmail("");
-                  }}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-[#f3f4f6] text-[#1f2937] hover:bg-[#e5e7eb] transition"
+                  onClick={() => setFilter("active")}
+                  className={`inline-flex items-center gap-2 h-8 px-4 rounded-none text-xs font-bold uppercase tracking-wider transition-colors ${
+                    filter === "active"
+                      ? "bg-[#ef4444] text-white shadow-sm"
+                      : "text-[#6B7280] hover:bg-white"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${filter === "active" ? "bg-white" : "bg-[#ef4444]"}`} />
+                  Active ({activeAlerts.length})
+                </button>
+                <button
+                  onClick={() => setFilter("resolved")}
+                  className={`inline-flex items-center gap-2 h-8 px-4 rounded-none text-xs font-bold uppercase tracking-wider transition-colors ${
+                    filter === "resolved"
+                      ? "bg-[#10b981] text-white shadow-sm"
+                      : "text-[#6B7280] hover:bg-white"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${filter === "resolved" ? "bg-white" : "bg-[#10b981]"}`} />
+                  Resolved ({resolvedAlerts.length})
+                </button>
+              </div>
+
+              {/* Right Actions */}
+              <button
+                onClick={() => setShowTestEmail(!showTestEmail)}
+                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-none border border-[#3b82f6] bg-[#3b82f6] text-xs font-bold uppercase tracking-wider text-white hover:bg-[#2563eb] transition-colors shadow-sm"
+              >
+                <Mail size={13} />
+                Test Email
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Content ── */}
+        <div className="px-6 py-6 flex-1">
+
+          {/* Test Email Panel */}
+          {showTestEmail && (
+            <div className="mb-6 bg-white rounded-none border border-[#E5E7EB] shadow-sm p-5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#111827] mb-1">Test Email Configuration</h3>
+              <p className="text-xs text-[#6B7280] mb-4">Send a test email to verify your email settings.</p>
+              <div className="flex items-center gap-3">
+                <input
+                  type="email"
+                  placeholder="Enter email address"
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  className="flex-1 px-4 h-9 rounded-none border border-[#E5E7EB] bg-white text-sm text-[#111827] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                />
+                <button
+                  onClick={() => { setShowTestEmail(false); setTestEmail(""); }}
+                  className="h-9 px-4 text-xs font-bold uppercase tracking-wider text-[#6B7280] bg-[#EEEEEE] border border-[#E5E7EB] rounded-none hover:bg-[#E2E2E2] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleTestEmail}
                   disabled={testingEmail}
-                  className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-[#3b82f6] text-white hover:bg-[#2563eb] transition disabled:opacity-50"
+                  className="h-9 px-4 text-xs font-bold uppercase tracking-wider text-white bg-[#3b82f6] rounded-none hover:bg-[#2563eb] transition-colors disabled:opacity-50"
                 >
-                  {testingEmail ? "Sending..." : "Send Test Email"}
+                  {testingEmail ? "Sending..." : "Send"}
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#cbd5f5] border-t-[#3762f9]" />
-              <p className="mt-4 text-sm text-[#64748b]">Loading alerts...</p>
+          {/* Loading */}
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
+              <div className="h-6 w-6 animate-spin rounded-none border-2 border-[#3b82f6] border-t-transparent" />
+              <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wider">Loading alerts...</p>
             </div>
-          </div>
-        ) : alerts.length === 0 ? (
-          <div className="rounded-2xl border border-[#e1e5f5] bg-white p-12 text-center">
-            <Bell size={48} className="mx-auto mb-4 text-[#cbd5f5]" />
-            <p className="text-sm text-[#6b7280]">
-              {filter === "active" ? "No active reorder alerts" : "No resolved alerts"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {alerts.map((alert) => (
-              <div
-                key={alert._id}
-                className={`rounded-2xl border p-6 ${
-                  alert.status === "active"
-                    ? "border-[#fecaca] bg-[#fef2f2]"
-                    : "border-[#d1fae5] bg-[#f0fdf4]"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div
-                      className={`mt-1 p-2 rounded-lg ${
-                        alert.status === "active"
-                          ? "bg-[#fee2e2]"
-                          : "bg-[#dcfce7]"
-                      }`}
-                    >
-                      {alert.status === "active" ? (
-                        <AlertTriangle size={20} className="text-[#dc2626]" />
-                      ) : (
-                        <CheckCircle size={20} className="text-[#16a34a]" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-[#1f2937]">
-                        {alert.itemName}
-                        {alert.itemSku && <span className="text-[#64748b] font-normal ml-2">({alert.itemSku})</span>}
-                      </h3>
-                      <p className="text-sm text-[#6b7280] mt-1">
-                        {alert.itemGroupName && `Group: ${alert.itemGroupName} • `}
-                        Warehouse: {alert.warehouse}
-                      </p>
-                      <div className="mt-3 flex gap-6">
-                        <div>
-                          <p className="text-xs text-[#64748b]">Current Stock</p>
-                          <p className="text-lg font-semibold text-[#1f2937]">{alert.currentStock}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-[#64748b]">Reorder Point</p>
-                          <p className="text-lg font-semibold text-[#ef4444]">{alert.reorderPoint}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {alert.status === "active" && (
-                      <>
-                        <button
-                          onClick={() => handleNotify(alert._id)}
-                          className="px-3 py-2 rounded-lg bg-[#3b82f6] text-white text-sm font-medium hover:bg-[#2563eb] transition"
-                          title="Notify admin and users"
-                        >
-                          <Bell size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleResolve(alert._id)}
-                          className="px-3 py-2 rounded-lg bg-[#10b981] text-white text-sm font-medium hover:bg-[#059669] transition"
-                          title="Mark as resolved"
-                        >
-                          <CheckCircle size={16} />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => handleDelete(alert._id)}
-                      className="px-3 py-2 rounded-lg bg-[#ef4444] text-white text-sm font-medium hover:bg-[#dc2626] transition"
-                      title="Delete alert"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+          ) : displayedAlerts.length === 0 ? (
+            <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-16 text-center">
+              <div className="w-14 h-14 rounded-none bg-gray-50 border border-[#E5E7EB] flex items-center justify-center mx-auto mb-4">
+                <Bell size={28} className="text-gray-300" />
+              </div>
+              <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">
+                {filter === "active" ? "No active reorder alerts" : "No resolved alerts"}
+              </h3>
+              <p className="text-xs text-[#6B7280]">
+                {filter === "active" ? "All stock levels are healthy." : "No alerts have been resolved yet."}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* Summary Stats Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Total Alerts</p>
+                  <p className="text-2xl font-bold text-[#111827]">{displayedAlerts.length}</p>
+                </div>
+                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Critical (0 stock)</p>
+                  <p className="text-2xl font-bold text-[#ef4444]">{displayedAlerts.filter(a => a.currentStock === 0).length}</p>
+                </div>
+                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Low Stock</p>
+                  <p className="text-2xl font-bold text-[#f59e0b]">{displayedAlerts.filter(a => a.currentStock > 0 && a.currentStock <= a.reorderPoint).length}</p>
+                </div>
+                <div className="bg-white border border-[#E5E7EB] rounded-none shadow-sm p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Unique Warehouses</p>
+                  <p className="text-2xl font-bold text-[#3b82f6]">{new Set(displayedAlerts.map(a => a.warehouse)).size}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              {/* Alert Table */}
+              <div className="bg-white rounded-none border border-[#E5E7EB] shadow-sm overflow-hidden">
+                <div className="border-b border-[#E5E7EB] px-5 py-3 bg-[#F9FAFB]">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
+                    {filter === "active" ? "Active Alerts" : "Resolved Alerts"}
+                    <span className="ml-2 font-normal">({displayedAlerts.length})</span>
+                  </h3>
+                </div>
+
+                <div className="divide-y divide-[#E5E7EB]">
+                  {displayedAlerts.map((alert) => {
+                    const pct = stockPercent(alert);
+                    const isCritical = alert.currentStock === 0;
+                    const isResolved = alert.status === "resolved";
+                    return (
+                      <div key={alert._id} className={`px-5 py-4 hover:bg-[#FAFAFA] transition-colors`}>
+                        <div className="flex items-center justify-between gap-4">
+
+                          {/* Left: Icon + Info */}
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            <div className={`flex-shrink-0 mt-0.5 p-2 rounded-none ${
+                              isResolved
+                                ? "bg-green-50 border border-green-200 text-green-600"
+                                : isCritical
+                                  ? "bg-red-100 border border-red-200 text-red-600"
+                                  : "bg-amber-50 border border-amber-200 text-amber-600"
+                            }`}>
+                              {isResolved
+                                ? <CheckCircle size={16} />
+                                : isCritical
+                                  ? <AlertTriangle size={16} />
+                                  : <Package size={16} />
+                              }
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mb-1">
+                                <span className="text-sm font-bold text-[#111827] truncate">{alert.itemName}</span>
+                                {alert.itemSku && (
+                                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-[#F3F4F6] border border-[#E5E7EB] text-[#6B7280]">
+                                    {alert.itemSku}
+                                  </span>
+                                )}
+                                {isCritical && !isResolved && (
+                                  <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 bg-red-50 border border-red-200 text-red-600">
+                                    Out of Stock
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-[#6B7280] mb-3">
+                                <span>Group: <span className="font-semibold text-[#374151]">{alert.itemGroup || "—"}</span></span>
+                                <span className="text-[#D1D5DB]">|</span>
+                                <span>Warehouse: <span className="font-semibold text-[#374151]">{alert.warehouse || "—"}</span></span>
+                              </div>
+
+                              {/* Stock Bar */}
+                              <div className="flex items-center gap-4 max-w-xs">
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Stock Level</span>
+                                    <span className="text-[10px] font-bold text-[#374151]">
+                                      {alert.currentStock} / {alert.reorderPoint * 2} units
+                                    </span>
+                                  </div>
+                                  <div className="h-1.5 w-full bg-[#F3F4F6] rounded-none overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-none transition-all ${
+                                        isResolved ? "bg-[#10b981]" : isCritical ? "bg-[#ef4444]" : "bg-[#f59e0b]"
+                                      }`}
+                                      style={{ width: `${pct}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Middle: Stock Stats */}
+                          <div className="hidden sm:flex items-stretch gap-0 border border-[#E5E7EB] flex-shrink-0">
+                            <div className="px-5 py-3 text-center border-r border-[#E5E7EB]">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Current Stock</p>
+                              <p className={`text-xl font-bold ${isCritical && !isResolved ? "text-[#ef4444]" : "text-[#111827]"}`}>
+                                {alert.currentStock}
+                              </p>
+                            </div>
+                            <div className="px-5 py-3 text-center">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280] mb-1">Reorder Point</p>
+                              <p className="text-xl font-bold text-[#ef4444]">{alert.reorderPoint}</p>
+                            </div>
+                          </div>
+
+                          {/* Right: Action Buttons */}
+                          <div className="flex-shrink-0 flex items-center gap-1.5">
+                            {!isResolved && (
+                              <button
+                                onClick={() => handleNotify(alert._id)}
+                                className="h-8 w-8 flex items-center justify-center rounded-none bg-[#EEF2FF] border border-[#C7D2FE] text-[#4338ca] hover:bg-[#E0E7FF] transition-colors"
+                                title="Notify Admin"
+                              >
+                                <Bell size={14} />
+                              </button>
+                            )}
+                            {!isResolved && (
+                              <button
+                                onClick={() => handleResolve(alert._id)}
+                                className="h-8 w-8 flex items-center justify-center rounded-none bg-[#F0FDF4] border border-[#BBF7D0] text-[#15803d] hover:bg-[#DCFCE7] transition-colors"
+                                title="Mark as Resolved"
+                              >
+                                <CheckCircle size={14} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDelete(alert._id)}
+                              className="h-8 w-8 flex items-center justify-center rounded-none bg-[#FFF1F2] border border-[#FECDD3] text-[#dc2626] hover:bg-[#FEE2E2] transition-colors"
+                              title="Delete Alert"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

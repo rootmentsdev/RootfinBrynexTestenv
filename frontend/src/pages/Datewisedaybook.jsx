@@ -1444,9 +1444,10 @@ const Datewisedaybook = () => {
         <title> Financial Summary | RootFin</title>
       </Helmet>
 
-      <div className={`bg-slate-50 min-h-screen transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+      <div className="bg-slate-50 min-h-screen">
         <Headers title={"Financial Summary Report"} />
-        <div className="p-6">
+        <div className={`transition-all duration-300 ${isSidebarOpen ? "ml-64" : "ml-0"}`}>
+          <div className="p-6">
             <style>{`
               @keyframes fadeIn {
                 from { opacity: 0; transform: translateY(-4px); }
@@ -2155,7 +2156,7 @@ const Datewisedaybook = () => {
                                         ) : (
                                           <button
                                             onClick={() => handleEditClick(transaction, index)}
-                                            className="bg-[#a033f2] text-white px-3 py-1 rounded-none text-xs font-medium hover:bg-[#8e24ec]"
+                                            className="bg-[#18181b] text-white px-3 py-1 rounded-none text-xs font-medium hover:bg-black cursor-pointer"
                                           >
                                             Edit
                                           </button>
@@ -2312,8 +2313,7 @@ const Datewisedaybook = () => {
                                     ) : (
                                       <button
                                         onClick={() => handleEditClick(transaction, index)}
-                                        style={{ backgroundColor: '#9B48D7', color: '#ffffff' }}
-                                        className="text-white px-3 py-1 rounded-none text-xs font-medium hover:opacity-90"
+                                        className="bg-[#18181b] text-white px-3 py-1 rounded-none text-xs font-medium hover:bg-black cursor-pointer"
                                       >
                                         Edit
                                       </button>
@@ -2388,6 +2388,7 @@ const Datewisedaybook = () => {
 
           </div>
         </div>
+      </div>
       </>
     )
   }

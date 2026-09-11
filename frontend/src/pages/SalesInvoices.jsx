@@ -314,15 +314,7 @@ const SalesInvoices = () => {
       <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen bg-[#F9FAFB] flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         {/* ── Top Header Bar ── */}
         <div className="px-6 pt-5 pb-4 border-b border-[#E5E7EB] bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
-                All Invoices
-              </h1>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Review your invoicing activity and keep tabs on customer payments.
-              </p>
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-4">
             <div className="flex items-center gap-2.5">
               <Link
                 to="/sales/invoices/returns"

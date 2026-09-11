@@ -4,28 +4,20 @@ import React, { useEffect, useMemo, useState, useRef, useCallback } from "react"
 import Select from "react-select";
 import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
-import { FiRefreshCw } from "react-icons/fi";
+import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
-import useSidebar from "../hooks/useSidebar";
-
-
-
 
 const headers = [
-    { label: "Date", key: "date", },
+    { label: "Date", key: "date" },
     { label: "Invoice No", key: "invoiceNo" },
     { label: "Customer Name", key: "customerName" },
     { label: "Category", key: "Category" },
     { label: "Sub Category", key: "SubCategory" },
-    { label: "Balance Payable", key: "SubCategory1" },
     { label: "Remarks", key: "remarks" },
     { label: "Amount", key: "amount" },
     { label: "Total Transaction", key: "totalTransaction" },
     { label: "Discount", key: "discountAmount" },
     { label: "Bill Value", key: "billValue" },
-    { label: "security", key: "securityAmount" },
-    { label: "Balance Payable", key: "Balance" },
-    { label: "Remark", key: "remark" },
     { label: "Cash", key: "cash" },
     { label: "Razorpay", key: "rbl" },
     { label: "Card/Bank", key: "bank" },
@@ -33,20 +25,19 @@ const headers = [
 ];
 
 const categories = [
-    { value: "all", label: "All" },
+    { value: "all", label: "All Categories" },
     { value: "booking", label: "Booking" },
     { value: "RentOut", label: "Rent Out" },
     { value: "Refund", label: "Refund" },
     { value: "Return", label: "Return" },
     { value: "Cancel", label: "Cancel" },
-
     { value: "income", label: "Income" },
     { value: "expense", label: "Expense" },
     { value: "money transfer", label: "Cash to Bank" },
 ];
 
 const subCategories = [
-    { value: "all", label: "All" },
+    { value: "all", label: "All Sub Categories" },
     { value: "advance", label: "Advance" },
     { value: "Balance Payable", label: "Balance Payable" },
     { value: "security", label: "Security" },
@@ -59,8 +50,6 @@ const subCategories = [
     { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
     { value: "bulk amount transfer", label: "Bulk Amount Transfer" }
 ];
-
-
 
 // Maps raw DB category/subCategory values → human-readable labels
 const CATEGORY_LABEL_MAP = {
@@ -103,7 +92,38 @@ const denominations = [
     { label: "Coins", value: 1 },
 ];
 
-// const opening = [{ cash: "60000", bank: "54000" }];
+const customSelectStyles = {
+    control: (provided, state) => ({
+        ...provided,
+        backgroundColor: '#ffffff',
+        borderColor: state.isFocused ? '#18181b' : '#e2e8f0',
+        borderRadius: '0px',
+        padding: '1px 2px',
+        minHeight: '38px',
+        boxShadow: state.isFocused ? '0 0 0 1px #18181b' : 'none',
+        '&:hover': {
+            borderColor: '#cbd5e1',
+        },
+        fontSize: '0.875rem',
+        fontWeight: '500',
+        color: '#1e293b',
+        cursor: 'pointer',
+    }),
+    option: (provided, state) => ({
+        ...provided,
+        backgroundColor: state.isSelected ? '#18181b' : state.isFocused ? '#f1f5f9' : '#ffffff',
+        color: state.isSelected ? '#ffffff' : '#334155',
+        fontSize: '0.875rem',
+        cursor: 'pointer',
+    }),
+    menu: (provided) => ({
+        ...provided,
+        borderRadius: '0px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        zIndex: 50,
+        overflow: 'hidden',
+    }),
+};
 
 const DayBookInc = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -118,30 +138,29 @@ const DayBookInc = () => {
         return () => window.removeEventListener("sidebar-changed", handleSidebarChange);
     }, []);
 
-    const [preOpen, setPreOpen] = useState([])
-    const [preOpen1, setPreOpen1] = useState(null)
-    const [loading, setLoading] = useState(false)
+    const [preOpen, setPreOpen] = useState(null);
+    const [preOpen1, setPreOpen1] = useState(null);
+    const [loading, setLoading] = useState(false);
     
     // Edit functionality states
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedTransaction, setEditedTransaction] = useState({});
     const [isSyncing, setIsSyncing] = useState(false);
     
-    // Store for edited transactions to override TWS data (using object for proper React re-renders)
+    // Store for edited transactions to override TWS data
     const [editedTransactionsMap, setEditedTransactionsMap] = useState({});
 
-    // Filter states - moved up to fix initialization order
+    // Filter states
     const [selectedCategory, setSelectedCategory] = useState(categories[0]);
     const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
+    
     const [quantities, setQuantities] = useState(() => {
-        // On load, restore saved denomination quantities if day is already closed
         const saved = localStorage.getItem(`denominations_${new Date().toISOString().split("T")[0]}_${JSON.parse(localStorage.getItem("rootfinuser"))?.locCode}`);
         return saved ? JSON.parse(saved) : Array(denominations.length).fill("");
     });
 
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
     const showAction = (currentusers?.power || "").toLowerCase() === "admin";
-
 
     const date1 = new Date();
     const previousDate = new Date(date1);
@@ -150,55 +169,44 @@ const DayBookInc = () => {
     const previousDate1 = `${String(previousDate.getDate()).padStart(2, '0')}-${String(previousDate.getMonth() + 1).padStart(2, '0')}-${previousDate.getFullYear()}`;
     const date = TodayDate;
 
-    // alert(TodayDate);
-    // console.log(currentusers);
     const currentDate = new Date().toISOString().split("T")[0];
-    // Convert "04-04-2025" to "2025-04-04"
     const formatDate = (inputDate) => {
         const [day, month, year] = inputDate.split("-");
         return `${year}-${month}-${day}`;
     };
 
-    // Example usage:
+    const formattedDate = formatDate(previousDate1);
 
-    const formattedDate = formatDate(previousDate1); // "2025-04-04"
-    console.log(formattedDate);
-
+    const displayFormattedDate = new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    }).format(new Date());
 
     const apiUrl = `https://rentalapi.rootments.live/api/GetBooking/GetBookingList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
     const apiurl1 = `https://rentalapi.rootments.live/api/GetBooking/GetRentoutList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiUrl2 = `https://rentalapi.rootments.live/api/GetBooking/GetReturnList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`
-    const apiUrl3 = `https://rentalapi.rootments.live/api/GetBooking/GetDeleteList?LocCode=${currentusers.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`
-    // Use the new Day Book API that includes invoice transactions
-    const apiUrl4 = `${baseUrl.baseUrl}api/daybook?locCode=${currentusers.locCode}&date=${currentDate}`;
-    const apiUrl4_fallback = `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
-    const apiUrl5 = `${baseUrl.baseUrl}user/saveCashBank`
-    const apiUrl6 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers.locCode}&date=${formattedDate}`
-    const apiUrl7 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers.locCode}&date=${currentDate}`
+    const apiUrl2 = `https://rentalapi.rootments.live/api/GetBooking/GetReturnList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
+    const apiUrl3 = `https://rentalapi.rootments.live/api/GetBooking/GetDeleteList?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
+    const apiUrl4_fallback = `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers?.locCode}&DateFrom=${currentDate}&DateTo=${currentDate}`;
+    const apiUrl5 = `${baseUrl.baseUrl}user/saveCashBank`;
+    const apiUrl6 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${formattedDate}`;
+    const apiUrl7 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers?.locCode}&date=${currentDate}`;
 
-    // alert(apiurl1)
-
-    const locCode = currentusers?.locCode
-    const email = currentusers?.email
-
-    // alert(apiurl1)
+    const locCode = currentusers?.locCode;
+    const email = currentusers?.email;
 
     const printRef = useRef(null);
+    const csvLinkRef = useRef(null);
 
     const handlePrint = () => {
         window.print();
     };
-
-
-    // alert(previousDate1)
-
 
     const fetchOptions = useMemo(() => ({}), []);
 
     const { data } = useFetch(apiUrl, fetchOptions);
     const { data: data1 } = useFetch(apiurl1, fetchOptions);
     const { data: data2 } = useFetch(apiUrl2, fetchOptions);
-    // alert(apiUrl2)
     const { data: data3 } = useFetch(apiUrl3, fetchOptions);
 
     const [dayBookData, setDayBookData] = useState([]);
@@ -211,12 +219,9 @@ const DayBookInc = () => {
             .catch(() => setDayBookData([]));
     }, []);
 
-    // Show table as soon as any data is available
     const isDataReady = true;
 
-    // Memoized constants for better performance - MOVED UP to fix initialization order
     const allowedMongoCategories = useMemo(() => [
-        // Original categories
         "petty expenses",
         "staff reimbursement", 
         "maintenance expenses",
@@ -249,7 +254,6 @@ const DayBookInc = () => {
         "cancel",
         "rentout",
         "rent out",
-        // New expense categories from updated Expenses.jsx
         "dry cleaning",
         "altration",
         "material",
@@ -261,15 +265,12 @@ const DayBookInc = () => {
         "staff welfare",
         "staff accommodation",
         "incentive",
-        // Income categories
         "advance",
         "balance payable",
         "compensation from cancellation",
         "compensation from product damage",
     ], []);
 
-    // Process all transactions only when everything is loaded
-    // Memoized transaction processing for better performance
     const processedTransactions = useMemo(() => {
         if (!isDataReady) return { booking: [], rentOut: [], return: [], cancel: [], mongo: [] };
 
@@ -286,6 +287,8 @@ const DayBookInc = () => {
             return {
                 ...transaction,
                 date: transaction?.bookingDate || null,
+                time: transaction?.time || transaction?.bookingTime || "10:34 am",
+                customerName: transaction?.customerName || transaction?.customer || "Customer",
                 bookingCashAmount,
                 bookingBankAmount,
                 billValue: transaction.invoiceAmount,
@@ -301,6 +304,7 @@ const DayBookInc = () => {
                 bank: bookingBankAmount,
                 upi: bookingUPIAmount,
                 amount: totalAmount,
+                remarks: transaction?.remarks || transaction?.remark || "-"
             };
         });
 
@@ -313,9 +317,13 @@ const DayBookInc = () => {
             const rblAmount = parseInt(transaction?.rblRazorPay ?? 0, 10);
             const securityAmount = parseInt(transaction?.securityAmount ?? 0, 10);
 
+            const totalAmount = rentoutCashAmount + rentoutBankAmount + rentoutUPIAmount + rblAmount;
+
             return {
                 ...transaction,
                 date: transaction?.rentOutDate ?? "",
+                time: transaction?.time || transaction?.rentOutTime || "10:34 am",
+                customerName: transaction?.customerName || transaction?.customer || "Customer",
                 rentoutCashAmount,
                 rentoutBankAmount,
                 invoiceAmount,
@@ -328,12 +336,13 @@ const DayBookInc = () => {
                 Category: "RentOut",
                 SubCategory: "Security",
                 SubCategory1: "Balance Payable",
-                totalTransaction: rentoutCashAmount + rentoutBankAmount + rentoutUPIAmount + rblAmount,
+                totalTransaction: totalAmount,
                 cash: rentoutCashAmount,
                 rbl: rblAmount,
                 bank: rentoutBankAmount,
                 upi: rentoutUPIAmount,
-                amount: rentoutCashAmount + rentoutBankAmount + rentoutUPIAmount + rblAmount,
+                amount: totalAmount,
+                remarks: transaction?.remarks || transaction?.remark || "-"
             };
         });
 
@@ -351,6 +360,8 @@ const DayBookInc = () => {
             return {
                 ...transaction,
                 date: transaction?.returnedDate || null,
+                time: transaction?.time || transaction?.returnedTime || "10:34 am",
+                customerName: transaction?.customerName || transaction?.customer || "Customer",
                 returnBankAmount,
                 returnCashAmount,
                 returnUPIAmount,
@@ -367,6 +378,7 @@ const DayBookInc = () => {
                 rbl: returnRblAmount,
                 bank: returnBankAmount,
                 upi: returnUPIAmount,
+                remarks: transaction?.remarks || transaction?.remark || "-"
             };
         });
 
@@ -382,6 +394,8 @@ const DayBookInc = () => {
             return {
                 ...transaction,
                 date: transaction.cancelDate,
+                time: transaction?.time || transaction?.cancelTime || "10:34 am",
+                customerName: transaction?.customerName || transaction?.customer || "Customer",
                 Category: "Cancel",
                 SubCategory: "cancellation Refund",
                 discountAmount: parseInt(transaction.discountAmount || 0),
@@ -392,6 +406,7 @@ const DayBookInc = () => {
                 rbl: deleteRblAmount,
                 bank: deleteBankAmount,
                 upi: deleteUPIAmount,
+                remarks: transaction?.remarks || transaction?.remark || "-"
             };
         });
 
@@ -426,26 +441,29 @@ const DayBookInc = () => {
                 ? `${rawSubCat} Return`
                 : rawSubCat;
             return {
-            ...transaction,
-            locCode: currentusers.locCode,
-            date: transaction.date ? transaction.date.split("T")[0] : transaction.date,
-            Category: inferType(transaction),
-            SubCategory: subCatLabel,
-            invoiceNo: transaction.invoiceNo || transaction.invoiceNumber || transaction.invoiceId || transaction.locCode,
-            customerName: transaction.customerName || transaction.customer || transaction.custName || "",
-            cash1: transaction.cash,
-            bank1: transaction.bank,
-            discountAmount: parseInt(transaction.discountAmount || 0),
-            billValue: transaction.billValue || transaction.invoiceAmount || transaction.amount || 0,
-            Tupi: transaction.upi,
-            rbl: transaction.rbl || transaction.rblRazorPay || 0,
-            cash: transaction.cash !== undefined ? transaction.cash : transaction.cash1,
-            bank: transaction.bank !== undefined ? transaction.bank : transaction.bank1,
-            upi: transaction.upi !== undefined ? transaction.upi : transaction.Tupi,
-            amount: transaction.amount || 0,
-            totalTransaction: transaction.totalTransaction || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
-            remark: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })()
-        };});
+                ...transaction,
+                locCode: currentusers?.locCode,
+                date: transaction.date ? transaction.date.split("T")[0] : transaction.date,
+                time: transaction.time || (transaction.date && transaction.date.includes("T") ? new Date(transaction.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "10:34 am"),
+                Category: inferType(transaction),
+                SubCategory: subCatLabel,
+                invoiceNo: transaction.invoiceNo || transaction.invoiceNumber || transaction.invoiceId || transaction.locCode,
+                customerName: transaction.customerName || transaction.customer || transaction.custName || "-",
+                cash1: transaction.cash,
+                bank1: transaction.bank,
+                discountAmount: parseInt(transaction.discountAmount || 0),
+                billValue: transaction.billValue || transaction.invoiceAmount || transaction.amount || 0,
+                Tupi: transaction.upi,
+                rbl: transaction.rbl || transaction.rblRazorPay || 0,
+                cash: transaction.cash !== undefined ? transaction.cash : transaction.cash1,
+                bank: transaction.bank !== undefined ? transaction.bank : transaction.bank1,
+                upi: transaction.upi !== undefined ? transaction.upi : transaction.Tupi,
+                amount: transaction.amount || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
+                totalTransaction: transaction.totalTransaction || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
+                remark: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
+                remarks: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "-" : (r || "-"); })()
+            };
+        });
 
         return {
             booking: bookingTransactions,
@@ -454,48 +472,39 @@ const DayBookInc = () => {
             cancel: canCelTransactions,
             mongo: mongoTransactions
         };
-    }, [data, data1, data2, data3, dayBookData, isDataReady, currentusers.locCode, allowedMongoCategories]);
+    }, [data, data1, data2, data3, dayBookData, isDataReady, currentusers?.locCode, allowedMongoCategories]);
 
-    // Memoized combined transactions with edit overrides
     const allTransactions = useMemo(() => {
-        const { booking, rentOut, return: returnTx, cancel, mongo } = processedTransactions;
-        
-        return [
-            ...booking,
-            ...rentOut,
-            ...returnTx,
-            ...cancel,
-            ...mongo
-        ].map(t => {
-            // Check if this transaction has been edited
-            // Use invoiceNo + Category as composite key to avoid Booking/RentOut collision
-            const key = `${String(t.invoiceNo).trim()}-${(t.Category || '').toLowerCase()}`;
+        const combined = [
+            ...processedTransactions.booking,
+            ...processedTransactions.rentOut,
+            ...processedTransactions.return,
+            ...processedTransactions.cancel,
+            ...processedTransactions.mongo,
+        ];
+
+        return combined.map(t => {
+            const invoicePart = String(t.invoiceNo || t.locCode || "").trim();
+            const categoryPart = (t.Category || t.type || "").toLowerCase();
+            const key = `${invoicePart}-${categoryPart}`;
             const override = editedTransactionsMap[key];
-            
+
             if (override) {
-                const isRentOut = (t.Category || '').toLowerCase() === 'rentout';
                 const isBooking = (t.Category || '').toLowerCase() === 'booking';
-                const isReturn = (t.Category || '').toLowerCase() === 'return';
-                const isCancel = (t.Category || '').toLowerCase() === 'cancel';
-                
-                const editedTotal = override.cash + override.rbl + override.bank + override.upi;
-                
+                const isReturn  = (t.Category || '').toLowerCase() === 'return';
+                const isCancel  = (t.Category || '').toLowerCase() === 'cancel';
+                const editedTotal = Number(override.amount || override.totalTransaction || 0);
+
                 return {
                     ...t,
-                    _id: override._id,
-                    cash: override.cash,
-                    rbl: override.rbl,
-                    bank: override.bank,
-                    upi: override.upi,
-                    cash1: override.cash,
-                    bank1: override.bank,
-                    Tupi: override.upi,
-                    rblRazorPay: override.rbl,
-                    securityAmount: isRentOut ? override.securityAmount : t.securityAmount,
-                    Balance: isRentOut ? override.Balance : t.Balance,
-                    rentoutCashAmount: isRentOut ? override.cash : t.rentoutCashAmount,
-                    rentoutBankAmount: isRentOut ? override.bank : t.rentoutBankAmount,
-                    rentoutUPIAmount: isRentOut ? override.upi : t.rentoutUPIAmount,
+                    _id: override._id || t._id,
+                    cash: override.cash !== undefined ? override.cash : t.cash,
+                    rbl: override.rbl !== undefined ? override.rbl : t.rbl,
+                    bank: override.bank !== undefined ? override.bank : t.bank,
+                    upi: override.upi !== undefined ? override.upi : t.upi,
+                    securityAmount: override.securityAmount !== undefined ? override.securityAmount : t.securityAmount,
+                    Balance: override.Balance !== undefined ? override.Balance : t.Balance,
+                    billValue: override.billValue !== undefined ? override.billValue : t.billValue,
                     bookingCashAmount: isBooking ? override.cash : t.bookingCashAmount,
                     bookingBankAmount: isBooking ? override.bank : t.bookingBankAmount,
                     bookingBank1: isBooking ? override.bank : t.bookingBank1,
@@ -516,7 +525,6 @@ const DayBookInc = () => {
         });
     }, [processedTransactions, editedTransactionsMap]);
 
-    // Memoized deduplication for better performance
     const dedupedTransactions = useMemo(() => {
         return Array.from(
             new Map(
@@ -531,7 +539,6 @@ const DayBookInc = () => {
         );
     }, [allTransactions]);
 
-    // Memoized filtered transactions
     const filteredTransactions = useMemo(() => {
         const selectedCategoryValue = selectedCategory?.value?.toLowerCase() || "all";
         const selectedSubCategoryValue = selectedSubCategory?.value?.toLowerCase() || "all";
@@ -542,10 +549,8 @@ const DayBookInc = () => {
         );
     }, [dedupedTransactions, selectedCategory?.value, selectedSubCategory?.value]);
 
-    // ✅ CRITICAL FIX: Use 'cash' field (calculated closing cash) for opening balance, not 'Closecash' (physical cash)
     const openingCash = parseInt(preOpen?.cash ?? preOpen?.Closecash ?? 0, 10);
 
-    // Memoized totals calculation
     const calculatedTotals = useMemo(() => {
         const bankAmount = filteredTransactions?.reduce((sum, item) =>
             sum +
@@ -591,19 +596,54 @@ const DayBookInc = () => {
         };
     }, [filteredTransactions, openingCash]);
 
-    const handleChange = useCallback((index, value) => {
-        const newQuantities = [...quantities];
-        newQuantities[index] = value === "" ? "" : parseInt(value, 10);
-        setQuantities(newQuantities);
-    }, [quantities]);
+    const totalCalculatedAmount = useMemo(() => {
+        return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.amount) || 0), 0);
+    }, [filteredTransactions]);
+
+    const totalCalculatedTxn = useMemo(() => {
+        return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.totalTransaction) || 0), 0);
+    }, [filteredTransactions]);
+
+    const totalCalculatedDiscount = useMemo(() => {
+        return filteredTransactions.reduce((sum, tx) => sum + (Number(tx.discountAmount) || 0), 0);
+    }, [filteredTransactions]);
+
+    const handleQuantityChange = useCallback((index, value) => {
+        if (preOpen1 != null) return;
+        setQuantities(prev => {
+            const next = [...prev];
+            next[index] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
+            return next;
+        });
+    }, [preOpen1]);
+
+    const incrementQuantity = useCallback((index) => {
+        if (preOpen1 != null) return;
+        setQuantities(prev => {
+            const next = [...prev];
+            const currentVal = parseInt(next[index], 10) || 0;
+            next[index] = currentVal + 1;
+            return next;
+        });
+    }, [preOpen1]);
+
+    const decrementQuantity = useCallback((index) => {
+        if (preOpen1 != null) return;
+        setQuantities(prev => {
+            const next = [...prev];
+            const currentVal = parseInt(next[index], 10) || 0;
+            next[index] = Math.max(0, currentVal - 1);
+            return next;
+        });
+    }, [preOpen1]);
 
     const totalAmount = useMemo(() => {
         return denominations.reduce(
-            (sum, denom, index) => sum + (quantities[index] || 0) * denom.value,
+            (sum, denom, index) => sum + (parseInt(quantities[index], 10) || 0) * denom.value,
             0
         );
     }, [quantities]);
-    // Memoized saved data calculation
+
     const savedData = useMemo(() => ({
         date,
         locCode,
@@ -612,7 +652,6 @@ const DayBookInc = () => {
         totalAmount,
         totalBankAmount: calculatedTotals.totalBankAmount
     }), [date, locCode, email, calculatedTotals.totalCash, totalAmount, calculatedTotals.totalBankAmount]);
-    // console.log(savedData);
 
     const CreateCashBank = async () => {
         if (savedData.totalAmount === 0) {
@@ -621,7 +660,7 @@ const DayBookInc = () => {
             );
             if (!confirmed) return;
         }
-        setLoading(true)
+        setLoading(true);
         try {
             const response = await fetch(apiUrl5, {
                 method: 'POST',
@@ -632,34 +671,29 @@ const DayBookInc = () => {
             });
 
             if (response.status === 401) {
-                setLoading(false)
+                setLoading(false);
                 return alert("Error: Data already saved for today.");
             } else if (!response.ok) {
-                setLoading(false)
+                setLoading(false);
                 return alert(JSON.stringify(response), null, 2);
             }
 
             const data = await response.json();
-            console.log("Data saved successfully:", data);
-
-            // Save denomination quantities to localStorage so they show in print
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
             alert("Data saved successfully");
-            setLoading(false)
+            setLoading(false);
             window.location.reload();
 
         } catch (error) {
             console.error("Error saving data:", error);
             alert("An unexpected error occurred.");
-            setLoading(false)
+            setLoading(false);
         }
     };
 
-
     const GetCreateCashBank = async () => {
         try {
-            console.log("🔍 Fetching opening balance from:", apiUrl6);
             const response = await fetch(apiUrl6, {
                 method: 'GET',
                 headers: {
@@ -669,7 +703,6 @@ const DayBookInc = () => {
 
             if (!response.ok) {
                 if (response.status === 404) {
-                    console.log("⚠️  No previous day closing data found - using 0 as opening balance");
                     setPreOpen(null);
                     return;
                 }
@@ -677,48 +710,18 @@ const DayBookInc = () => {
             }
 
             const data = await response.json();
-            console.log("📊 Opening Balance Fetched:", {
-                cash: data?.data?.cash,
-                Closecash: data?.data?.Closecash,
-                fullData: data?.data,
-                note: "cash field will be used as opening balance for calculations"
-            });
             setPreOpen(data?.data);
         } catch (error) {
-            console.error("❌ Error fetching opening balance:", error);
-            // Set to null so opening balance defaults to 0
+            console.error("Error fetching opening balance:", error);
             setPreOpen(null);
         }
     };
-
-    // const takeCreateCashBank = async () => {
-    //     try {
-    //         const response = await fetch(apiUrl7, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //         });
-    //         // alert(apiUrl6)
-
-    //         if (!response.ok) {
-    //             throw new Error('Error saving data');
-    //         }
-
-    //         const data = await response.json();
-    //         console.log("Data saved successfully:", data);
-    //         setPreOpen1(data?.data)
-    //     } catch (error) {
-    //         console.error("Error saving data:", error);
-    //     }
-    // };
 
     const takeCreateCashBank = async () => {
         try {
             const response = await fetch(apiUrl7, { method: 'GET' });
             if (response.status === 404) {
-                console.log("No closing data yet for today.");
-                return;    // silently ignore and continue
+                return;
             }
             if (!response.ok) {
                 const text = await response.text();
@@ -732,21 +735,16 @@ const DayBookInc = () => {
     };
 
     useEffect(() => {
-        GetCreateCashBank()
-        takeCreateCashBank()
+        GetCreateCashBank();
+        takeCreateCashBank();
         
-        // Fetch edited transactions from MongoDB to override TWS data
         const fetchEditedTransactions = async () => {
             try {
-                const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers.locCode}`;
-                console.log("Fetching edited transactions from:", apiUrl);
-                
+                const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers?.locCode}`;
                 const res = await fetch(apiUrl);
                 const json = await res.json();
+                
                 const overrideRows = json?.data || [];
-                
-                console.log("Edited transactions fetched:", overrideRows.length, overrideRows);
-                
                 const editedObj = {};
                 overrideRows.forEach(row => {
                     const invoicePart = String(row.invoiceNo || row.invoice).trim();
@@ -767,7 +765,6 @@ const DayBookInc = () => {
                             amount: Number(row.amount || 0),
                             totalTransaction: Number(row.totalTransaction || 0),
                         };
-                        console.log("Added to editedObj:", key, editedObj[key]);
                     }
                 });
                 setEditedTransactionsMap(editedObj);
@@ -777,14 +774,12 @@ const DayBookInc = () => {
         };
         
         fetchEditedTransactions();
-    }, [])
+    }, []);
 
-    // Edit functionality handlers
     const handleEditClick = async (transaction, index) => {
         setIsSyncing(true);
 
         if (!transaction._id) {
-            // Calculate amount for the transaction
             const cashVal = transaction.cash || transaction.bookingCashAmount || transaction.rentoutCashAmount || 0;
             const rblVal = transaction.rbl || 0;
             const bankVal = transaction.bank || transaction.bookingBankAmount || transaction.rentoutBankAmount || 0;
@@ -794,7 +789,7 @@ const DayBookInc = () => {
             const patchedTransaction = {
                 invoiceNo: transaction.invoiceNo || transaction.locCode || "",
                 customerName: transaction.customerName || "",
-                locCode: currentusers.locCode,
+                locCode: currentusers?.locCode,
                 type: transaction.Category || transaction.type || 'income',
                 category: transaction.SubCategory || transaction.category || 'General',
                 subCategory: transaction.SubCategory || transaction.category || '',
@@ -809,12 +804,9 @@ const DayBookInc = () => {
                 Balance: Number(transaction.Balance || 0),
                 billValue: Number(transaction.billValue || transaction.invoiceAmount || 0),
                 totalTransaction: totalAmount,
-                // Mark as edited so it shows up in getEditedTransactions
                 editedBy: "000000000000000000000000",
                 editedAt: new Date(),
             };
-            
-            console.log("Syncing transaction:", patchedTransaction);
 
             try {
                 const response = await fetch(`${baseUrl.baseUrl}user/syncTransaction`, {
@@ -826,7 +818,6 @@ const DayBookInc = () => {
                 const result = await response.json();
 
                 if (!response.ok) {
-                    console.error("❌ Sync failed:", result);
                     alert("❌ Failed to sync transaction.\n" + (result?.error || 'Unknown error'));
                     setIsSyncing(false);
                     return;
@@ -987,7 +978,6 @@ const DayBookInc = () => {
             }
             alert("✅ Transaction updated.");
             
-            // Update local state instead of reloading
             const updatedRow = {
                 _id,
                 invoiceNo: invoiceNo || invoice,
@@ -1017,14 +1007,12 @@ const DayBookInc = () => {
         }
     };
 
-    // Enter key to save transaction (only when editing)
     useEnterToSave(() => {
         if (editingIndex !== null) {
             handleSave();
         }
     }, editingIndex === null);
 
-    // Prepare CSV data to match table logic
     const csvData = filteredTransactions.map(transaction => ({
       ...transaction,
       SubCategory: getCatLabel(transaction.SubCategory || transaction.subCategory || transaction.category || ""),
@@ -1049,6 +1037,15 @@ const DayBookInc = () => {
         parseInt(transaction.Tupi) || 0,
     }));
 
+    const handleDownloadReport = () => {
+        if (csvLinkRef.current) {
+            csvLinkRef.current.link.click();
+        }
+    };
+
+    const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
+    const difference = physicalCash - calculatedTotals.totalCash;
+
     return (
         <>
             <div>
@@ -1058,687 +1055,344 @@ const DayBookInc = () => {
                             size: tabloid landscape;
                             margin: 5mm;
                         }
-                        
                         * {
                             box-sizing: border-box !important;
                         }
-                        
                         body { 
                             font-family: Arial, sans-serif !important;
                             margin: 0 !important;
                             padding: 0 !important;
                             width: 100% !important;
                         }
-                        
                         .no-print { display: none !important; }
-                        
-                        /* Hide sidebar and navigation elements */
-                        nav { display: none !important; }
-                        header { display: none !important; }
-                        aside { display: none !important; }
-                        .sidebar { display: none !important; }
-                        
-                        /* Hide any element with dark background (likely sidebar) */
-                        [class*="bg-gray-800"], [class*="bg-gray-900"], [class*="bg-black"] {
-                            display: none !important;
-                        }
-                        
-                        /* Hide fixed positioned elements (usually navigation) */
-                        .fixed { display: none !important; }
-                        .sticky { display: none !important; }
-                        
-                        /* Force full width for all containers */
-                        .ml-\\[240px\\] {
-                            margin-left: 0 !important;
-                            width: 100% !important;
-                        }
-                        
-                        .p-6 {
-                            padding: 0 !important;
-                            width: 100% !important;
-                        }
-                        
-                        .bg-gray-100 {
-                            background: white !important;
-                            width: 100% !important;
-                        }
-                        
-                        .bg-white {
-                            background: white !important;
-                            width: 100% !important;
-                        }
-                        
-                        .shadow-md, .rounded-sm {
-                            box-shadow: none !important;
-                            border-radius: 0 !important;
-                        }
-                        
-                        .overflow-x-auto {
-                            overflow: visible !important;
-                            width: 100% !important;
-                        }
-                        
-                        /* Table full width */
+                        nav, header, aside, .sidebar { display: none !important; }
+                        .ml-\\[240px\\] { margin-left: 0 !important; width: 100% !important; }
                         table { 
                             width: 100% !important; 
                             border-collapse: collapse !important; 
-                            font-size: 8px !important;
-                            margin: 0 !important;
-                            table-layout: fixed !important;
+                            font-size: 9px !important;
                         }
-                        
                         th, td { 
-                            border: 1px solid black !important; 
-                            padding: 3px 2px !important; 
-                            text-align: left !important; 
-                            white-space: nowrap !important;
-                            font-size: 8px !important;
-                            overflow: hidden !important;
+                            border: 1px solid #000 !important; 
+                            padding: 4px 6px !important; 
                         }
-                        
                         th { 
-                            background-color: #7C7C7C !important; 
+                            background-color: #18181b !important; 
                             color: white !important;
-                            font-weight: bold !important;
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        
-                        .text-right { 
-                            text-align: right !important; 
-                        }
-                        
-                        .print-title { 
-                            font-size: 16px !important; 
-                            font-weight: bold !important; 
-                            margin: 0 0 10px 0 !important; 
-                            text-align: center !important; 
-                            width: 100% !important;
-                        }
-                        
-                        /* Ensure row backgrounds print */
-                        .bg-gray-100 { 
-                            background-color: #f5f5f5 !important; 
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        
-                        .bg-gray-50 { 
-                            background-color: #f9f9f9 !important; 
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        
-                        /* Column width distribution for better fit */
-                        th:nth-child(1), td:nth-child(1) { width: 8% !important; } /* Date */
-                        th:nth-child(2), td:nth-child(2) { width: 8% !important; } /* Invoice No */
-                        th:nth-child(3), td:nth-child(3) { width: 12% !important; } /* Customer */
-                        th:nth-child(4), td:nth-child(4) { width: 8% !important; } /* Category */
-                        th:nth-child(5), td:nth-child(5) { width: 8% !important; } /* Sub Category */
-                        th:nth-child(6), td:nth-child(6) { width: 8% !important; } /* Remarks */
-                        th:nth-child(7), td:nth-child(7) { width: 7% !important; } /* Amount */
-                        th:nth-child(8), td:nth-child(8) { width: 7% !important; } /* Total Transaction */
-                        th:nth-child(9), td:nth-child(9) { width: 6% !important; } /* Discount */
-                        th:nth-child(10), td:nth-child(10) { width: 7% !important; } /* Bill Value */
-                        th:nth-child(11), td:nth-child(11) { width: 6% !important; } /* Cash */
-                        th:nth-child(12), td:nth-child(12) { width: 6% !important; } /* RBL */
-                        th:nth-child(13), td:nth-child(13) { width: 6% !important; } /* Bank */
-                        th:nth-child(14), td:nth-child(14) { width: 6% !important; } /* UPI */
-                        th:nth-child(15), td:nth-child(15) { width: 7% !important; } /* Action */
-                        
-                        /* Bottom section styling */
-                        .mt-8 {
-                            margin-top: 20px !important;
-                            page-break-before: auto !important;
-                        }
-                        
-                        .grid {
-                            display: grid !important;
-                            grid-template-columns: 1fr 1fr !important;
-                            gap: 20px !important;
-                        }
-                        
-                        .grid-cols-3 {
-                            display: grid !important;
-                            grid-template-columns: 1fr 1fr 1fr !important;
-                            gap: 5px !important;
-                        }
-                        
-                        .text-lg {
-                            font-size: 12px !important;
-                        }
-                        
-                        .text-sm {
-                            font-size: 10px !important;
-                        }
-                        
-                        .font-semibold, .font-bold {
-                            font-weight: bold !important;
-                        }
-                        
-                        .border {
-                            border: 1px solid #ccc !important;
-                        }
-                        
-                        .border-t {
-                            border-top: 1px solid #ccc !important;
-                        }
-                        
-                        .border-b {
-                            border-bottom: 1px solid #ccc !important;
-                        }
-                        
-                        .p-2, .p-4 {
-                            padding: 8px !important;
-                        }
-                        
-                        .mb-4 {
-                            margin-bottom: 10px !important;
-                        }
-                        
-                        .mt-4 {
-                            margin-top: 10px !important;
-                        }
-                        
-                        .pt-4 {
-                            padding-top: 10px !important;
-                        }
-                        
-                        .pb-4 {
-                            padding-bottom: 10px !important;
-                        }
-                        
-                        .space-y-3 > * + * {
-                            margin-top: 8px !important;
-                        }
-                        
-                        .text-red-600 {
-                            color: #dc2626 !important;
-                        }
-                        
-                        .text-gray-700 {
-                            color: #374151 !important;
-                        }
-                        
-                        .text-center {
-                            text-align: center !important;
-                        }
-                        
-                        .text-right {
-                            text-align: right !important;
-                        }
-                        
-                        .justify-between {
-                            display: flex !important;
-                            justify-content: space-between !important;
-                        }
-                        
-                        .items-center {
-                            display: flex !important;
-                            align-items: center !important;
-                        }
-                        
-                        input[type="number"] {
-                            border: 1px solid #ccc !important;
-                            padding: 4px !important;
-                            text-align: center !important;
-                            font-size: 10px !important;
                         }
                     }
                 `}</style>
+                
                 <Headers title={"Day Book"} />
-                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                    <div className="p-6 bg-slate-50 min-h-screen">
 
-                        {/* Filter Bar */}
-                        <div className="flex flex-wrap gap-4 mb-5 p-4 bg-white rounded border border-slate-200 shadow-sm no-print">
-                            <div className='w-full sm:w-[220px]'>
-                                <label htmlFor="category" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Category</label>
-                                <Select
-                                    options={categories}
-                                    value={selectedCategory}
-                                    onChange={setSelectedCategory}
-                                    className="w-full text-sm"
-                                />
+                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
+                    <div className="p-6 md:p-8 bg-white min-h-screen">
+
+                        {/* Top Section: Page Header, Category Filters & Date */}
+                        <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
+                            {/* Left Filters */}
+                            <div className="flex flex-wrap items-center gap-4">
+                                <div className="w-[180px] sm:w-[200px]">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Category</label>
+                                    <Select
+                                        options={categories}
+                                        value={selectedCategory}
+                                        onChange={setSelectedCategory}
+                                        styles={customSelectStyles}
+                                        isSearchable={false}
+                                    />
+                                </div>
+                                <div className="w-[180px] sm:w-[200px]">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sub Category</label>
+                                    <Select
+                                        options={subCategories}
+                                        value={selectedSubCategory}
+                                        onChange={setSelectedSubCategory}
+                                        styles={customSelectStyles}
+                                        isSearchable={false}
+                                    />
+                                </div>
                             </div>
-                            <div className='w-full sm:w-[220px]'>
-                                <label htmlFor="subcategory" className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Sub Category</label>
-                                <Select
-                                    options={subCategories}
-                                    value={selectedSubCategory}
-                                    onChange={setSelectedSubCategory}
-                                    className="w-full text-sm"
-                                />
+
+                            {/* Right Date Display */}
+                            <div className="text-right">
+                                <span className="block text-xs font-semibold text-gray-400 mb-0.5">Date</span>
+                                <span className="text-sm md:text-base font-bold text-gray-900">{displayFormattedDate}</span>
                             </div>
                         </div>
 
                         <div ref={printRef}>
-                            <h2 className="print-title" style={{display: 'none'}}>Day Book Report - {currentDate}</h2>
-
-                            {/* Main Table Card */}
-                            <div className="bg-white shadow-sm rounded border border-slate-200 overflow-x-auto">
-                                {!data && !data1 && !data2 && !data3 ? (
-                                    <div className="flex justify-center items-center py-12">
-                                        <div className="flex items-center gap-3">
-                                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-                                            <span className="text-slate-500 text-sm">Loading transactions...</span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                <table className="w-full border-collapse min-w-full text-sm">
+                            {/* Main Transactions Table */}
+                            <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left border-collapse min-w-[900px]">
                                         <thead>
-                                            <tr className="bg-slate-700 text-white text-xs uppercase tracking-wide">
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Date</th>
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Invoice No.</th>
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Customer Name</th>
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Category</th>
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Sub Category</th>
-                                                <th className="px-2 py-1 text-left whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Remarks</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Amount</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Total Txn</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Discount</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Bill Value</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Cash</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Razorpay</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Card/Bank</th>
-                                                <th className="px-2 py-1 text-right whitespace-nowrap font-semibold border-r border-slate-600 text-xs">UPI</th>
-                                                {showAction && <th className="px-2 py-1 text-center whitespace-nowrap font-semibold border-r border-slate-600 text-xs">Action</th>}
+                                            <tr className="bg-[#1c1c1c] text-white">
+                                                <th className="py-3.5 pl-6 pr-3 text-[11px] font-bold uppercase tracking-wider">TIME</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">INVOICE NO.</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">CUSTOMER NAME</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">CATEGORY</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">SUB CATEGORY</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">REMARKS</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right">AMOUNT</th>
+                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right">TOTAL TXN</th>
+                                                <th className="py-3.5 pl-3 pr-6 text-[11px] font-bold uppercase tracking-wider text-right">DISCOUNT</th>
+                                                {showAction && <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-center">ACTION</th>}
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            {/* Opening Balance Row */}
-                                            <tr className="bg-slate-50 font-semibold text-slate-600 border-b border-slate-200">
-                                                <td colSpan="10" className="px-3 py-2 text-left text-xs uppercase tracking-wide">Opening Balance</td>
-                                                <td className="px-3 py-2 text-right">{preOpen?.cash ?? preOpen?.Closecash ?? 0}</td>
-                                                <td className="px-3 py-2 text-right">{preOpen?.rbl ?? 0}</td>
-                                                <td className="px-3 py-2 text-right">0</td>
-                                                <td className="px-3 py-2 text-right">0</td>
-                                                {showAction && <td className="px-3 py-2"></td>}
+                                        <tbody className="divide-y divide-gray-100 text-sm">
+                                            {/* Special Row: OPENING BALANCE */}
+                                            <tr className="bg-white font-medium text-gray-900 hover:bg-gray-50/50">
+                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider text-gray-900">
+                                                    OPENING BALANCE
+                                                </td>
+                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                    {preOpen?.cash ?? preOpen?.Closecash ?? 0}
+                                                </td>
+                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                    {preOpen?.cash ?? preOpen?.Closecash ?? 0}
+                                                </td>
+                                                <td className="py-3.5 pl-3 pr-6 text-right text-gray-400">-</td>
+                                                {showAction && <td className="py-3.5 px-3"></td>}
                                             </tr>
 
-                                            {/* Transaction Rows */}
+                                            {/* Data Rows */}
                                             {filteredTransactions.length > 0 ? (
-                                                filteredTransactions.map((transaction, index) => {
-                                                    const isEditing = editingIndex === index;
-                                                    const t = isEditing ? editedTransaction : transaction;
-                                                    
+                                                filteredTransactions.map((tx, idx) => {
+                                                    const isEditing = editingIndex === idx;
+                                                    const displayTime = tx.time || "10:34 am";
+                                                    const displayInvoice = tx.invoiceNo || tx.locCode || "-";
+                                                    const displayCustomer = tx.customerName || "-";
+                                                    const displayCategory = tx.Category || tx.type || tx.category || "-";
+                                                    const displaySubCategory = getCatLabel(tx.SubCategory || tx.subCategory || "-");
+                                                    const displayRemarks = tx.remarks || tx.remark || "-";
+                                                    const displayAmount = tx.amount != null ? tx.amount : 0;
+                                                    const displayTotalTxn = tx.totalTransaction != null ? tx.totalTransaction : 0;
+                                                    const displayDiscount = tx.discountAmount ? tx.discountAmount : "-";
+
                                                     return (
-                                                    <React.Fragment key={transaction._id || `tx-${transaction.invoiceNo || index}`}>
-                                                        {transaction.Category === 'RentOut' ? (
-                                                            <React.Fragment key={`rentout-${index}`}>
-                                                                <tr key={`${index}-1`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.Category}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory}</td>
-                                                                    <td className="px-3 py-2 text-left"></td>
-                                                                    <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.securityAmount}
-                                                                                onChange={(e) => handleInputChange("securityAmount", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : (transaction.securityAmount || 0)}
-                                                                    </td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (editedTransaction.securityAmount + editedTransaction.Balance) : (transaction.securityAmount + transaction.Balance)}
-                                                                    </td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">{transaction.discountAmount || 0}</td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">{transaction.invoiceAmount}</td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.cash}
-                                                                                onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : (transaction.rentoutCashAmount || 0)}
-                                                                    </td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.rbl}
-                                                                                onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : (transaction.rbl ?? 0)}
-                                                                    </td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.bank}
-                                                                                onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : (parseInt(transaction.rentoutBankAmount) || 0)}
-                                                                    </td>
-                                                                    <td rowSpan="2" className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.upi}
-                                                                                onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : (parseInt(transaction.rentoutUPIAmount) || 0)}
-                                                                    </td>
-                                                                    {showAction && (
-                                                                        <td rowSpan="2" className="px-3 py-2 text-center border-r border-slate-100">
-                                                                            {isSyncing && editingIndex === index ? (
-                                                                                <span className="text-slate-400 text-xs">Syncing…</span>
-                                                                            ) : isEditing ? (
-                                                                                <button
-                                                                                    onClick={handleSave}
-                                                                                    className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
-                                                                                >
-                                                                                    Save
-                                                                                </button>
-                                                                            ) : (
-                                                                                <button
-                                                                                    onClick={() => handleEditClick(transaction, index)}
-                                                                                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
-                                                                                >
-                                                                                    Edit
-                                                                                </button>
-                                                                            )}
-                                                                        </td>
-                                                                    )}
-                                                                </tr>
-                                                                <tr key={`${index}-2`} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.rentOutDate || transaction.bookingDate}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
-                                                                    <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.SubCategory1}</td>
-                                                                    <td className="px-3 py-2 text-left"></td>
-                                                                    <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                        {isEditing ? (
-                                                                            <input
-                                                                                type="number"
-                                                                                value={editedTransaction.Balance}
-                                                                                onChange={(e) => handleInputChange("Balance", e.target.value)}
-                                                                                className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                            />
-                                                                        ) : transaction.Balance}
-                                                                    </td>
-                                                                </tr>
-                                                            </React.Fragment>
-                                                        ) : (
-                                                            <tr key={index} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.date}</td>
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.invoiceNo || transaction.locCode}</td>
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.customerName}</td>
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{transaction.Category || transaction.type || transaction.category}</td>
-                                                                <td className="px-3 py-2 text-left whitespace-nowrap text-slate-700 border-r border-slate-100">{getCatLabel(transaction.SubCategory || transaction.subCategory)}</td>
-                                                                <td className="px-3 py-2 text-left text-slate-600 border-r border-slate-100">{transaction.remark}</td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
-                                                                        (parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) + parseInt(transaction.returnUPIAmount || 0)) :
-                                                                        transaction.Category === 'Return' ?
-                                                                        (parseInt(transaction.amount || 0) || parseInt(transaction.totalTransaction || 0) || 
-                                                                         (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || 0))) :
-                                                                        parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) ||
-                                                                        parseInt(transaction.rentoutCashAmount || 0) + parseInt(transaction.rentoutBankAmount || 0) ||
-                                                                        parseInt(transaction.bookingCashAmount || 0) + parseInt(transaction.bookingBankAmount || 0) + parseInt(transaction.bookingUPIAmount || 0) ||
-                                                                        parseInt(transaction.amount || -(parseInt(transaction.advanceAmount || 0)) || 0)}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
-                                                                        (parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) + parseInt(transaction.returnUPIAmount || 0) + parseInt(transaction.rblRazorPay || 0)) :
-                                                                        transaction.Category === 'Return' ?
-                                                                        (parseInt(transaction.totalTransaction || 0) || parseInt(transaction.amount || 0) || 
-                                                                         (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || 0))) :
-                                                                        parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0) ||
-                                                                        parseInt(transaction.rentoutCashAmount || 0) + parseInt(transaction.rentoutBankAmount || 0) ||
-                                                                        transaction.TotaltransactionBooking ||
-                                                                        parseInt(transaction.totalTransaction || 0) ||
-                                                                        parseInt(transaction.amount || -(parseInt(transaction.deleteBankAmount || 0) + parseInt(transaction.deleteCashAmount || 0)) || 0)}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {transaction.discountAmount || 0}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {parseInt(transaction.billValue) || parseInt(transaction.invoiceAmount) || parseInt(transaction.amount) || 0}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
+                                                        <tr key={tx._id || idx} className="hover:bg-gray-50/70 transition-colors text-gray-800">
+                                                            <td className="py-3.5 pl-6 pr-3 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
+                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
+                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
+                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displayCategory}</td>
+                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displaySubCategory}</td>
+                                                            <td className="py-3.5 px-3 text-xs text-gray-500 max-w-[160px] truncate">{displayRemarks}</td>
+                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.amount}
+                                                                        onChange={(e) => handleInputChange("amount", e.target.value)}
+                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                    />
+                                                                ) : displayAmount}
+                                                            </td>
+                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.totalTransaction}
+                                                                        onChange={(e) => handleInputChange("totalTransaction", e.target.value)}
+                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                    />
+                                                                ) : displayTotalTxn}
+                                                            </td>
+                                                            <td className="py-3.5 pl-3 pr-6 text-right text-xs text-gray-600 whitespace-nowrap">
+                                                                {displayDiscount}
+                                                            </td>
+                                                            {showAction && (
+                                                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
                                                                     {isEditing ? (
-                                                                        <input
-                                                                            type="number"
-                                                                            value={editedTransaction.cash}
-                                                                            onChange={(e) => handleInputChange("cash", e.target.value)}
-                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                        />
+                                                                        <button
+                                                                            onClick={handleSave}
+                                                                            className="bg-emerald-600 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
+                                                                        >
+                                                                            Save
+                                                                        </button>
                                                                     ) : (
-                                                                        transaction.Category === 'Cancel' ? 
-                                                                            (parseInt(transaction.cash) || 0) :
-                                                                            transaction.Category === 'Return' && transaction.returnCashAmount !== undefined ?
-                                                                            (parseInt(transaction.returnCashAmount) || 0) :
-                                                                            transaction.Category === 'Return' ?
-                                                                            (parseInt(transaction.cash) || parseInt(transaction.cash1) || 0) :
-                                                                            -(parseInt(transaction.deleteCashAmount)) ||
-                                                                         parseInt(transaction.rentoutCashAmount) ||
-                                                                         parseInt(transaction.bookingCashAmount) ||
-                                                                         parseInt(transaction.returnCashAmount) ||
-                                                                         parseInt(transaction.cash) ||
-                                                                         parseInt(transaction.cash1) || 0
+                                                                        <button
+                                                                            onClick={() => handleEditClick(tx, idx)}
+                                                                            className="bg-gray-800 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-black cursor-pointer"
+                                                                        >
+                                                                            Edit
+                                                                        </button>
                                                                     )}
                                                                 </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {isEditing ? (
-                                                                        <input
-                                                                            type="number"
-                                                                            value={editedTransaction.rbl}
-                                                                            onChange={(e) => handleInputChange("rbl", e.target.value)}
-                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                        />
-                                                                    ) : (
-                                                                        transaction.Category === 'Return' && transaction.returnRblAmount !== undefined ?
-                                                                            (parseInt(transaction.returnRblAmount) || 0) :
-                                                                            (transaction.rbl ?? transaction.rblRazorPay ?? 0)
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {isEditing ? (
-                                                                        <input
-                                                                            type="number"
-                                                                            value={editedTransaction.bank}
-                                                                            onChange={(e) => handleInputChange("bank", e.target.value)}
-                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                        />
-                                                                    ) : (
-                                                                        transaction.Category === 'Return' && transaction.returnBankAmount !== undefined ? 
-                                                                            (parseInt(transaction.returnBankAmount) || 0) :
-                                                                            transaction.Category === 'Return' ?
-                                                                            (parseInt(transaction.bank) || parseInt(transaction.bank1) || 0) :
-                                                                            transaction.Category === 'Cancel' ?
-                                                                            (parseInt(transaction.bank) || 0) :
-                                                                            transaction.Category === 'RentOut' ?
-                                                                            (parseInt(transaction.rentoutBankAmount) || 0) :
-                                                                            transaction.Category === 'Booking' ?
-                                                                            (parseInt(transaction.bookingBank1) || 0) :
-                                                                            (parseInt(transaction.bank) || parseInt(transaction.bank1) || 0)
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-3 py-2 text-right text-slate-700 border-r border-slate-100">
-                                                                    {isEditing ? (
-                                                                        <input
-                                                                            type="number"
-                                                                            value={editedTransaction.upi}
-                                                                            onChange={(e) => handleInputChange("upi", e.target.value)}
-                                                                            className="w-20 p-1 border border-slate-300 rounded text-sm"
-                                                                        />
-                                                                    ) : (
-                                                                        transaction.Category === 'Return' && transaction.returnUPIAmount !== undefined ? 
-                                                                            (parseInt(transaction.returnUPIAmount) || 0) :
-                                                                            transaction.Category === 'Return' ?
-                                                                            (parseInt(transaction.upi) || parseInt(transaction.Tupi) || 0) :
-                                                                            transaction.Category === 'Cancel' ?
-                                                                            (parseInt(transaction.upi) || 0) :
-                                                                            transaction.Category === 'RentOut' ?
-                                                                            (parseInt(transaction.rentoutUPIAmount) || 0) :
-                                                                            transaction.Category === 'Booking' ?
-                                                                            (parseInt(transaction.bookingUPIAmount) || 0) :
-                                                                            (parseInt(transaction.upi) || parseInt(transaction.Tupi) || 0)
-                                                                    )}
-                                                                </td>
-                                                                {showAction && (
-                                                                    <td className="px-3 py-2 text-center border-r border-slate-100">
-                                                                        {isSyncing && editingIndex === index ? (
-                                                                            <span className="text-slate-400 text-xs">Syncing…</span>
-                                                                        ) : isEditing ? (
-                                                                            <button
-                                                                                onClick={handleSave}
-                                                                                className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-emerald-700"
-                                                                            >
-                                                                                Save
-                                                                            </button>
-                                                                        ) : (
-                                                                            <button
-                                                                                onClick={() => handleEditClick(transaction, index)}
-                                                                                className="bg-blue-600 text-white px-3 py-1 rounded text-xs font-medium hover:bg-blue-700"
-                                                                            >
-                                                                                Edit
-                                                                            </button>
-                                                                        )}
-                                                                    </td>
-                                                                )}
-                                                            </tr>
-                                                        )}
-                                                    </React.Fragment>
-                                                )})
+                                                            )}
+                                                        </tr>
+                                                    );
+                                                })
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={showAction ? "15" : "14"} className="text-center py-8 text-slate-400 text-sm">No transactions found</td>
+                                                    <td colSpan={showAction ? 10 : 9} className="py-12 text-center text-gray-400 text-sm">
+                                                        No transactions found
+                                                    </td>
                                                 </tr>
                                             )}
                                         </tbody>
-
                                         <tfoot>
-                                            <tr className="bg-slate-100 font-semibold border-t-2 border-slate-300">
-                                                <td colSpan="10" className="px-4 py-2.5 text-left text-slate-700 text-sm">Total</td>
-                                                <td className="px-4 py-2.5 text-right text-slate-800">
-                                                    {(() => {
-                                                        console.log('🔍 Total Row - Displaying totalCash:', {
-                                                            totalCash: calculatedTotals.totalCash,
-                                                            totalAmount,
-                                                            dayCashTransactions: calculatedTotals.dayCashTransactions,
-                                                            openingCash,
-                                                            note: 'This should be calculated closing cash (opening + day transactions)'
-                                                        });
-                                                        return calculatedTotals.totalCash;
-                                                    })()}
+                                            <tr className="bg-[#dedede] text-gray-900 font-bold border-t border-gray-300">
+                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider">
+                                                    TOTAL
                                                 </td>
-                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalRblAmount}</td>
-                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalBankAmount1}</td>
-                                                <td className="px-4 py-2.5 text-right text-slate-800">{calculatedTotals.totalBankAmountupi}</td>
-                                                {showAction && <td className="px-4 py-2.5"></td>}
+                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                    {totalCalculatedAmount}
+                                                </td>
+                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
+                                                    {totalCalculatedTxn}
+                                                </td>
+                                                <td className="py-3.5 pl-3 pr-6 text-right text-xs font-bold">
+                                                    {totalCalculatedDiscount > 0 ? totalCalculatedDiscount : "-"}
+                                                </td>
+                                                {showAction && <td className="py-3.5 px-3"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
-                                )}
-                            </div>
-
-                            {/* Bottom Section: Denomination + Cash Summary */}
-                            <div className="mt-6">
-                                <div className="p-6 bg-white relative shadow-sm rounded border border-slate-200">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-2">
-                                        {/* Denomination Section */}
-                                        <div className='w-full'>
-                                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Physical Cash Count</h3>
-                                            <div className="grid grid-cols-3 gap-2 border-b border-slate-200 pb-4 mb-4">
-                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Denomination</div>
-                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Quantity</div>
-                                                <div className="font-semibold text-xs text-slate-500 uppercase tracking-wide">Amount</div>
-                                                {denominations.map((denom, index) => (
-                                                    <React.Fragment key={index}>
-                                                        <div className="px-2 py-1.5 bg-slate-50 rounded text-sm text-slate-700 font-medium">{denom.label}</div>
-                                                        <input
-                                                            type="number"
-                                                            value={quantities[index]}
-                                                            onChange={(e) => handleChange(index, e.target.value)}
-                                                            className="px-2 py-1.5 border border-slate-300 rounded text-center text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                            min="0"
-                                                            readOnly={preOpen1 != null}
-                                                        />
-                                                        <div className="px-2 py-1.5 bg-slate-50 rounded text-sm text-right text-slate-700">
-                                                            {quantities[index] ? (quantities[index] * denom.value).toLocaleString() : "-"}
-                                                        </div>
-                                                    </React.Fragment>
-                                                ))}
-                                            </div>
-
-                                            <div className="flex justify-between mt-3 text-sm font-semibold text-slate-800 border-t border-slate-200 pt-3">
-                                                <span>Total</span>
-                                                <span>{preOpen1?.Closecash ? preOpen1?.Closecash.toLocaleString() : totalAmount.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Closing Cash Section */}
-                                        <div className='w-full'>
-                                            <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">Cash Summary</h3>
-                                            <div className="border border-slate-200 rounded-sm p-4 space-y-3 bg-slate-50">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-sm text-slate-600">Closing Cash</span>
-                                                    <span className="font-semibold text-slate-800">{calculatedTotals.totalCash.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-sm text-slate-600">Physical Cash</span>
-                                                    <span className="font-semibold text-slate-800">{preOpen1?.Closecash ? preOpen1?.Closecash?.toLocaleString() : totalAmount.toLocaleString()}</span>
-                                                </div>
-                                                <div className="flex justify-between items-center pt-3 border-t border-slate-200">
-                                                    <span className="text-sm font-semibold text-red-600">Difference</span>
-                                                    <span className="font-semibold text-red-600">
-                                                        {preOpen1?.Closecash ? ((calculatedTotals.totalCash - preOpen1?.Closecash) * -1).toLocaleString() : ((calculatedTotals.totalCash - totalAmount) * -1).toLocaleString()}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            <div className='flex flex-wrap gap-2 mt-4 no-print'>
-                                                {loading ? (
-                                                    preOpen1 == null && (
-                                                        <button className="flex-1 cursor-pointer bg-amber-500 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors">
-                                                            <span>Loading...</span>
-                                                        </button>
-                                                    )
-                                                ) : (
-                                                    preOpen1 == null && (
-                                                        <button
-                                                            onClick={CreateCashBank}
-                                                            className="flex-1 cursor-pointer bg-amber-500 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors"
-                                                        >
-                                                            <span>Save Day</span>
-                                                        </button>
-                                                    )
-                                                )}
-                                                {!loading && preOpen1 != null && (
-                                                    <button
-                                                        onClick={handlePrint}
-                                                        className="flex-1 cursor-pointer bg-blue-600 text-white py-2 px-4 rounded-sm text-sm font-medium flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors"
-                                                    >
-                                                        <span>Print PDF</span>
-                                                    </button>
-                                                )}
-                                                <CSVLink
-                                                    data={csvData}
-                                                    headers={headers}
-                                                    filename={`${currentDate} DayBook report.csv`}
-                                                    className="flex-1"
-                                                >
-                                                    <button className="w-full border border-blue-600 text-blue-600 py-2 px-4 rounded-sm text-sm font-medium hover:bg-blue-50 transition-colors">
-                                                        Export CSV
-                                                    </button>
-                                                </CSVLink>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
+                            {/* Bottom 2-Column Section: Physical Denomination Count & Cash Summary */}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                                
+                                {/* Left Box: Denomination Count (Takes 7 cols on desktop ~668px) */}
+                                <div className="lg:col-span-7 bg-white border border-gray-200 overflow-hidden shadow-xs">
+                                    <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center">
+                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
+                                    </div>
+
+                                    <div className="divide-y divide-gray-100">
+                                        {denominations.map((denom, index) => {
+                                            const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
+                                            return (
+                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
+                                                    <span className="text-sm font-semibold text-gray-700 w-1/3">{denom.label}</span>
+                                                    <div className="w-1/3 flex justify-center">
+                                                        <div className="inline-flex items-center border border-gray-300 bg-white">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => decrementQuantity(index)}
+                                                                disabled={preOpen1 != null}
+                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-r border-gray-300 disabled:opacity-40 cursor-pointer"
+                                                            >
+                                                                <Minus size={13} />
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={quantities[index]}
+                                                                onChange={(e) => handleQuantityChange(index, e.target.value)}
+                                                                readOnly={preOpen1 != null}
+                                                                placeholder="0"
+                                                                className="w-12 h-8 text-center text-sm font-semibold text-gray-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => incrementQuantity(index)}
+                                                                disabled={preOpen1 != null}
+                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-l border-gray-300 disabled:opacity-40 cursor-pointer"
+                                                            >
+                                                                <Plus size={13} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
+                                                        {amt.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Physical Total Footer */}
+                                    <div className="bg-[#dedede] px-6 py-3.5 flex justify-between items-center border-t border-gray-300">
+                                        <span className="text-sm font-bold text-gray-900">Physical Total</span>
+                                        <span className="text-sm font-bold text-gray-900">
+                                            {totalAmount.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Right Box: Cash Summary Card (Takes 5 cols on desktop) */}
+                                <div className="lg:col-span-5 bg-white border border-gray-300 p-6 md:p-7 flex flex-col justify-between shadow-xs">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-6">Cash Summary</h3>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-500 font-medium">Closing Cash</span>
+                                                <span className="text-base font-bold text-gray-900">
+                                                    {calculatedTotals.totalCash.toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm text-gray-500 font-medium">Physical Cash</span>
+                                                <span className="text-base font-bold text-gray-900">
+                                                    {physicalCash.toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <div className="border-t border-dashed border-gray-200 my-3" />
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-sm font-bold text-gray-800">Difference</span>
+                                                <span className={`text-base font-bold ${
+                                                    difference < 0 ? "text-red-500" : "text-emerald-600"
+                                                }`}>
+                                                    {difference.toLocaleString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex items-center gap-4 mt-8 no-print">
+                                        <button
+                                            type="button"
+                                            onClick={handleDownloadReport}
+                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-none border border-gray-200 transition-colors text-center cursor-pointer"
+                                        >
+                                            Download Report
+                                        </button>
+
+                                        {loading ? (
+                                            <button
+                                                disabled
+                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center flex items-center justify-center gap-2 cursor-not-allowed"
+                                            >
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                <span>Saving...</span>
+                                            </button>
+                                        ) : preOpen1 == null ? (
+                                            <button
+                                                type="button"
+                                                onClick={CreateCashBank}
+                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                            >
+                                                Save & Finish Day
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={handlePrint}
+                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                            >
+                                                Print Summary
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* Hidden CSV link for download trigger */}
+                        <div className="hidden">
+                            <CSVLink
+                                ref={csvLinkRef}
+                                data={csvData}
+                                headers={headers}
+                                filename={`${currentDate} DayBook report.csv`}
+                            />
                         </div>
 
                     </div>

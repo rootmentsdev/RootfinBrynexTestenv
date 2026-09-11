@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import Header from "../components/Header";
 
 const API_ROOT = (baseUrl?.baseUrl || "").replace(/\/$/, "");
 
@@ -395,12 +396,13 @@ const InactiveItems = () => {
   };
 
 
+
   if (loading) {
     return (
-      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="space-y-3 text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-[#cbd5f5] border-t-[#3762f9]" />
-          <p className="text-sm font-medium text-[#475569]">Loading…</p>
+      <div className={`transition-all duration-300 flex min-h-screen items-center justify-center bg-slate-50 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="h-6 w-6 animate-spin rounded-none border-2 border-[#3b82f6] border-t-transparent" />
+          <p className="text-xs font-medium text-[#6B7280] uppercase tracking-wider">Loading...</p>
         </div>
       </div>
     );
@@ -408,194 +410,222 @@ const InactiveItems = () => {
 
   if (error) {
     return (
-      <div className={`transition-all duration-300 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-        <div className="rounded-xl border border-red-200 bg-white p-4 text-red-700">{error}</div>
+      <div className={`transition-all duration-300 p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'} bg-slate-50 min-h-screen`}>
+        <div className="rounded-none border border-red-200 bg-red-50 p-4 text-red-700 text-sm font-medium">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 space-y-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#1f2937]">Inactive Items Management</h1>
-        <p className="text-sm text-[#64748b] mt-1">Manage and activate inactive items, groups, and vendors</p>
-      </div>
-      
-      <div className="rounded-xl border border-[#e1e5f5] bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#1f2937]">Inactive Item Groups</h2>
-          <Link to="/shoe-sales/item-groups" className="text-sm text-[#3762f9] hover:underline font-medium">Go to Groups</Link>
-        </div>
-        {inactiveGroups.length === 0 ? (
-          <p className="text-sm text-[#64748b] py-4">No inactive groups.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-[#eef2ff]">
-            <table className="min-w-full divide-y divide-[#eef2ff]">
-              <thead className="bg-[#f8fafc]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Items</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#64748b]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-[#eef2ff]">
-                {inactiveGroups.map((g) => {
-                  const id = g._id || g.id;
-                  return (
-                    <tr key={id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">{g.name}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{Array.isArray(g.items) ? g.items.length : 0}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => activateGroup(id)}
-                          disabled={saving}
-                          className="no-blue-button inline-flex items-center rounded-md bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
-                        >
-                          {saving ? "Activating..." : "Activate"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+    <>
+      <Header title="Inactive Items Management" />
+      <div className={`transition-all duration-300 min-h-screen bg-slate-50 flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
-      <div className="rounded-3xl border border-[#e1e5f5] bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#1f2937]">Inactive Standalone Items</h2>
-          <Link to="/shoe-sales/items" className="text-sm text-[#3762f9] hover:underline font-medium">Go to Items</Link>
-        </div>
-        {inactiveItems.length === 0 ? (
-          <p className="text-sm text-[#64748b] py-4">No inactive items.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-[#eef2ff]">
-            <table className="min-w-full divide-y divide-[#eef2ff]">
-              <thead className="bg-[#f8fafc]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Item</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">SKU</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#64748b]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-[#eef2ff]">
-                {inactiveItems.map((it) => {
-                  const id = it._id || it.id;
-                  return (
-                    <tr key={id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">{it.itemName || "Untitled"}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{it.sku || "—"}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => activateItem(id)}
-                          disabled={saving}
-                          className="no-blue-button inline-flex items-center rounded-md bg-[#16a34a] px-4 py-2 text-sm font-medium text-white hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
-                        >
-                          {saving ? "Activating..." : "Activate"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+        {/* Summary Bar */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-6 py-4">
+            <div className="flex flex-wrap items-center gap-6">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Inactive Groups:</span>
+                <span className="text-sm font-bold text-[#111827]">{inactiveGroups.length}</span>
+              </div>
+              <div className="w-px h-4 bg-[#E5E7EB]" />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Inactive Items:</span>
+                <span className="text-sm font-bold text-[#111827]">{inactiveItems.length}</span>
+              </div>
+              <div className="w-px h-4 bg-[#E5E7EB]" />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Items in Groups:</span>
+                <span className="text-sm font-bold text-[#111827]">{inactiveItemsFromGroups.length}</span>
+              </div>
+              <div className="w-px h-4 bg-[#E5E7EB]" />
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Inactive Vendors:</span>
+                <span className="text-sm font-bold text-[#111827]">{inactiveVendors.length}</span>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className="rounded-xl border border-[#e1e5f5] bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#1f2937]">Inactive Items from Groups</h2>
-          <Link to="/shoe-sales/item-groups" className="text-sm text-[#3762f9] hover:underline font-medium">Go to Groups</Link>
-        </div>
-        {inactiveItemsFromGroups.length === 0 ? (
-          <p className="text-sm text-[#64748b] py-4">No inactive items in groups.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-[#eef2ff]">
-            <table className="min-w-full divide-y divide-[#eef2ff]">
-              <thead className="bg-[#f8fafc]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Item</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">SKU</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Group</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#64748b]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-[#eef2ff]">
-                {inactiveItemsFromGroups.map((it) => {
-                  const id = it._id || it.id;
-                  return (
-                    <tr key={id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">{it.name || it.itemName || "Untitled"}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{it.sku || "—"}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{it.groupName}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => activateItemFromGroup(id, it.groupId)}
-                          disabled={saving}
-                          className="no-blue-button inline-flex items-center rounded-md bg-[#16a34a] px-4 py-2 text-sm font-medium text-white hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
-                        >
-                          {saving ? "Activating..." : "Activate"}
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        <div className="px-6 py-6 space-y-6">
+          
+          <div className="rounded-none border border-[#E5E7EB] bg-white shadow-sm">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">Inactive Item Groups</h2>
+              <Link to="/shoe-sales/item-groups" className="text-[10px] font-bold uppercase tracking-wider text-[#3b82f6] hover:text-[#2563eb] hover:underline">Go to Groups</Link>
+            </div>
 
-      <div className="rounded-xl border border-[#e1e5f5] bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-[#1f2937]">Inactive Vendors</h2>
-          <Link to="/purchase/vendors" className="text-sm text-[#3762f9] hover:underline font-medium">Go to Vendors</Link>
-        </div>
-        {inactiveVendors.length === 0 ? (
-          <p className="text-sm text-[#64748b] py-4">No inactive vendors.</p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-[#eef2ff]">
-            <table className="min-w-full divide-y divide-[#eef2ff]">
-              <thead className="bg-[#f8fafc]">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Company</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-[#64748b]">Email</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-[#64748b]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-[#eef2ff]">
-                {inactiveVendors.map((v) => {
-                  const id = v._id || v.id;
-                  return (
-                    <tr key={id} className="hover:bg-[#f8fafc] transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-[#1f2937]">{v.displayName || v.name || "Untitled"}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{v.companyName || "—"}</td>
-                      <td className="px-6 py-4 text-sm text-[#64748b]">{v.email || "—"}</td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => activateVendor(id)}
-                          disabled={saving}
-                          className="no-blue-button inline-flex items-center rounded-md bg-[#16a34a] px-4 py-2 text-sm font-medium text-white hover:bg-[#15803d] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm hover:shadow"
-                        >
-                          {saving ? "Activating..." : "Activate"}
-                        </button>
-                      </td>
+            {inactiveGroups.length === 0 ? (
+              <p className="text-xs text-[#6B7280] py-4 text-center font-medium">No inactive groups.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
+                <table className="min-w-full divide-y divide-[#E5E7EB]">
+                  <thead className="bg-[#F9FAFB]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Group Name</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">SKU</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Actions</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                    {inactiveGroups.map((grp) => {
+                      const id = grp._id || grp.id;
+                      return (
+                        <tr key={id} className="hover:bg-[#F9FAFB] transition-colors">
+                          <td className="px-6 py-3 text-sm font-semibold text-[#111827]">{grp.name || "Untitled"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{grp.sku || "-"}</td>
+                          <td className="px-6 py-3 text-right">
+                            <button
+                              onClick={() => activateGroup(id)}
+                              disabled={saving}
+                              className="inline-flex h-8 items-center px-4 rounded-none bg-[#10b981] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#059669] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                              {saving ? "ACTIVATING..." : "ACTIVATE"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 border-b border-[#E5E7EB] pb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[#111827]">Inactive Standalone Items</h2>
+              <Link to="/shoe-sales/items" className="text-xs font-bold uppercase tracking-wider text-[#3b82f6] hover:text-[#2563eb] hover:underline">Go to Items</Link>
+            </div>
+            {inactiveItems.length === 0 ? (
+              <p className="text-xs text-[#6B7280] py-4 text-center font-medium">No inactive items.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
+                <table className="min-w-full divide-y divide-[#E5E7EB]">
+                  <thead className="bg-[#F9FAFB]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Item</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">SKU</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                    {inactiveItems.map((it) => {
+                      const id = it._id || it.id;
+                      return (
+                        <tr key={id} className="hover:bg-[#F9FAFB] transition-colors">
+                          <td className="px-6 py-3 text-sm font-semibold text-[#111827]">{it.itemName || "Untitled"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{it.sku || "-"}</td>
+                          <td className="px-6 py-3 text-right">
+                            <button
+                              onClick={() => activateItem(id)}
+                              disabled={saving}
+                              className="inline-flex h-8 items-center px-4 rounded-none bg-[#10b981] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#059669] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                              {saving ? "ACTIVATING..." : "ACTIVATE"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 border-b border-[#E5E7EB] pb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[#111827]">Inactive Items from Groups</h2>
+              <Link to="/shoe-sales/item-groups" className="text-xs font-bold uppercase tracking-wider text-[#3b82f6] hover:text-[#2563eb] hover:underline">Go to Groups</Link>
+            </div>
+            {inactiveItemsFromGroups.length === 0 ? (
+              <p className="text-xs text-[#6B7280] py-4 text-center font-medium">No inactive items in groups.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
+                <table className="min-w-full divide-y divide-[#E5E7EB]">
+                  <thead className="bg-[#F9FAFB]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Item</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">SKU</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Group</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                    {inactiveItemsFromGroups.map((it) => {
+                      const id = it._id || it.id;
+                      return (
+                        <tr key={id} className="hover:bg-[#F9FAFB] transition-colors">
+                          <td className="px-6 py-3 text-sm font-semibold text-[#111827]">{it.name || it.itemName || "Untitled"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{it.sku || "-"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{it.groupName}</td>
+                          <td className="px-6 py-3 text-right">
+                            <button
+                              onClick={() => activateItemFromGroup(id, it.groupId)}
+                              disabled={saving}
+                              className="inline-flex h-8 items-center px-4 rounded-none bg-[#10b981] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#059669] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                              {saving ? "ACTIVATING..." : "ACTIVATE"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4 border-b border-[#E5E7EB] pb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wide text-[#111827]">Inactive Vendors</h2>
+              <Link to="/purchase/vendors" className="text-xs font-bold uppercase tracking-wider text-[#3b82f6] hover:text-[#2563eb] hover:underline">Go to Vendors</Link>
+            </div>
+            {inactiveVendors.length === 0 ? (
+              <p className="text-xs text-[#6B7280] py-4 text-center font-medium">No inactive vendors.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-none border border-[#E5E7EB]">
+                <table className="min-w-full divide-y divide-[#E5E7EB]">
+                  <thead className="bg-[#F9FAFB]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Vendor</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Contact</th>
+                      <th className="px-6 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Phone</th>
+                      <th className="px-6 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-[#E5E7EB]">
+                    {inactiveVendors.map((v) => {
+                      const id = v._id || v.id;
+                      return (
+                        <tr key={id} className="hover:bg-[#F9FAFB] transition-colors">
+                          <td className="px-6 py-3 text-sm font-semibold text-[#111827]">{v.companyName || "Untitled"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{v.contactPerson || "-"}</td>
+                          <td className="px-6 py-3 text-sm text-[#6B7280]">{v.phone || "-"}</td>
+                          <td className="px-6 py-3 text-right">
+                            <button
+                              onClick={() => activateVendor(id)}
+                              disabled={saving}
+                              className="inline-flex h-8 items-center px-4 rounded-none bg-[#10b981] text-[10px] font-bold uppercase tracking-wider text-white hover:bg-[#059669] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                            >
+                              {saving ? "ACTIVATING..." : "ACTIVATE"}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default InactiveItems;
-
-
