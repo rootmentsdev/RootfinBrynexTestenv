@@ -225,7 +225,7 @@ const ManageStores = () => {
     return (
         <>
             <Header title="Manage Stores" />
-            <div className="ml-[290px] mt-[80px] p-4">
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px] p-4`}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Add New Store Section */}
                     <div className="bg-white shadow-lg rounded-lg p-8">

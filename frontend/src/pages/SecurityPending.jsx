@@ -92,7 +92,7 @@ const SecurityPending = () => {
         <>
             <Header title="Cash Bank Ledger" />
             <div>
-                <div className="ml-[290px] mt-[80px]">
+                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px]`}>
                     <form onSubmit={handleSubmit}>
                         {/* Radio Buttons */}
                         <div className="flex gap-[50px]">

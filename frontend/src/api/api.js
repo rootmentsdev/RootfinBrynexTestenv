@@ -8,13 +8,13 @@
 
 
 
-  
+
 
 
 
 
 const baseUrl = {
-     baseUrl:'http://localhost:7000/',
+     baseUrl: 'http://localhost:7001/',
 }
 export default baseUrl
 

@@ -13,7 +13,7 @@ const baseExpenseCats = [
   { value: "telephone internet",    label: "Telephone & Internet" },
   { value: "utility bill",          label: "Utility Bill" },
   { value: "salary",               label: "Salary" },
-  { value: "rent",                  label: "Rent" },
+  { value: "rent",                  label: "Store Rent" },
   { value: "courier charges",       label: "Courier Charges" },
   { value: "asset purchase",        label: "Asset Purchase" },
   { value: "promotion_services",    label: "Promotion & Services" },
@@ -152,7 +152,7 @@ const SecurityReturn = () => {
   return (
     <div>
       <Header title="Income & Expenses" />
-      <div className="ml-[290px] mt-[80px]">
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px]`}>
         <form onSubmit={handleSubmit}>
           <div className="flex gap-[50px]">
             <label className="flex items-center gap-2 cursor-pointer">

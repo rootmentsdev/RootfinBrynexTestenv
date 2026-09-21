@@ -1,450 +1,434 @@
-
-
-
-
-
 import Headers from '../components/Header.jsx';
-import { useEffect, useMemo, useRef, useState } from "react";
-// import Select from "react-select";
+import { useMemo, useRef, useState } from "react";
 import useFetch from '../hooks/useFetch.jsx';
 import { Helmet } from "react-helmet";
 import { useSidebar } from '../hooks/useSidebar.js';
+import { Filter, ArrowUpDown, Download, Search } from "lucide-react";
 
-// import baseUrl from '../api/api.js';
+const fmt = (n) =>
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n || 0);
 
-// const categories = [
-//     { value: "all", label: "All" },
-//     { value: "booking", label: "Booking" },
-//     { value: "RentOut", label: "Rent Out" },
-//     { value: "Refund", label: "Refund" },
-//     { value: "Return", label: "Return" },
-//     { value: "Cancel", label: "Cancel" },
-
-//     { value: "income", label: "income" },
-//     { value: "expense", label: "Expense" },
-//     { value: "money transfer", label: "Cash to Bank" },
-// ];
-
-// const subCategories = [
-//     { value: "all", label: "All" },
-//     { value: "advance", label: "Advance" },
-//     { value: "Balance Payable", label: "Balance Payable" },
-//     { value: "security", label: "Security" },
-//     { value: "cancellation Refund", label: "Cancellation Refund" },
-//     { value: "security Refund", label: "Security Refund" },
-//     { value: "compensation", label: "Compensation" },
-//     { value: "petty expenses", label: "petty expenses" },
-// ];
-
-
-
-// const opening = [{ cash: "60000", bank: "54000" }];
 const Revenuereport = () => {
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [apiUrl, setApiUrl] = useState("");
+  const [apiUrl1, setApiUrl1] = useState("");
+  const [selectedType, setSelectedType] = useState("all"); // "all", "RentOut", "Booking"
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("desc"); // "desc" (newest first), "asc" (oldest first)
 
-    const [fromDate, setFromDate] = useState("");
-    const [toDate, setToDate] = useState("");
-    const [apiUrl, setApiUrl] = useState("");
-    const [apiUrl1, setApiUrl1] = useState("");
-    // const [apiUrl2, setApiUrl2] = useState("");
-    // const [preOpen, setPreOpen] = useState([])
+  const isSidebarOpen = useSidebar();
+  const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
 
-    // const [apiUrl3, setApiUrl3] = useState("");
-    // const [apiUrl4, setApiUrl4] = useState("");
-    // const [apiUrl5, setApiUrl5] = useState("");
-    // console.log(apiUrl5);
+  const handleFetch = () => {
+    if (!fromDate || !toDate) {
+      alert("Please select both From and To dates.");
+      return;
+    }
+    const baseUrl1 = "https://rentalapi.rootments.live/api/GetBooking";
+    const updatedApiUrl = `${baseUrl1}/GetBookingList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
+    const updatedApiUrl1 = `${baseUrl1}/GetRentoutList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 
-    const isSidebarOpen = useSidebar();
-    const currentusers = JSON.parse(localStorage.getItem("rootfinuser")); // Convert back to an object
+    setApiUrl(updatedApiUrl);
+    setApiUrl1(updatedApiUrl1);
+  };
 
-    const handleFetch = () => {
+  const fetchOptions = useMemo(() => ({}), []);
+  const { data, loading: loadingBooking } = useFetch(apiUrl, fetchOptions);
+  const { data: data1, loading: loadingRentout } = useFetch(apiUrl1, fetchOptions);
+  const loading = loadingBooking || loadingRentout;
 
-        const baseUrl1 = "https://rentalapi.rootments.live/api/GetBooking";
-        const updatedApiUrl = `${baseUrl1}/GetBookingList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-        const updatedApiUrl1 = `${baseUrl1}/GetRentoutList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-        // const updatedApiUrl2 = `${baseUrl1}/GetReturnList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-        // const updatedApiUrl3 = `${baseUrl.baseUrl}user/Getpayment?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
-        // const updatedApiUrl4 = `${baseUrl1}/GetDeleteList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`
-        // const updatedApiUrl5 = `${baseUrl.baseUrl}user/getsaveCashBank?locCode=${currentusers.locCode}&date=${toDate}`
+  const printRef = useRef(null);
 
-        setApiUrl(updatedApiUrl);
-        setApiUrl1(updatedApiUrl1);
-        // setApiUrl2(updatedApiUrl2);
-        // alert(updatedApiUrl2)
-        // setApiUrl3(updatedApiUrl3)
-        // setApiUrl4(updatedApiUrl4)
-        // setApiUrl5(updatedApiUrl5)
-        // GetCreateCashBank(updatedApiUrl5)
+  const handlePrint = () => {
+    const printContent = printRef.current.innerHTML;
+    const originalContent = document.body.innerHTML;
 
-        // console.log("API URLs Updated:", updatedApiUrl2);
-    };
+    document.body.innerHTML = `<html><head><title>Revenue Report</title>
+        <style>
+            @page { size: portrait; margin: 10mm; }
+            body { font-family: Arial, sans-serif; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #333; padding: 6px 10px; text-align: left; font-size: 12px; }
+            th { background-color: #f3f4f6; }
+            tr { break-inside: avoid; }
+        </style>
+    </head><body>${printContent}</body></html>`;
 
+    window.print();
+    document.body.innerHTML = originalContent;
+    window.location.reload();
+  };
 
-    // const GetCreateCashBank = async (api) => {
-    //     try {
-    //         const response = await fetch(api, {
-    //             method: 'GET',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //             },
-    //         });
-    //         // alert(apiUrl5)
-
-    //         if (!response.ok) {
-    //             throw new Error('Error saving data');
-    //         }
-
-    //         const data = await response.json();
-    //         console.log("Data saved successfully:", data);
-    //         setPreOpen(data?.data)
-    //     } catch (error) {
-    //         console.error("Error saving data:", error);
-    //     }
-    // };
-    useEffect(() => {
-    }, [])
-
-    // Memoizing fetch options
-    const fetchOptions = useMemo(() => ({}), []);
-
-    const { data } = useFetch(apiUrl, fetchOptions);
-    const { data: data1 } = useFetch(apiUrl1, fetchOptions);
-    // const { data: data2 } = useFetch(apiUrl2, fetchOptions);
-    // const { data: data3 } = useFetch(apiUrl3, fetchOptions);
-    // const { data: data4 } = useFetch(apiUrl4, fetchOptions);
-    // alert(data3);
-    // console.log(data2);
-    const printRef = useRef(null);
-
-    const handlePrint = () => {
-        const printContent = printRef.current.innerHTML;
-        const originalContent = document.body.innerHTML;
-        console.log(originalContent);
-
-
-        document.body.innerHTML = `<html><head><title>Dummy Report</title>
-            <style>
-                @page { size: tabloid; margin: 10mm; }
-                body { font-family: Arial, sans-serif; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1px solid black; padding: 8px; text-align: left; white-space: nowrap; }
-                tr { break-inside: avoid; }
-            </style>
-        </head><body>${printContent}</body></html>`;
-
-        window.print();
-        window.location.reload(); // Reload to restore content
-    };
-
-
-    const bookingTransactions = (data?.dataSet?.data || []).map(transaction => ({
-        ...transaction,
-        bookingCashAmount: parseInt(transaction.bookingCashAmount, 10) || 0,
-        bookingBankAmount: parseInt(transaction.bookingBankAmount, 10) || 0,
-        invoiceAmount: parseInt(transaction.invoiceAmount, 10) || 0,
-        bookingBank: parseInt(transaction.bookingBankAmount) + parseInt(transaction.bookingUPIAmount),
-        TotaltransactionBooking: parseInt(transaction.bookingBankAmount) + parseInt(transaction.bookingUPIAmount) + parseInt(transaction.bookingCashAmount),
-        Category: "Booking",
-        SubCategory: "Advance"
+  // Process Booking transactions
+  const bookingTransactions = useMemo(() => {
+    return (data?.dataSet?.data || []).map(transaction => ({
+      ...transaction,
+      date: transaction.bookingDate || transaction.date || "",
+      invoiceNo: transaction.invoiceNo || transaction.locCode || "-",
+      customerName: transaction.customerName || "-",
+      Category: "Booking",
+      SubCategory: "Advance",
+      amount: parseInt(transaction.bookingBankAmount || 0, 10) + parseInt(transaction.bookingUPIAmount || 0, 10) + parseInt(transaction.bookingCashAmount || 0, 10),
     }));
+  }, [data]);
 
-
-
-    const rentOutTransactions = (data1?.dataSet?.data || []).map(transaction => ({
+  // Process RentOut transactions
+  const rentOutTransactions = useMemo(() => {
+    return (data1?.dataSet?.data || []).map(transaction => {
+      const upi = parseInt(transaction.rentoutUPIAmount || 0, 10);
+      const bank = parseInt(transaction.rentoutBankAmount || 0, 10);
+      const cash = parseInt(transaction.rentoutCashAmount || 0, 10);
+      const sec = parseInt(transaction.securityAmount || 0, 10);
+      const netRentout = (upi + bank + cash) - sec;
+      return {
         ...transaction,
-        bookingCashAmount: parseInt(transaction.bookingCashAmount, 10) || 0,
-        bookingBankAmount: parseInt(transaction.bookingBankAmount, 10) || 0,
-        invoiceAmount: parseInt(transaction.invoiceAmount, 10) || 0,
-        securityAmount1: parseInt(transaction.securityAmount, 10) || 0,
-        advanceAmount: parseInt(transaction.advanceAmount, 10) || 0,
-        Balance: (parseInt(transaction.invoiceAmount ?? 0, 10) - parseInt(transaction.advanceAmount ?? 0, 10)) || 0,
-        rentoutUPIAmount: (parseInt(transaction.rentoutUPIAmount) + parseInt(transaction.rentoutBankAmount) + parseInt(transaction.rentoutCashAmount)) - parseInt(transaction.securityAmount),
+        date: transaction.rentOutDate || transaction.date || "",
+        invoiceNo: transaction.invoiceNo || transaction.locCode || "-",
+        customerName: transaction.customerName || "-",
         Category: "RentOut",
         SubCategory: "Balance Payable",
-        SubCategory1: "Balance Payable"
+        amount: netRentout >= 0 ? netRentout : 0,
+      };
+    });
+  }, [data1]);
 
-    }));
+  const allTransactions = useMemo(() => {
+    return [...rentOutTransactions, ...bookingTransactions];
+  }, [rentOutTransactions, bookingTransactions]);
 
+  // Filter transactions based on selectedType (All / RentOut / Booking) and search query
+  const filteredTransactions = useMemo(() => {
+    let list = allTransactions;
+    if (selectedType !== "all") {
+      list = list.filter(t => t.Category === selectedType);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(t => 
+        (t.customerName && t.customerName.toLowerCase().includes(q)) ||
+        (t.invoiceNo && t.invoiceNo.toLowerCase().includes(q))
+      );
+    }
+    // Sort
+    return [...list].sort((a, b) => {
+      const dateA = new Date(a.date).getTime() || 0;
+      const dateB = new Date(b.date).getTime() || 0;
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    });
+  }, [allTransactions, selectedType, searchQuery, sortOrder]);
 
-    // const returnOutTransactions = (data2?.dataSet?.data || []).map(transaction => ({
-    //     ...transaction,
-    //     returnBankAmount: -(parseInt(transaction.returnBankAmount, 10) + parseInt(transaction.returnUPIAmount) || 0),
-    //     returnCashAmount: -(parseInt(transaction.returnCashAmount, 10) || 0),
-    //     invoiceAmount: parseInt(transaction.invoiceAmount, 10) || 0,
-    //     advanceAmount: parseInt(transaction.advanceAmount, 10) || 0,
-    //     RsecurityAmount: (parseInt(transaction.securityAmount, 10) * -1 || 0),
-    //     Category: "Return",
-    //     SubCategory: "security Refund"
-    // }));
-    // const Transactionsall = (data3?.data || []).map(transaction => ({
-    //     ...transaction,
-    //     locCode: currentusers.locCode,
-    //     date: transaction.date.split("T")[0] // Correctly extract only the date
-    // }));
+  // Totals calculations
+  const totalRentOut = useMemo(() => {
+    return rentOutTransactions.reduce((sum, item) => sum + (item.amount || 0), 0);
+  }, [rentOutTransactions]);
 
-    // const canCelTransactions = (data4?.dataSet?.data || []).map(transaction => ({
-    //     ...transaction,
-    //     Category: "Cancel",
-    //     SubCategory: "cancellation Refund"
+  const totalBooking = useMemo(() => {
+    return bookingTransactions.reduce((sum, item) => sum + (item.amount || 0), 0);
+  }, [bookingTransactions]);
 
+  const filteredTotal = useMemo(() => {
+    return filteredTransactions.reduce((sum, item) => sum + (item.amount || 0), 0);
+  }, [filteredTransactions]);
 
-    // }));
-    // alert(apiUrl4)
-    // console.log("Hi" + data4);
-    // alert(canCelTransactions)
-    const allTransactions = [...rentOutTransactions, ...bookingTransactions,];
+  const hasLoaded = !!(apiUrl || apiUrl1);
 
-    // console.log(allTransactions);
-    // const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-    // const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
-
-
-
-
-
-
-    // Filter transactions based on category & subcategory
-    // const selectedCategoryValue = selectedCategory?.value?.toLowerCase() || "all";
-    // const selectedSubCategoryValue = selectedSubCategory?.value?.toLowerCase() || "all";
-
-    // const filteredTransactions = allTransactions.filter((t) =>
-    //     (selectedCategoryValue === "all" || (t.category?.toLowerCase() === selectedCategoryValue || t.Category?.toLowerCase() === selectedCategoryValue || t.type?.toLowerCase() === selectedCategoryValue || t.type?.toLowerCase() === selectedCategoryValue)) &&
-    //     (selectedSubCategoryValue === "all" || (t.subCategory?.toLowerCase() === selectedSubCategoryValue || t.SubCategory?.toLowerCase() === selectedSubCategoryValue || t.type?.toLowerCase() === selectedSubCategoryValue || t.type?.toLowerCase() === selectedSubCategoryValue || t.subCategory1?.toLowerCase() === selectedSubCategoryValue || t.SubCategory1?.toLowerCase() === selectedSubCategoryValue || t.category?.toLowerCase() === selectedSubCategoryValue || t.category?.toLowerCase() === selectedSubCategoryValue))
-    // );
-
-
-    // const totalBankAmount =
-    //     (allTransactions?.reduce((sum, item) =>
-    //         sum +
-    //         (parseInt(item.bookingBankAmount, 10) || 0) +
-    //         (parseInt(item.rentoutBankAmount, 10) || 0) +
-    //         (parseInt(item.bank, 10) || 0) +
-    //         (parseInt(item.rentoutUPIAmount, 10) || 0) +
-    //         (parseInt(item.bookingUPIAmount, 10) || 0) +
-    //         (parseInt(item.deleteBankAmount, 10) || 0) * -1 +
-    //         (parseInt(item.deleteUPIAmount, 10) || 0) * -1 + // Ensure negative value is applied correctly
-    //         (parseInt(item.returnBankAmount, 10) || 0),
-    //         0
-    //     ) || 0);
-
-    // const totalCash = (
-    //     allTransactions?.reduce((sum, item) =>
-    //         sum +
-    //         (parseInt(item.bookingCashAmount, 10) || 0) +
-    //         (parseInt(item.rentoutCashAmount, 10) || 0) +
-    //         (parseInt(item.cash, 10) || 0) +
-    //         ((parseInt(item.deleteCashAmount, 10) || 0) * -1) + // Ensure deletion is properly subtracted
-    //         (parseInt(item.returnCashAmount, 10) || 0),
-    //         0
-    //     )
-    // );
-    // alert(preOpen.bank)
-    return (
+  return (
     <>
+      <Helmet>
+        <title>Revenue Report | RootFin</title>
+      </Helmet>
 
-  {/* ✅ Page title in browser tab */}
-            <Helmet>
-                <title>Revenue | RootFin</title>
-            </Helmet>
-            <div>
-      <Headers title={"Revenue Report"} />
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-        <div className="p-6 bg-gray-100 min-h-screen">
-          {/* Dropdowns */}
-          <div className="flex gap-4 mb-6 w-[800px]">
-            <div className='w-full flex flex-col'>
-              <label htmlFor="">From *</label>
-              <input
-                type="date"
-                id="fromDate"
-                value={fromDate}
-                  max="2099-12-31"
-                  min="2000-01-01"
-                onChange={(e) => setFromDate(e.target.value)}
-                className="border border-gray-300 py-2 px-3"
-              />
-            </div>
-            <div className='w-full flex flex-col '>
-              <label htmlFor="">To *</label>
-              <input
-                type="date"
-                id="toDate"
-                value={toDate}
-                  max="2099-12-31"
-                  min="2000-01-01"
-                onChange={(e) => setToDate(e.target.value)}
-                className="border border-gray-300 py-2 px-3"
-              />
-            </div>
-    
-            <button
-              onClick={handleFetch}
-              className="bg-blue-500 h-[40px] mt-6 rounded-md text-white px-10 cursor-pointer"
-            >
-              Fetch
-            </button>
-    
-            {/* <div className='w-full'>
-                <label htmlFor="">Category</label>
-                <Select
-                    options={categories}
-                    value={selectedCategory}
-                    onChange={setSelectedCategory}
-                />
-            </div> */}
-            {/* <div className='w-full'>
-                <label htmlFor="">Sub Category</label>
-                <Select
-                    options={subCategories}
-                    value={selectedSubCategory}
-                    onChange={setSelectedSubCategory}
-                />
-            </div> */}
+      <div>
+        <Headers title={"Revenue Report"} />
+
+        <div 
+          style={{ 
+            marginLeft: isSidebarOpen ? "256px" : "0px", 
+            padding: "24px", 
+            width: isSidebarOpen ? "calc(100% - 256px)" : "100%",
+            maxWidth: isSidebarOpen ? "calc(100% - 256px)" : "100%",
+            minHeight: "100vh",
+            backgroundColor: "#f8fafc",
+            transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+          }}
+        >
+          {/* Page Heading */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Revenue Report</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Track and analyze Booking and Rent Out revenues for your location.
+            </p>
           </div>
-    
-          <div ref={printRef}>
-            {/* Table */}
-            <div className="bg-white p-4 shadow-md rounded-lg">
-              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-                <table className="w-full border-collapse border rounded-md border-gray-300">
-                  <thead
-                    className="rounded-md"
-                    style={{ position: "sticky", top: 0, background: "#7C7C7C", color: "white", zIndex: 2 }}
+
+          {/* Controls & Filter Card */}
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm mb-6">
+            <div className="flex flex-wrap items-end gap-4">
+              {/* From Date */}
+              <div className="flex-1 min-w-[150px]">
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+                  From *
+                </label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  max="2099-12-31"
+                  min="2000-01-01"
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm"
+                />
+              </div>
+
+              {/* To Date */}
+              <div className="flex-1 min-w-[150px]">
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+                  To *
+                </label>
+                <input
+                  type="date"
+                  value={toDate}
+                  max="2099-12-31"
+                  min="2000-01-01"
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm"
+                />
+              </div>
+
+              {/* Type Filter Dropdown */}
+              <div className="flex-1 min-w-[170px]">
+                <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1.5">
+                  Category
+                </label>
+                <select
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3.5 py-2.5 text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer"
+                >
+                  <option value="all">All</option>
+                  <option value="RentOut">RentOut</option>
+                  <option value="Booking">Booking</option>
+                </select>
+              </div>
+
+              {/* Fetch Button */}
+              <button
+                onClick={handleFetch}
+                disabled={loading}
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+              >
+                {loading ? "Fetching..." : "Fetch Report"}
+              </button>
+            </div>
+
+            {/* Quick Filter Tabs & Search Bar */}
+            {hasLoaded && (
+              <div className="mt-5 pt-4 border-t border-gray-100 flex flex-wrap items-center justify-between gap-4">
+                {/* Type Switcher Pills */}
+                <div className="flex items-center gap-1.5 p-1 bg-gray-100/80 rounded-xl">
+                  <button
+                    onClick={() => setSelectedType("all")}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                      selectedType === "all"
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
                   >
-                    <tr className="bg-[#7C7C7C] rounded-md text-white">
-                      <th className="border p-2">Date</th>
-                      <th className="border p-2">Invoice No.</th>
-                      <th className="border p-2">Customer Name</th>
-                      <th className="border p-2">Category</th>
-                      <th className="border p-2">Sub Category</th>
-                      {/* <th className="border p-2">Remarks</th> */}
-                      <th className="border p-2">Amount</th>
-                      {/* <th className="border p-2">Total Transaction</th> */}
-                      {/* <th className="border p-2">Bill Value</th> */}
-                      {/* <th className="border p-2">Cash</th>
-                      <th className="border p-2">Bank</th> */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Opening Balance */}
-                    {/* <tr className="bg-gray-100">
-                      <td colSpan="9" className="border p-2 font-bold">OPENING BALANCE</td>
-                      <td className="border p-2 font-bold">{preOpen.cash}</td>
-                      <td className="border p-2 font-bold">0</td>
-                    </tr> */}
-    
-                    {/* Transactions */}
-                    {allTransactions.length > 0 ? (
-                      allTransactions.map((transaction, index) => (
-                        <>
-                          {transaction.Category === 'RentOut' ? (
-                            <>
-                              <tr key={`${index}-1`}>
-                                <td className="border p-2">{transaction.rentOutDate}</td>
-                                <td className="border p-2">{transaction.invoiceNo}</td>
-                                <td className="border p-2">{transaction.customerName}</td>
-                                <td className="border p-2">{transaction.Category}</td> {/* Merged Row */}
-                                <td className="border p-2">{transaction.SubCategory}</td>
-                                {/* <td className="border p-2"></td> */}
-                                <td className="border p-2">{transaction.rentoutUPIAmount || 0}</td>
-                                {/* <td className="border p-2">
-                                    {transaction.securityAmount}
-                                </td>
-                                <td className="border p-2" >{transaction.invoiceAmount}</td> */}
-                                {/* <td className="border p-2" >{transaction.rentoutCashAmount || 0}</td>
-                                <td className="border p-2" >{parseInt(transaction.rentoutBankAmount) + parseInt(transaction.rentoutUPIAmount) || 0}</td> */}
-                              </tr>
-                            </>
-                          ) : (
-                            <tr key={index}>
-                              <td className="border p-2">{transaction.returnedDate || transaction.rentOutDate || transaction.cancelDate || transaction.bookingDate || transaction.date}</td>
-                              <td className="border p-2">{transaction.invoiceNo || transaction.locCode}</td>
-                              <td className="border p-2">{transaction.customerName}</td>
-                              <td className="border p-2">{transaction.category || transaction.Category || transaction.type}</td>
-                              <td className="border p-2">{transaction.subCategory || transaction.SubCategory}</td>
-                              {/* <td className="border p-2">{transaction.remark}</td> */}
-                              <td className="border p-2">
-                                {parseInt(transaction.TotaltransactionBooking || 0)}
-                              </td>
-                              {/* <td className="border p-2">
-                                {parseInt(transaction.returnCashAmount || 0) + parseInt(transaction.returnBankAmount || 0)}
-                              </td>
-                              <td className="border p-2">
-                                {parseInt(transaction.invoiceAmount) || parseInt(transaction.amount) || 0}
-                              </td> */}
-                              {/* <td className="border p-2">
-                                {parseInt(transaction.rentoutCashAmount) || parseInt(transaction.bookingCashAmount) || parseInt(transaction.returnCashAmount) || parseInt(transaction.cash) || -(parseInt(transaction.deleteCashAmount)) || 0}
-                              </td>
-                              <td className="border p-2">
-                                {parseInt(transaction.rentoutBankAmount) || transaction.bookingBank || parseInt(transaction.returnBankAmount) || parseInt(transaction.bank) || -(parseInt(transaction.deleteBankAmount) + parseInt(transaction.deleteUPIAmount)) || 0}
-                              </td> */}
-                            </tr>
-                          )}
-                        </>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="11" className="text-center border p-4">No transactions found</td>
-                      </tr>
-                    )}
-                  </tbody>
-    
-                  {/* Footer Totals */}
-                  <tfoot>
-                    <tr
-                      className="bg-white text-center font-semibold"
-                      style={{ position: "sticky", bottom: 0, background: "#ffffff", zIndex: 2 }}
-                    >
-                      <td className="border border-gray-300 px-4 py-2 text-left" colSpan="5">Total:</td>
-                      <td className="border border-gray-300 px-4 py-2">
-                        {
-                          allTransactions.reduce(
-                            (sum, item) =>
-                              sum +
-                              (parseInt(item.rentoutUPIAmount, 10) || 0) +
-                              (parseInt(item.TotaltransactionBooking, 10) || 0),
-                            0
-                          )
-                        }
-                      </td>
-                      {/* <td className="border border-gray-300 px-4 py-2">
-                        {allTransactions.reduce((sum, item) =>
-                          sum +
-                          (parseInt(item.bookingCashAmount, 10) || 0) +
-                          (parseInt(item.bookingBankAmount, 10) || 0) +
-                          (parseInt(item.rentoutCashAmount, 10) || 0) +
-                          (parseInt(item.rentoutBankAmount, 10) || 0) +
-                          (parseInt(item.returnCashAmount, 10) || 0) +
-                          (parseInt(item.returnBankAmount, 10) || 0),
-                          0)}
-                      </td> */}
-                      {/* <td className="border border-gray-300 px-4 py-2">
-                        {allTransactions.reduce((sum, item) => sum + (parseInt(item.bookingCashAmount, 10) || 0), 0)}
-                      </td> */}
-                      {/* <td className="border border-gray-300 px-4 py-2">
-                        {totalCash}
-                      </td> */}
-                      {/* <td className="border border-gray-300 px-4 py-2">
-                        {totalBankAmount}
-                      </td> */}
-                    </tr>
-                  </tfoot>
-                </table>
+                    All ({allTransactions.length})
+                  </button>
+                  <button
+                    onClick={() => setSelectedType("RentOut")}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                      selectedType === "RentOut"
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-purple-700"
+                    }`}
+                  >
+                    <span>RentOut</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${selectedType === "RentOut" ? "bg-purple-800 text-white" : "bg-purple-100 text-purple-700"}`}>
+                      {rentOutTransactions.length}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setSelectedType("Booking")}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                      selectedType === "Booking"
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-600 hover:text-blue-700"
+                    }`}
+                  >
+                    <span>Booking</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${selectedType === "Booking" ? "bg-blue-800 text-white" : "bg-blue-100 text-blue-700"}`}>
+                      {bookingTransactions.length}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Search and Sort controls */}
+                <div className="flex items-center gap-3">
+                  <div className="relative min-w-[220px]">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search customer / invoice..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:bg-white"
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
+                    className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 rounded-lg text-xs font-medium text-gray-700 transition-colors cursor-pointer"
+                    title="Toggle Date Sorting"
+                  >
+                    <ArrowUpDown size={13} />
+                    <span>{sortOrder === "desc" ? "Newest First" : "Oldest First"}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Metric Summary Cards */}
+          {hasLoaded && allTransactions.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">Total Revenue</p>
+                <h3 className="text-2xl font-black text-gray-900 font-mono">
+                  {fmt(totalRentOut + totalBooking)}
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Combined Rent Out &amp; Booking Revenue
+                </p>
+              </div>
+
+              <div className={`p-5 rounded-2xl border shadow-sm transition-all ${selectedType === "RentOut" ? "bg-purple-50/50 border-purple-300 ring-2 ring-purple-400/30" : "bg-white border-purple-100"}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-purple-700 mb-1">RentOut Revenue</p>
+                <h3 className="text-2xl font-black text-purple-900 font-mono">
+                  {fmt(totalRentOut)}
+                </h3>
+                <p className="text-xs text-purple-600/80 mt-1">
+                  {rentOutTransactions.length} RentOut transaction(s)
+                </p>
+              </div>
+
+              <div className={`p-5 rounded-2xl border shadow-sm transition-all ${selectedType === "Booking" ? "bg-blue-50/50 border-blue-300 ring-2 ring-blue-400/30" : "bg-white border-blue-100"}`}>
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-700 mb-1">Booking Revenue</p>
+                <h3 className="text-2xl font-black text-blue-900 font-mono">
+                  {fmt(totalBooking)}
+                </h3>
+                <p className="text-xs text-blue-600/80 mt-1">
+                  {bookingTransactions.length} Booking transaction(s)
+                </p>
               </div>
             </div>
+          )}
+
+          {/* Table Container */}
+          <div ref={printRef} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-6">
+            <div style={{ maxHeight: "560px", overflowY: "auto" }}>
+              <table className="w-full text-sm border-collapse">
+                <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                  <tr className="bg-slate-800 text-white font-semibold text-xs uppercase tracking-wider">
+                    <th className="py-3.5 px-4 text-left font-semibold">Date</th>
+                    <th className="py-3.5 px-4 text-left font-semibold">Invoice No.</th>
+                    <th className="py-3.5 px-4 text-left font-semibold">Customer Name</th>
+                    <th className="py-3.5 px-4 text-left font-semibold">Category</th>
+                    <th className="py-3.5 px-4 text-left font-semibold">Sub Category</th>
+                    <th className="py-3.5 px-4 text-right font-semibold">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 text-xs">
+                  {loading ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-12 text-gray-500">
+                        Fetching revenue records...
+                      </td>
+                    </tr>
+                  ) : !hasLoaded ? (
+                    <tr>
+                      <td colSpan="6" className="text-center py-16 text-gray-400">
+                        <Filter size={32} className="mx-auto mb-2 text-gray-300" />
+                        <p className="text-sm font-medium text-gray-600">Select dates and click "Fetch Report"</p>
+                      </td>
+                    </tr>
+                  ) : filteredTransactions.length > 0 ? (
+                    filteredTransactions.map((transaction, index) => {
+                      const isRentOut = transaction.Category === 'RentOut';
+                      const formattedDate = transaction.date
+                        ? new Date(transaction.date).toLocaleDateString("en-IN", {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric"
+                          }) + (transaction.date.includes("T") ? " " + transaction.date.split("T")[1]?.slice(0, 5) : "")
+                        : "-";
+
+                      return (
+                        <tr 
+                          key={index} 
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          <td className="py-3 px-4 font-mono text-gray-600 whitespace-nowrap">{formattedDate}</td>
+                          <td className="py-3 px-4 font-mono font-medium text-gray-800">{transaction.invoiceNo}</td>
+                          <td className="py-3 px-4 font-semibold text-gray-900">{transaction.customerName}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                              isRentOut 
+                                ? "bg-purple-100 text-purple-800 border border-purple-200" 
+                                : "bg-blue-100 text-blue-800 border border-blue-200"
+                            }`}>
+                              {transaction.Category}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-gray-600 font-medium">{transaction.SubCategory}</td>
+                          <td className="py-3 px-4 text-right font-mono font-bold text-gray-900 text-sm">
+                            {fmt(transaction.amount)}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="text-center py-12 text-gray-500">
+                        No transactions found for the selected criteria.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+
+                {/* Footer Totals */}
+                {hasLoaded && filteredTransactions.length > 0 && (
+                  <tfoot style={{ position: "sticky", bottom: 0, zIndex: 10 }}>
+                    <tr className="bg-slate-100 border-t-2 border-slate-300 font-bold text-gray-900 text-sm">
+                      <td className="py-3.5 px-4 text-left uppercase tracking-wide text-xs" colSpan="5">
+                        Total ({selectedType === "all" ? "All Categories" : selectedType}):
+                      </td>
+                      <td className="py-3.5 px-4 text-right font-mono text-base font-black text-emerald-700">
+                        {fmt(filteredTotal)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
           </div>
-    
-          <button
-            onClick={handlePrint}
-            className="mt-6 w-[200px] float-right cursor-pointer bg-blue-600 text-white py-2 rounded-lg flex items-center justify-center gap-2"
-          >
-            <span>📥 Take pdf</span>
-          </button>
+
+          {/* Print / PDF Action */}
+          {hasLoaded && filteredTransactions.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                onClick={handlePrint}
+                className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <Download size={16} />
+                <span>Download / Print PDF</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-</>
+    </>
+  );
+};
 
-    )
-}
-
-export default Revenuereport
+export default Revenuereport;

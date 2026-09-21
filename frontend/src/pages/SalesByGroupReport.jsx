@@ -99,7 +99,7 @@ const SalesByGroupReport = () => {
     <>
       <Helmet><title>Sales by Group Report | RootFin</title></Helmet>
       <Headers title="Sales by Group Report" />
-      <div className="ml-[240px] p-6 bg-slate-50 min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-slate-50 min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
         {/* Filter bar */}
         <div className="flex flex-wrap items-end gap-3 mb-5 p-4 bg-white border border-slate-200 shadow-sm no-print">

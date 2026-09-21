@@ -99,7 +99,7 @@ const EditUser = () => {
     return (
         <>
             <Header title="Edit User" />
-            <div className="ml-[290px] mt-[80px] p-4">
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px] p-4`}>
                 <div className="max-w-2xl mx-auto bg-white shadow-lg rounded-lg p-8">
                     <h2 className="text-2xl font-semibold text-center mb-6 text-[#016E5B]">
                         Edit User

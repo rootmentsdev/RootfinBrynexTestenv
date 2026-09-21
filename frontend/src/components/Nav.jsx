@@ -49,28 +49,40 @@ const Nav = () => {
 
     const activePath = location.pathname;
 
-    const [isOpen, setIsOpen] = useState(true);
+    const [isPinned, setIsPinned] = useState(() => {
+        try {
+            return localStorage.getItem("rootfin_sidebar_pinned") !== "false";
+        } catch {
+            return true;
+        }
+    });
+    const [isHovered, setIsHovered] = useState(false);
+
+    const isOpen = isPinned || isHovered;
 
     useEffect(() => {
-        if (isOpen) {
+        try {
+            localStorage.setItem("rootfin_sidebar_pinned", isPinned ? "true" : "false");
+        } catch {}
+        
+        if (isPinned) {
             document.body.classList.add("sidebar-open");
             document.body.classList.remove("sidebar-closed");
         } else {
             document.body.classList.add("sidebar-closed");
             document.body.classList.remove("sidebar-open");
         }
-        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen } }));
-    }, [isOpen]);
+        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen: isPinned } }));
+    }, [isPinned]);
 
     useEffect(() => {
-        const handleToggle = () => setIsOpen((prev) => !prev);
+        const handleToggle = () => {
+            setIsPinned(prev => !prev);
+            setIsHovered(false);
+        };
         window.addEventListener("toggle-sidebar", handleToggle);
         return () => window.removeEventListener("toggle-sidebar", handleToggle);
     }, []);
-    const [isHovered, setIsHovered] = useState(false);
-    const [isPinned, setIsPinned] = useState(() => localStorage.getItem("rootfin_sidebar_pinned") !== "false");
-
-    const showSidebar = isPinned || isHovered;
 
     const getInitialSection = useMemo(() => {
         if (activePath === "/reports/sales" || activePath === "/reports/sales-by-invoice" || activePath === "/reports/inventory" || activePath === "/reports/income-expense" || activePath === "/securityReport" || activePath === "/Revenuereport" || activePath === "/BookingReport" || activePath === "/RentOutReport" || activePath === "/reports/sales-by-group") {
@@ -182,27 +194,48 @@ const Nav = () => {
 
     return (
         <div className={`flex ${location.pathname === "/login" ? "hidden" : "block"}`}>
-            {/* Floating button to open sidebar when closed */}
-            {!isOpen && (
-                <button
-                    onClick={() => {
-                        setIsOpen(true);
-                        window.dispatchEvent(new CustomEvent("sidebar-changed", { detail: { isOpen: true } }));
-                    }}
-                    title="Open Sidebar Menu"
-                    className="fixed top-3 left-3 z-[99999] p-2 rounded-xl bg-white text-[#1e293b] border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-md flex items-center justify-center cursor-pointer active:scale-95 no-print"
-                >
+            {/* Invisible hover strip on left edge to trigger sidebar on hover when unpinned */}
+            {!isPinned && (
+                <div
+                    onMouseEnter={() => setIsHovered(true)}
+                    className="fixed top-0 left-0 w-4 h-full z-[99990] cursor-pointer no-print"
+                    title="Hover to view menu"
+                />
+            )}
+
+            {/* Floating outside button to toggle/pin sidebar */}
+            <button
+                onMouseEnter={() => {
+                    if (!isPinned) setIsHovered(true);
+                }}
+                onClick={() => {
+                    setIsPinned(prev => !prev);
+                    setIsHovered(false);
+                }}
+                title={isOpen ? "Close Sidebar Menu" : "Open Sidebar Menu (Click to pin)"}
+                className={`fixed top-3 z-[100000] p-2 rounded-xl bg-white text-[#1e293b] border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-300 shadow-md flex items-center justify-center cursor-pointer active:scale-95 no-print ${
+                    isOpen ? (isInvoiceCreatePage ? "left-[236px]" : "left-[268px]") : "left-3"
+                }`}
+            >
+                {isOpen ? (
+                    <ChevronLeft size={20} className="text-[#1e293b]" />
+                ) : (
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-[#1e293b]">
                         <line x1="5" y1="4" x2="5" y2="20"/>
                         <line x1="10" y1="4" x2="10" y2="20"/>
                         <path d="M15 8l4 4-4 4"/>
                     </svg>
-                </button>
-            )}
-
+                )}
+            </button>
 
             {/* Sidebar */}
             <div
+                onMouseEnter={() => {
+                    if (!isPinned) setIsHovered(true);
+                }}
+                onMouseLeave={() => {
+                    if (!isPinned) setIsHovered(false);
+                }}
                 className={`fixed top-0 left-0 h-full ${sidebarWidth} z-[99999] transform flex flex-col justify-between bg-[#18181b] text-white transition-transform duration-300 shadow-2xl ${
                     isOpen ? "translate-x-0" : sidebarTranslate
                 }`}
@@ -212,13 +245,6 @@ const Nav = () => {
                         <span className="text-white font-bold text-[22px] tracking-wide flex items-center">
                             ROOT<span className="text-[#a855f7] flex items-center"><LineChart size={20} className="mx-0.5" strokeWidth={3} />FIN</span>
                         </span>
-                        <button
-                            onClick={() => setIsOpen(false)}
-                            title="Close Sidebar"
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-zinc-800 transition-colors cursor-pointer"
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
                     </div>
                     <nav className="space-y-5 px-3 overflow-y-auto pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 

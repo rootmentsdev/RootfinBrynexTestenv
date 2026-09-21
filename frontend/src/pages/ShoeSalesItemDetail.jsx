@@ -1413,10 +1413,12 @@ const ShoeSalesItemDetail = () => {
                     <div>
                       <h3 className="text-xs font-semibold text-[#94a3b8] uppercase tracking-wider mb-5">Pricing</h3>
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center py-2">
-                          <span className="text-sm text-[#64748b]">Cost Price</span>
-                          <span className="text-sm font-semibold text-[#1a1a2e]">{formatCurrency(item.costPrice)}</span>
-                        </div>
+                        {(isAdmin || user?.power === 'warehouse') && (
+                          <div className="flex justify-between items-center py-2">
+                            <span className="text-sm text-[#64748b]">Cost Price</span>
+                            <span className="text-sm font-semibold text-[#1a1a2e]">{formatCurrency(item.costPrice)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">Selling Price</span>
                           <span className="text-sm font-semibold text-[#10b981]">{formatCurrency(item.sellingPrice)}</span>

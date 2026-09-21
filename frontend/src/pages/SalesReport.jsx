@@ -5,6 +5,7 @@ import baseUrl from '../api/api.js';
 import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { FiDownload, FiSearch, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import useSidebar from '../hooks/useSidebar.js';
 
 // Add CSS animations
 const styles = `
@@ -74,6 +75,7 @@ if (typeof document !== 'undefined') {
 }
 
 const SalesReport = () => {
+  const isSidebarOpen = useSidebar();
   const todayStr = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(todayStr);
@@ -228,12 +230,13 @@ const SalesReport = () => {
       </Helmet>
       <Headers />
       <div style={{ 
-        marginLeft: "256px", 
+        marginLeft: isSidebarOpen ? "256px" : "0px", 
         padding: "24px", 
-        maxWidth: "calc(100% - 256px)",
+        width: isSidebarOpen ? "calc(100% - 256px)" : "100%",
+        maxWidth: isSidebarOpen ? "calc(100% - 256px)" : "100%",
         minHeight: "100vh",
         backgroundColor: "#fafbfc",
-        transition: "all 0.3s ease"
+        transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       }}>
         {/* Page Header */}
         <div style={{ 

@@ -99,6 +99,7 @@ export const CreatePayment = async (req, res) => {
     const {
       type,
       category,
+      subCategory,
       remark,
       amount,
       cash,
@@ -158,6 +159,7 @@ export const CreatePayment = async (req, res) => {
     const newTx = await Transaction.create({
       type,
       category,
+      subCategory: subCategory || "",
       remark,
       amount,
       quantity,

@@ -508,10 +508,10 @@ button.action-delete-btn:hover {
   box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
 }
 
-/* High-specificity Global Sidebar responsive margin rules for Header and all Page Containers */
+/* High-specificity Global Sidebar responsive margin rules for Header and Page Containers */
 html body.sidebar-closed nav.bg-white,
-html body.sidebar-closed div[class*="ml-"],
 html body.sidebar-closed .ml-64,
+html body.sidebar-closed [class*="ml-64"],
 html body.sidebar-closed [class*="ml-[240px]"],
 html body.sidebar-closed [class*="ml-[290px]"] {
   margin-left: 0 !important;
@@ -524,7 +524,6 @@ html body.sidebar-open .ml-64 {
   margin-left: 16rem !important;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
-
 
 html body.sidebar-open [class*="ml-[240px]"] {
   margin-left: 240px !important;

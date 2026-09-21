@@ -1328,10 +1328,12 @@ const ShoeSalesItemDetailFromGroup = () => {
                         <h3 className="text-[11px] font-bold uppercase tracking-wider text-[#6B7280]">Pricing</h3>
                       </div>
                       <div className="p-5 space-y-3">
-                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
-                          <span className="text-xs font-medium text-[#6B7280]">Cost Price</span>
-                          <span className="text-sm font-bold text-[#111827] font-mono">₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}</span>
-                        </div>
+                        {(isAdmin || user?.power === 'warehouse') && (
+                          <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                            <span className="text-xs font-medium text-[#6B7280]">Cost Price</span>
+                            <span className="text-sm font-bold text-[#111827] font-mono">₹{typeof item.costPrice === 'number' ? item.costPrice.toFixed(2) : (item.costPrice || "0.00")}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
                           <span className="text-xs font-medium text-[#6B7280]">Selling Price</span>
                           <span className="text-sm font-bold text-[#10B981] font-mono">₹{typeof item.sellingPrice === 'number' ? item.sellingPrice.toFixed(2) : (item.sellingPrice || "0.00")}</span>

@@ -465,6 +465,7 @@ export const getInventorySummary = async (req, res) => {
               itemName: item.name || "",
               sku: item.sku || "",
               costPrice: item.costPrice || 0,
+              sellingPrice: item.sellingPrice || 0,
               category: group.category || "",
               warehouseStocks: item.warehouseStocks || [],
               itemGroupId: group._id,
@@ -484,6 +485,8 @@ export const getInventorySummary = async (req, res) => {
     
     console.log(`📦 Total items after combining standalone and group items: ${items.length}`);
     
+    const isStoreLevel = !isAdmin && !isMainAdmin;
+
     const inventorySummary = items.map(item => {
       let totalStock = 0;
       let totalValue = 0;
@@ -516,8 +519,11 @@ export const getInventorySummary = async (req, res) => {
         warehouseStocksToShow.forEach(ws => {
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
+          const sellingPrice = parseFloat(item.sellingPrice) || 0;
           totalStock += stock;
-          totalValue += stock * cost;
+          // For store-level logins, calculate using sellingPrice; for admin/warehouse, use costPrice
+          const unitPrice = isStoreLevel ? (sellingPrice || cost) : cost;
+          totalValue += stock * unitPrice;
         });
       }
 
@@ -526,7 +532,8 @@ export const getInventorySummary = async (req, res) => {
         itemName: item.itemName || item.name,
         sku: item.sku,
         category: item.category,
-        cost: parseFloat(item.costPrice) || 0,
+        cost: isStoreLevel ? undefined : (parseFloat(item.costPrice) || 0),
+        sellingPrice: parseFloat(item.sellingPrice) || 0,
         totalStock,
         totalValue,
         warehouseStocks: warehouseStocksToShow,
@@ -790,6 +797,7 @@ export const getStockSummary = async (req, res) => {
               itemName: item.name || "",
               sku: item.sku || "",
               costPrice: item.costPrice || 0,
+              sellingPrice: item.sellingPrice || 0,
               category: group.category || "",
               warehouseStocks: item.warehouseStocks || [],
               itemGroupId: group._id,
@@ -927,13 +935,16 @@ export const getStockSummary = async (req, res) => {
             if (!warehouseMatches(ws.warehouse)) return;
           }
           
+          const isStoreLevel = !isAdmin && !isMainAdmin;
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
+          const sellingPrice = parseFloat(item.sellingPrice) || 0;
+          const unitPrice = isStoreLevel ? (sellingPrice || cost) : cost;
 
           // Only add to map if it's in our predefined list
           if (warehouseStockMap[normalizedWsName]) {
             warehouseStockMap[normalizedWsName].totalQuantity += stock;
-            warehouseStockMap[normalizedWsName].totalValue += stock * cost;
+            warehouseStockMap[normalizedWsName].totalValue += stock * unitPrice;
             warehouseStockMap[normalizedWsName].itemCount++;
           }
         });
@@ -1015,6 +1026,7 @@ export const getInventoryValuation = async (req, res) => {
               itemName: item.name || "",
               sku: item.sku || "",
               costPrice: item.costPrice || 0,
+              sellingPrice: item.sellingPrice || 0,
               category: group.category || "",
               warehouseStocks: item.warehouseStocks || [],
               itemGroupId: group._id,
@@ -1030,6 +1042,7 @@ export const getInventoryValuation = async (req, res) => {
     
     const items = [...standaloneItems.map(item => ({ ...item.toObject ? item.toObject() : item, isFromGroup: false })), ...groupItems];
 
+    const isStoreLevel = !isAdmin && !isMainAdmin;
     const valuationByCategory = {};
     let totalValuation = 0;
 
@@ -1042,7 +1055,9 @@ export const getInventoryValuation = async (req, res) => {
           if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103' && ws.warehouse !== normalizedWarehouse) return;
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
-          itemValue += stock * cost;
+          const sellingPrice = parseFloat(item.sellingPrice) || 0;
+          const unitPrice = isStoreLevel ? (sellingPrice || cost) : cost;
+          itemValue += stock * unitPrice;
         });
       }
 
@@ -1142,6 +1157,7 @@ export const getInventoryAging = async (req, res) => {
               itemName: item.name || "",
               sku: item.sku || "",
               costPrice: item.costPrice || 0,
+              sellingPrice: item.sellingPrice || 0,
               category: group.category || "",
               warehouseStocks: item.warehouseStocks || [],
               itemGroupId: group._id,
@@ -1157,6 +1173,7 @@ export const getInventoryAging = async (req, res) => {
     
     const items = [...standaloneItems.map(item => ({ ...item.toObject ? item.toObject() : item, isFromGroup: false })), ...groupItems];
     
+    const isStoreLevel = !isAdmin && !isMainAdmin;
     const now = new Date();
 
     const agingBuckets = {
@@ -1184,7 +1201,9 @@ export const getInventoryAging = async (req, res) => {
           if (!isMainAdmin && locCode && locCode !== '858' && locCode !== '103' && ws.warehouse !== normalizedWarehouse) return;
           const stock = parseFloat(ws.stockOnHand) || parseFloat(ws.stock) || 0;
           const cost = parseFloat(item.costPrice) || 0;
-          itemValue += stock * cost;
+          const sellingPrice = parseFloat(item.sellingPrice) || 0;
+          const unitPrice = isStoreLevel ? (sellingPrice || cost) : cost;
+          itemValue += stock * unitPrice;
           itemQuantity += stock;
         });
       }
@@ -1227,8 +1246,9 @@ export const getInventoryAging = async (req, res) => {
 export const getOpeningStockReport = async (req, res) => {
   try {
     const { locCode, warehouse, month } = req.query;
+    const userId = req.query.userId || req.body?.userId;
     
-    console.log("📊 Opening Stock Report Request:", { locCode, warehouse, month });
+    console.log("📊 Opening Stock Report Request:", { locCode, warehouse, month, userId });
     
     // Date range setup based on month
     let dateFilter = {};
@@ -1263,20 +1283,25 @@ export const getOpeningStockReport = async (req, res) => {
       dateFilter = {
         createdAt: { $gte: twelveMonthsAgo }
       };
-      displayPeriod = "Last 12 months";
     }
-    
+
+    const adminEmails = ['officerootments@gmail.com'];
+    const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
+    const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
+    const isMainAdmin = isAdmin;
+    const isStoreLevel = !isAdmin && !isMainAdmin;
+
     // Get standalone items with opening stock created in the date range
     const standaloneItems = await ShoeItem.find({
       'warehouseStocks.openingStock': { $gt: 0 },
       ...dateFilter
-    }).select('itemName sku warehouseStocks createdAt');
+    }).select('itemName sku sellingPrice costPrice warehouseStocks createdAt');
     
     // Get item groups with opening stock created in the date range
     const itemGroups = await ItemGroup.find({
       'items.warehouseStocks.openingStock': { $gt: 0 },
       ...dateFilter
-    }).select('groupName items.name items.warehouseStocks createdAt');
+    }).select('groupName items.name items.sku items.sellingPrice items.costPrice items.warehouseStocks createdAt');
     
     // Process data by store (no monthly grouping)
     const storeData = {};
@@ -1284,20 +1309,17 @@ export const getOpeningStockReport = async (req, res) => {
     let totalOpeningStock = 0;
     let totalOpeningValue = 0;
     
-    // Helper function to normalize warehouse names
-    const normalizeWarehouseName = (name) => {
-      if (!name) return "Warehouse";
-      const normalized = WAREHOUSE_NAME_MAPPING[name.trim()] || name.trim();
-      return normalized;
-    };
-    
     // Process standalone items
     standaloneItems.forEach(item => {
       item.warehouseStocks.forEach(stock => {
         if (stock.openingStock > 0) {
           const storeName = normalizeWarehouseName(stock.warehouse);
           const stockQty = stock.openingStock || 0;
-          const stockValue = stock.openingStockValue || 0;
+          const sellingPrice = parseFloat(item.sellingPrice) || 0;
+          const costPrice = parseFloat(item.costPrice) || 0;
+          const stockValue = isStoreLevel 
+            ? (stockQty * (sellingPrice || costPrice))
+            : (stock.openingStockValue || (stockQty * costPrice));
           
           // Store totals
           if (!storeData[storeName]) {
@@ -1333,7 +1355,11 @@ export const getOpeningStockReport = async (req, res) => {
             if (stock.openingStock > 0) {
               const storeName = normalizeWarehouseName(stock.warehouse);
               const stockQty = stock.openingStock || 0;
-              const stockValue = stock.openingStockValue || 0;
+              const sellingPrice = parseFloat(item.sellingPrice) || 0;
+              const costPrice = parseFloat(item.costPrice) || 0;
+              const stockValue = isStoreLevel 
+                ? (stockQty * (sellingPrice || costPrice))
+                : (stock.openingStockValue || (stockQty * costPrice));
               
               // Store totals
               if (!storeData[storeName]) {
@@ -1379,11 +1405,13 @@ export const getOpeningStockReport = async (req, res) => {
     let filteredStoreReport = storeReport;
     let filteredItemDetails = itemDetails;
     
-    if (warehouse && warehouse !== 'all' && warehouse !== 'Warehouse') {
-      const targetWarehouse = normalizeWarehouseName(warehouse);
-      
-      filteredStoreReport = storeReport.filter(store => store.store === targetWarehouse);
-      filteredItemDetails = itemDetails.filter(item => item.store === targetWarehouse);
+    const targetWh = (warehouse && warehouse !== 'all' && warehouse !== 'Warehouse' && warehouse !== 'All Stores')
+      ? normalizeWarehouseName(warehouse)
+      : (!isAdmin && locCode ? normalizeWarehouseName(locCode) : null);
+
+    if (targetWh) {
+      filteredStoreReport = storeReport.filter(store => store.store === targetWh);
+      filteredItemDetails = itemDetails.filter(item => item.store === targetWh);
       
       // Recalculate totals for filtered data
       totalOpeningStock = filteredItemDetails.reduce((sum, item) => sum + item.openingStock, 0);
@@ -1526,6 +1554,7 @@ export const getStockOnHandReport = async (req, res) => {
               itemName: item.name || "",
               sku: item.sku || "",
               costPrice: item.costPrice || 0,
+              sellingPrice: item.sellingPrice || 0,
               category: group.category || "",
               warehouseStocks: item.warehouseStocks || [],
               itemGroupId: group._id,
@@ -1657,7 +1686,10 @@ export const getStockOnHandReport = async (req, res) => {
 
         const closingStock = Math.max(0, openingStock + stockIn - stockOut);
         const itemCost = parseFloat(item.costPrice) || 0;
-        const stockValue = closingStock * itemCost;
+        const itemSelling = parseFloat(item.sellingPrice) || 0;
+        const isStoreLevel = !isAdmin && !isMainAdmin;
+        const unitPrice = isStoreLevel ? (itemSelling || itemCost) : itemCost;
+        const stockValue = closingStock * unitPrice;
 
         const hasWarehouseEntry = warehouseStocksToProcess.length > 0;
         const shouldInclude = closingStock > 0 || stockIn > 0 || stockOut > 0 || openingStock > 0 || hasWarehouseEntry;
@@ -1673,7 +1705,8 @@ export const getStockOnHandReport = async (req, res) => {
             stockIn,
             stockOut,
             closingStock,
-            costPrice: itemCost,
+            costPrice: isStoreLevel ? undefined : itemCost,
+            sellingPrice: itemSelling,
             stockValue: Math.max(0, stockValue),
             itemGroupId: item.itemGroupId || null,
             itemGroupName: item.itemGroupName || null,
