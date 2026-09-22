@@ -1,11 +1,28 @@
 import { CSVLink } from "react-csv";
 import Headers from '../components/Header.jsx';
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
+import LoadingScreen from "../components/LoadingScreen.jsx";
+
+const CheckboxOption = (props) => {
+    return (
+        <components.Option {...props}>
+            <div className="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    checked={props.isSelected}
+                    onChange={() => null}
+                    className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-0 pointer-events-none accent-blue-600"
+                />
+                <span>{props.label}</span>
+            </div>
+        </components.Option>
+    );
+};
 
 const headers = [
     { label: "Date", key: "date" },
@@ -37,18 +54,65 @@ const categories = [
 ];
 
 const subCategories = [
-    { value: "all", label: "All Sub Categories" },
-    { value: "advance", label: "Advance" },
-    { value: "Balance Payable", label: "Balance Payable" },
-    { value: "security", label: "Security" },
-    { value: "cancellation Refund", label: "Cancellation Refund" },
-    { value: "security Refund", label: "Security Refund" },
-    { value: "compensation", label: "Compensation" },
-    { value: "petty expenses", label: "Petty Expenses" },
-    { value: "shoe sales", label: "Shoe Sales" },
-    { value: "shirt sales", label: "Shirt Sales" },
-    { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
-    { value: "bulk amount transfer", label: "Bulk Amount Transfer" }
+  { value: "all", label: "All" },
+  { value: "advance", label: "Advance" },
+  { value: "Balance Payable", label: "Balance Payable" },
+  { value: "security", label: "Security" },
+  { value: "cancellation Refund", label: "Cancellation Refund" },
+  { value: "security Refund", label: "Security Refund" },
+  { value: "compensation", label: "Compensation" },
+  { value: "petty expenses", label: "Office Expense" },
+  { value: "shoe sales", label: "Shoe Sales" },
+  { value: "shirt sales", label: "Shirt Sales" },
+  { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
+  { value: "bulk amount transfer", label: "Cash to Bank" },
+  // Expense sub-categories
+  { value: "ac service", label: "Ac service" },
+  { value: "interior maintenance", label: "Interior Maintenance" },
+  { value: "glass cleaning", label: "Glass Cleaning" },
+  { value: "electrical work", label: "Electrical work" },
+  { value: "telephone/wifi", label: "Telephone/wifi" },
+  { value: "printout", label: "Printout" },
+  { value: "books/pen/checklist/register/bill book/voucher", label: "Books/pen/Checklist/Register/Bill Book/Voucher" },
+  { value: "stationary items", label: "Stationary Items" },
+  { value: "cake purchase", label: "Cake purchase" },
+  { value: "food allowance on special occassion", label: "Food allowance on Special Occassion" },
+  { value: "other refreshment", label: "Other Refreshment" },
+  { value: "staff room rent/electricity", label: "Staff room rent/Electricity" },
+  { value: "steamer", label: "Steamer" },
+  { value: "chairs", label: "Chairs" },
+  { value: "electronic items", label: "Electronic Items" },
+  { value: "any other furniture items", label: "Any other Furniture items" },
+  { value: "spot incentive", label: "Spot incentive" },
+  { value: "weekly incentive", label: "Weekly incentive" },
+  { value: "dry cleaning", label: "Dry Cleaning" },
+  { value: "altration", label: "Altration" },
+  { value: "material", label: "Material" },
+  { value: "courier charges", label: "Courier Charges" },
+  { value: "maintenance expenses", label: "Repairs & Maintenance" },
+  { value: "travel exp", label: "Travel Exp" },
+  { value: "fuel exp", label: "Fuel Exp" },
+  { value: "telephone internet", label: "Internet Expense" },
+  { value: "utility bill", label: "Electricity Charges" },
+  { value: "waste management", label: "Waste Management" },
+  { value: "water charges", label: "Water Charges" },
+  { value: "salary", label: "Salary / Salary Advance" },
+  { value: "printing stationary", label: "Printing & Stationary" },
+  { value: "staff welfare", label: "Staff Welfare" },
+  { value: "staff reimbursement", label: "Staff Accommodation" },
+  { value: "rent", label: "Store Rent" },
+  { value: "asset purchase", label: "Asset Purchase" },
+  { value: "incentive", label: "Incentive" },
+  { value: "spot incentive", label: "Incentive (Spot)" },
+  { value: "other expenses", label: "Refund" },
+  { value: "write off", label: "Write Off" },
+  { value: "promotion_services", label: "Promotion / Services" },
+  { value: "shoe sales return", label: "Shoe Sales Return" },
+  { value: "shirt sales return", label: "Shirt Sales Return" },
+  // Income sub-categories
+  { value: "compensation from cancellation", label: "Compensation from Cancellation" },
+  { value: "compensation from product damage", label: "Compensation from Product Damage" },
+  { value: "bank to cash", label: "Bank to Cash" },
 ];
 
 // Maps raw DB category/subCategory values → human-readable labels
@@ -112,8 +176,8 @@ const customSelectStyles = {
     }),
     option: (provided, state) => ({
         ...provided,
-        backgroundColor: state.isSelected ? '#18181b' : state.isFocused ? '#f1f5f9' : '#ffffff',
-        color: state.isSelected ? '#ffffff' : '#334155',
+        backgroundColor: state.isSelected ? '#e2e8f0' : state.isFocused ? '#f1f5f9' : '#ffffff',
+        color: '#334155',
         fontSize: '0.875rem',
         cursor: 'pointer',
     }),
@@ -151,9 +215,9 @@ const DayBookInc = () => {
     // Store for edited transactions to override TWS data
     const [editedTransactionsMap, setEditedTransactionsMap] = useState({});
 
-    // Filter states
-    const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-    const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
+    // Filter states (multi-select)
+    const [selectedCategory, setSelectedCategory] = useState([categories[0]]);
+    const [selectedSubCategory, setSelectedSubCategory] = useState([subCategories[0]]);
     
     const [quantities, setQuantities] = useState(() => {
         const saved = localStorage.getItem(`denominations_${new Date().toISOString().split("T")[0]}_${JSON.parse(localStorage.getItem("rootfinuser"))?.locCode}`);
@@ -205,21 +269,25 @@ const DayBookInc = () => {
 
     const fetchOptions = useMemo(() => ({}), []);
 
-    const { data } = useFetch(apiUrl, fetchOptions);
-    const { data: data1 } = useFetch(apiurl1, fetchOptions);
-    const { data: data2 } = useFetch(apiUrl2, fetchOptions);
-    const { data: data3 } = useFetch(apiUrl3, fetchOptions);
+    const { data, loading: l1 } = useFetch(apiUrl, fetchOptions);
+    const { data: data1, loading: l2 } = useFetch(apiurl1, fetchOptions);
+    const { data: data2, loading: l3 } = useFetch(apiUrl2, fetchOptions);
+    const { data: data3, loading: l4 } = useFetch(apiUrl3, fetchOptions);
 
     const [dayBookData, setDayBookData] = useState([]);
+    const [isMongoLoading, setIsMongoLoading] = useState(true);
 
     // Fetch mongo transactions once on mount
     useEffect(() => {
+        setIsMongoLoading(true);
         fetch(apiUrl4_fallback)
             .then(r => r.ok ? r.json() : null)
             .then(json => setDayBookData(json?.data || []))
-            .catch(() => setDayBookData([]));
+            .catch(() => setDayBookData([]))
+            .finally(() => setIsMongoLoading(false));
     }, []);
 
+    const isDataLoading = l1 || l2 || l3 || l4 || isMongoLoading;
     const isDataReady = true;
 
     const allowedMongoCategories = useMemo(() => [
@@ -541,14 +609,30 @@ const DayBookInc = () => {
     }, [allTransactions]);
 
     const filteredTransactions = useMemo(() => {
-        const selectedCategoryValue = selectedCategory?.value?.toLowerCase() || "all";
-        const selectedSubCategoryValue = selectedSubCategory?.value?.toLowerCase() || "all";
+        const catValues = Array.isArray(selectedCategory)
+            ? selectedCategory.map(c => c?.value?.toLowerCase()).filter(Boolean)
+            : (selectedCategory?.value ? [selectedCategory.value.toLowerCase()] : []);
+        const isAllCategories = catValues.length === 0 || catValues.includes("all");
 
-        return dedupedTransactions.filter((t) =>
-            (selectedCategoryValue === "all" || (t.category?.toLowerCase() === selectedCategoryValue || t.Category?.toLowerCase() === selectedCategoryValue || t.type?.toLowerCase() === selectedCategoryValue)) &&
-            (selectedSubCategoryValue === "all" || (t.subCategory?.toLowerCase() === selectedSubCategoryValue || t.SubCategory?.toLowerCase() === selectedSubCategoryValue || t.type?.toLowerCase() === selectedSubCategoryValue || t.subCategory1?.toLowerCase() === selectedSubCategoryValue || t.SubCategory1?.toLowerCase() === selectedSubCategoryValue || t.category?.toLowerCase() === selectedSubCategoryValue))
-        );
-    }, [dedupedTransactions, selectedCategory?.value, selectedSubCategory?.value]);
+        const subCatValues = Array.isArray(selectedSubCategory)
+            ? selectedSubCategory.map(sc => sc?.value?.toLowerCase()).filter(Boolean)
+            : (selectedSubCategory?.value ? [selectedSubCategory.value.toLowerCase()] : []);
+        const isAllSubCategories = subCatValues.length === 0 || subCatValues.includes("all");
+
+        return dedupedTransactions.filter((t) => {
+            const cat = (t.category || t.Category || t.type || "").toLowerCase();
+            const subCat = (t.subCategory || t.SubCategory || t.type || "").toLowerCase();
+            const subCat1 = (t.subCategory1 || t.SubCategory1 || "").toLowerCase();
+
+            const matchesCategory = isAllCategories || catValues.includes(cat);
+            const matchesSubCategory = isAllSubCategories ||
+                subCatValues.includes(subCat) ||
+                subCatValues.includes(subCat1) ||
+                subCatValues.includes(cat);
+
+            return matchesCategory && matchesSubCategory;
+        });
+    }, [dedupedTransactions, selectedCategory, selectedSubCategory]);
 
     const openingCash = parseInt(preOpen?.cash ?? preOpen?.Closecash ?? 0, 10);
 
@@ -1047,6 +1131,10 @@ const DayBookInc = () => {
     const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
     const difference = physicalCash - calculatedTotals.totalCash;
 
+    if (isDataLoading) {
+        return <LoadingScreen title="ROOTFIN" subtitle="BRYNEX FINANCIAL SOFTWARE" />;
+    }
+
     return (
         <>
             <div>
@@ -1093,24 +1181,34 @@ const DayBookInc = () => {
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
                             {/* Left Filters */}
                             <div className="flex flex-wrap items-center gap-4">
-                                <div className="w-[180px] sm:w-[200px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Category</label>
+                                <div className="w-[220px] sm:w-[260px]">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">CATEGORY</label>
                                     <Select
+                                        isMulti
                                         options={categories}
                                         value={selectedCategory}
                                         onChange={setSelectedCategory}
                                         styles={customSelectStyles}
-                                        isSearchable={false}
+                                        components={{ Option: CheckboxOption }}
+                                        closeMenuOnSelect={false}
+                                        hideSelectedOptions={false}
+                                        isSearchable={true}
+                                        placeholder="All Categories"
                                     />
                                 </div>
-                                <div className="w-[180px] sm:w-[200px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5">Sub Category</label>
+                                <div className="w-[240px] sm:w-[300px]">
+                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SUB CATEGORY</label>
                                     <Select
+                                        isMulti
                                         options={subCategories}
                                         value={selectedSubCategory}
                                         onChange={setSelectedSubCategory}
                                         styles={customSelectStyles}
-                                        isSearchable={false}
+                                        components={{ Option: CheckboxOption }}
+                                        closeMenuOnSelect={false}
+                                        hideSelectedOptions={false}
+                                        isSearchable={true}
+                                        placeholder="All Sub Categories"
                                     />
                                 </div>
                             </div>
@@ -1126,42 +1224,46 @@ const DayBookInc = () => {
                             {/* Main Transactions Table */}
                             <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8">
                                 <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse min-w-[900px]">
+                                    <table className="w-full text-left border-collapse min-w-[1200px]">
                                         <thead>
                                             <tr className="bg-[#1c1c1c] text-white">
-                                                <th className="py-3.5 pl-6 pr-3 text-[11px] font-bold uppercase tracking-wider">TIME</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">INVOICE NO.</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">CUSTOMER NAME</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">CATEGORY</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">SUB CATEGORY</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider">REMARKS</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right">AMOUNT</th>
-                                                <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-right">TOTAL TXN</th>
-                                                <th className="py-3.5 pl-3 pr-6 text-[11px] font-bold uppercase tracking-wider text-right">DISCOUNT</th>
-                                                {showAction && <th className="py-3.5 px-3 text-[11px] font-bold uppercase tracking-wider text-center">ACTION</th>}
+                                                <th className="py-3.5 pl-4 pr-2 text-[11px] font-bold uppercase tracking-wider">DATE</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider">INVOICE NO.</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider">CUSTOMER NAME</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider">CATEGORY</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider">SUB CATEGORY</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider">REMARKS</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">AMOUNT</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">TOTAL TXN</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">DISCOUNT</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">BILL VALUE</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">CASH</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">RAZORPAY</th>
+                                                <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">CARD/BANK</th>
+                                                <th className="py-3.5 pl-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-right">UPI</th>
+                                                {showAction && <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-center">ACTION</th>}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100 text-sm">
                                             {/* Special Row: OPENING BALANCE */}
                                             <tr className="bg-white font-medium text-gray-900 hover:bg-gray-50/50">
-                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider text-gray-900">
+                                                <td colSpan="10" className="py-3.5 pl-4 pr-2 font-bold text-xs uppercase tracking-wider text-gray-900">
                                                     OPENING BALANCE
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
+                                                <td className="py-3.5 px-2 text-right font-bold text-xs text-gray-900">
                                                     {preOpen?.cash ?? preOpen?.Closecash ?? 0}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right font-medium text-gray-800">
-                                                    {preOpen?.cash ?? preOpen?.Closecash ?? 0}
-                                                </td>
-                                                <td className="py-3.5 pl-3 pr-6 text-right text-gray-400">-</td>
-                                                {showAction && <td className="py-3.5 px-3"></td>}
+                                                <td className="py-3.5 px-2 text-right font-bold text-xs text-gray-900">0</td>
+                                                <td className="py-3.5 px-2 text-right font-bold text-xs text-gray-900">0</td>
+                                                <td className="py-3.5 pl-2 pr-4 text-right font-bold text-xs text-gray-900">0</td>
+                                                {showAction && <td className="py-3.5 px-2"></td>}
                                             </tr>
 
                                             {/* Data Rows */}
                                             {filteredTransactions.length > 0 ? (
                                                 filteredTransactions.map((tx, idx) => {
                                                     const isEditing = editingIndex === idx;
-                                                    const displayTime = tx.time || "10:34 am";
+                                                    const displayDate = tx.date ? (tx.date.includes("T") ? tx.date.split("T")[0] : tx.date) : "-";
                                                     const displayInvoice = tx.invoiceNo || tx.locCode || "-";
                                                     const displayCustomer = tx.customerName || "-";
                                                     const displayCategory = tx.Category || tx.type || tx.category || "-";
@@ -1170,51 +1272,99 @@ const DayBookInc = () => {
                                                     const displayAmount = tx.amount != null ? tx.amount : 0;
                                                     const displayTotalTxn = tx.totalTransaction != null ? tx.totalTransaction : 0;
                                                     const displayDiscount = tx.discountAmount ? tx.discountAmount : "-";
+                                                    const displayBillValue = tx.billValue != null ? tx.billValue : (tx.invoiceAmount || "-");
+                                                    const displayCash = tx.cash != null ? tx.cash : 0;
+                                                    const displayRazorpay = tx.rbl != null ? tx.rbl : 0;
+                                                    const displayBank = tx.bank != null ? tx.bank : 0;
+                                                    const displayUpi = tx.upi != null ? tx.upi : 0;
 
                                                     return (
                                                         <tr key={tx._id || idx} className="hover:bg-gray-50/70 transition-colors text-gray-800">
-                                                            <td className="py-3.5 pl-6 pr-3 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
-                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
-                                                            <td className="py-3.5 px-3 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
-                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displayCategory}</td>
-                                                            <td className="py-3.5 px-3 text-xs whitespace-nowrap">{displaySubCategory}</td>
-                                                            <td className="py-3.5 px-3 text-xs text-gray-500 max-w-[160px] truncate">{displayRemarks}</td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="py-3.5 pl-4 pr-2 text-xs text-gray-600 whitespace-nowrap">{displayDate}</td>
+                                                            <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
+                                                            <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
+                                                            <td className="py-3.5 px-2 text-xs whitespace-nowrap">{displayCategory}</td>
+                                                            <td className="py-3.5 px-2 text-xs whitespace-nowrap">{displaySubCategory}</td>
+                                                            <td className="py-3.5 px-2 text-xs text-gray-500 max-w-[140px] truncate">{displayRemarks}</td>
+                                                            <td className="py-3.5 px-2 text-right font-medium text-xs whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.amount}
                                                                         onChange={(e) => handleInputChange("amount", e.target.value)}
-                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-20 p-1 border border-gray-300 text-xs text-right"
                                                                     />
                                                                 ) : displayAmount}
                                                             </td>
-                                                            <td className="py-3.5 px-3 text-right font-medium text-xs whitespace-nowrap">
+                                                            <td className="py-3.5 px-2 text-right font-medium text-xs whitespace-nowrap">
                                                                 {isEditing ? (
                                                                     <input
                                                                         type="number"
                                                                         value={editedTransaction.totalTransaction}
                                                                         onChange={(e) => handleInputChange("totalTransaction", e.target.value)}
-                                                                        className="w-20 p-1 border border-gray-300 rounded-none text-xs text-right"
+                                                                        className="w-20 p-1 border border-gray-300 text-xs text-right"
                                                                     />
                                                                 ) : displayTotalTxn}
                                                             </td>
-                                                            <td className="py-3.5 pl-3 pr-6 text-right text-xs text-gray-600 whitespace-nowrap">
+                                                            <td className="py-3.5 px-2 text-right text-xs text-gray-600 whitespace-nowrap">
                                                                 {displayDiscount}
                                                             </td>
+                                                            <td className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap">
+                                                                {displayBillValue}
+                                                            </td>
+                                                            <td className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.cash}
+                                                                        onChange={(e) => handleInputChange("cash", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                    />
+                                                                ) : displayCash}
+                                                            </td>
+                                                            <td className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.rbl}
+                                                                        onChange={(e) => handleInputChange("rbl", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                    />
+                                                                ) : displayRazorpay}
+                                                            </td>
+                                                            <td className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.bank}
+                                                                        onChange={(e) => handleInputChange("bank", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                    />
+                                                                ) : displayBank}
+                                                            </td>
+                                                            <td className="py-3.5 pl-2 pr-4 text-right text-xs text-gray-800 whitespace-nowrap">
+                                                                {isEditing ? (
+                                                                    <input
+                                                                        type="number"
+                                                                        value={editedTransaction.upi}
+                                                                        onChange={(e) => handleInputChange("upi", e.target.value)}
+                                                                        className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                    />
+                                                                ) : displayUpi}
+                                                            </td>
                                                             {showAction && (
-                                                                <td className="py-3.5 px-3 text-center whitespace-nowrap">
+                                                                <td className="py-3.5 px-2 text-center whitespace-nowrap">
                                                                     {isEditing ? (
                                                                         <button
                                                                             onClick={handleSave}
-                                                                            className="bg-emerald-600 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
+                                                                            className="bg-emerald-600 text-white px-2.5 py-1 text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
                                                                         >
                                                                             Save
                                                                         </button>
                                                                     ) : (
                                                                         <button
                                                                             onClick={() => handleEditClick(tx, idx)}
-                                                                            className="bg-gray-800 text-white px-2.5 py-1 rounded-none text-xs font-semibold hover:bg-black cursor-pointer"
+                                                                            className="bg-gray-800 text-white px-2.5 py-1 text-xs font-semibold hover:bg-black cursor-pointer"
                                                                         >
                                                                             Edit
                                                                         </button>
@@ -1226,7 +1376,7 @@ const DayBookInc = () => {
                                                 })
                                             ) : (
                                                 <tr>
-                                                    <td colSpan={showAction ? 10 : 9} className="py-12 text-center text-gray-400 text-sm">
+                                                    <td colSpan={showAction ? 15 : 14} className="py-12 text-center text-gray-400 text-sm">
                                                         No transactions found
                                                     </td>
                                                 </tr>
@@ -1234,31 +1384,37 @@ const DayBookInc = () => {
                                         </tbody>
                                         <tfoot>
                                             <tr className="bg-[#dedede] text-gray-900 font-bold border-t border-gray-300">
-                                                <td colSpan="6" className="py-3.5 pl-6 pr-3 font-bold text-xs uppercase tracking-wider">
-                                                    TOTAL
+                                                <td colSpan="10" className="py-3.5 pl-4 pr-2 font-bold text-xs uppercase tracking-wider">
+                                                    Total
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
-                                                    {totalCalculatedAmount}
+                                                <td className="py-3.5 px-2 text-right text-xs font-bold">
+                                                    {calculatedTotals.totalCash}
                                                 </td>
-                                                <td className="py-3.5 px-3 text-right text-xs font-bold">
-                                                    {totalCalculatedTxn}
+                                                <td className="py-3.5 px-2 text-right text-xs font-bold">
+                                                    {calculatedTotals.totalRblAmount}
                                                 </td>
-                                                <td className="py-3.5 pl-3 pr-6 text-right text-xs font-bold">
-                                                    {totalCalculatedDiscount > 0 ? totalCalculatedDiscount : "-"}
+                                                <td className="py-3.5 px-2 text-right text-xs font-bold">
+                                                    {calculatedTotals.totalBankAmount1}
                                                 </td>
-                                                {showAction && <td className="py-3.5 px-3"></td>}
+                                                <td className="py-3.5 pl-2 pr-4 text-right text-xs font-bold">
+                                                    {calculatedTotals.totalBankAmountupi}
+                                                </td>
+                                                {showAction && <td className="py-3.5 px-2"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
                                 </div>
                             </div>
 
-                            {/* Bottom 2-Column Section: Physical Denomination Count & Cash Summary */}
+                            {/* Bottom 2-Column Section: Physical Cash Count & Cash Summary */}
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                                 
-                                {/* Left Box: Denomination Count (Takes 7 cols on desktop ~668px) */}
+                                {/* Left Box: PHYSICAL CASH COUNT (Takes 7 cols on desktop) */}
                                 <div className="lg:col-span-7 bg-white border border-gray-200 overflow-hidden shadow-xs">
-                                    <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center">
+                                    <div className="px-6 py-3 border-b border-gray-200">
+                                        <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">PHYSICAL CASH COUNT</h3>
+                                    </div>
+                                    <div className="bg-[#1c1c1c] text-white px-6 py-3 flex justify-between items-center">
                                         <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
                                         <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
                                         <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
@@ -1268,76 +1424,50 @@ const DayBookInc = () => {
                                         {denominations.map((denom, index) => {
                                             const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
                                             return (
-                                                <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
+                                                <div key={denom.label} className="px-6 py-2.5 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
                                                     <span className="text-sm font-semibold text-gray-700 w-1/3">{denom.label}</span>
                                                     <div className="w-1/3 flex justify-center">
-                                                        <div className="inline-flex items-center border border-gray-300 bg-white">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => decrementQuantity(index)}
-                                                                disabled={preOpen1 != null}
-                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-r border-gray-300 disabled:opacity-40 cursor-pointer"
-                                                            >
-                                                                <Minus size={13} />
-                                                            </button>
-                                                            <input
-                                                                type="number"
-                                                                min="0"
-                                                                value={quantities[index]}
-                                                                onChange={(e) => handleQuantityChange(index, e.target.value)}
-                                                                readOnly={preOpen1 != null}
-                                                                placeholder="0"
-                                                                className="w-12 h-8 text-center text-sm font-semibold text-gray-800 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => incrementQuantity(index)}
-                                                                disabled={preOpen1 != null}
-                                                                className="w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors border-l border-gray-300 disabled:opacity-40 cursor-pointer"
-                                                            >
-                                                                <Plus size={13} />
-                                                            </button>
-                                                        </div>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            value={quantities[index]}
+                                                            onChange={(e) => handleQuantityChange(index, e.target.value)}
+                                                            readOnly={preOpen1 != null}
+                                                            placeholder=""
+                                                            className="w-24 h-9 text-center text-sm font-medium text-gray-800 border border-gray-300 rounded-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
+                                                        />
                                                     </div>
                                                     <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
-                                                        {amt.toFixed(2)}
+                                                        {amt > 0 ? amt.toLocaleString() : "-"}
                                                     </span>
                                                 </div>
                                             );
                                         })}
                                     </div>
-
-                                    {/* Physical Total Footer */}
-                                    <div className="bg-[#dedede] px-6 py-3.5 flex justify-between items-center border-t border-gray-300">
-                                        <span className="text-sm font-bold text-gray-900">Physical Total</span>
-                                        <span className="text-sm font-bold text-gray-900">
-                                            {totalAmount.toFixed(2)}
-                                        </span>
-                                    </div>
                                 </div>
 
-                                {/* Right Box: Cash Summary Card (Takes 5 cols on desktop) */}
-                                <div className="lg:col-span-5 bg-white border border-gray-300 p-6 md:p-7 flex flex-col justify-between shadow-xs">
+                                {/* Right Box: CASH SUMMARY Card (Takes 5 cols on desktop) */}
+                                <div className="lg:col-span-5 bg-white border border-gray-200 p-6 flex flex-col justify-between shadow-xs">
                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900 mb-6">Cash Summary</h3>
+                                        <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-6">CASH SUMMARY</h3>
                                         <div className="space-y-4">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-500 font-medium">Closing Cash</span>
+                                            <div className="flex justify-between items-center py-1">
+                                                <span className="text-sm text-gray-600 font-medium">Closing Cash</span>
                                                 <span className="text-base font-bold text-gray-900">
                                                     {calculatedTotals.totalCash.toLocaleString()}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm text-gray-500 font-medium">Physical Cash</span>
+                                            <div className="flex justify-between items-center py-1">
+                                                <span className="text-sm text-gray-600 font-medium">Physical Cash</span>
                                                 <span className="text-base font-bold text-gray-900">
                                                     {physicalCash.toLocaleString()}
                                                 </span>
                                             </div>
-                                            <div className="border-t border-dashed border-gray-200 my-3" />
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-bold text-gray-800">Difference</span>
+                                            <div className="border-t border-gray-200 my-2" />
+                                            <div className="flex justify-between items-center py-1">
+                                                <span className="text-sm font-bold text-red-600">Difference</span>
                                                 <span className={`text-base font-bold ${
-                                                    difference < 0 ? "text-red-500" : "text-emerald-600"
+                                                    difference !== 0 ? "text-red-500" : "text-gray-900"
                                                 }`}>
                                                     {difference.toLocaleString()}
                                                 </span>
@@ -1347,18 +1477,10 @@ const DayBookInc = () => {
 
                                     {/* Action Buttons */}
                                     <div className="flex items-center gap-4 mt-8 no-print">
-                                        <button
-                                            type="button"
-                                            onClick={handleDownloadReport}
-                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-semibold rounded-none border border-gray-200 transition-colors text-center cursor-pointer"
-                                        >
-                                            Download Report
-                                        </button>
-
                                         {loading ? (
                                             <button
                                                 disabled
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] opacity-70 text-white text-sm font-semibold rounded-none text-center flex items-center justify-center gap-2 cursor-not-allowed"
+                                                className="flex-1 py-2.5 px-4 bg-blue-600 opacity-70 text-white text-sm font-medium rounded-md text-center flex items-center justify-center gap-2 cursor-not-allowed"
                                             >
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                                 <span>Saving...</span>
@@ -1367,19 +1489,27 @@ const DayBookInc = () => {
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                                className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
                                             >
-                                                Save & Finish Day
+                                                Save Day
                                             </button>
                                         ) : (
                                             <button
                                                 type="button"
                                                 onClick={handlePrint}
-                                                className="flex-1 py-2.5 px-4 bg-[#8b5cf6] hover:bg-[#7c3aed] text-white text-sm font-semibold rounded-none shadow-sm transition-all hover:shadow text-center cursor-pointer"
+                                                className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
                                             >
                                                 Print Summary
                                             </button>
                                         )}
+
+                                        <button
+                                            type="button"
+                                            onClick={handleDownloadReport}
+                                            className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
+                                        >
+                                            Export CSV
+                                        </button>
                                     </div>
                                 </div>
 

@@ -146,16 +146,11 @@ a.no-blue-button {
 }
 
 .sidebar-button {
-  background-color: transparent !important;
-  color: inherit !important;
   border-color: transparent !important;
   box-shadow: none !important;
   min-width: unset !important;
   min-height: unset !important;
-  padding: 0.5rem 0.75rem !important; /* match px-3 py-2 */
-  border-radius: 0.5rem !important;
-  font-size: 0.875rem !important;
-  font-weight: 500 !important;
+  transform: none !important;
 }
 
 .table-link-button {

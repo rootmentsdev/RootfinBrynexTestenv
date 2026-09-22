@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import usePreventNumberInputScroll from "./hooks/usePreventNumberInputScroll";
+import LoadingScreen from "./components/LoadingScreen.jsx";
 import DayBookInc from "./pages/BillWiseIncome.jsx";
 import Datewisedaybook from "./pages/Datewisedaybook.jsx";
 import Booking from "./pages/Booking.jsx";
@@ -105,11 +106,11 @@ const App = () => {
     const handleKeyDown = (e) => {
       // Only trigger if not in an input field
       const target = e.target;
-      const isInputField = target.tagName === 'INPUT' || 
-                          target.tagName === 'TEXTAREA' || 
-                          target.tagName === 'SELECT' ||
-                          target.isContentEditable;
-      
+      const isInputField = target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable;
+
       if (isInputField) {
         // Reset sequence if user is typing in a field
         keySequenceRef.current = '';
@@ -160,6 +161,19 @@ const App = () => {
     };
   }, [navigate, currentuser]);
 
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (initialLoading) {
+    return <LoadingScreen title="ROOTFIN" subtitle="BRYNEX FINANCIAL SOFTWARE" />;
+  }
+
   return (
     <div className="">
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
@@ -181,14 +195,14 @@ const App = () => {
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
           <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
           <Route path="/ManageStores" element={currentuser?.power === 'admin' ? <ManageStores /> : <Navigate to='/' />} />
-          
+
           {/* Manage Users Routes */}
           <Route path="/manage-users/add-store" element={currentuser?.power === 'admin' ? <AddNewStore /> : <Navigate to='/' />} />
           <Route path="/manage-users/add-user" element={currentuser?.power === 'admin' ? <AddNewUser /> : <Navigate to='/' />} />
           <Route path="/manage-users/existing-users" element={currentuser?.power === 'admin' ? <ExistingUsers /> : <Navigate to='/' />} />
           <Route path="/manage-users/edit-user/:id" element={currentuser?.power === 'admin' ? <EditUser /> : <Navigate to='/' />} />
           <Route path="/manage-users/reset-password" element={currentuser?.power === 'admin' ? <ResetUserPassword /> : <Navigate to='/' />} />
-          
+
           <Route path="/shoe-sales/items" element={currentuser ? <ShoeSalesItems /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/inactive-items" element={currentuser ? <InactiveItems /> : <Navigate to="/login" />} />
           <Route path="/shoe-sales/items/:itemId/stocks" element={(currentuser?.power === 'admin' || currentuser?.power === 'warehouse') ? <StandaloneItemStockManagement /> : <Navigate to="/" />} />
@@ -264,7 +278,7 @@ const App = () => {
           <Route path="/reports/sales" element={currentuser ? <SalesReport /> : <Navigate to="/login" />} />
           <Route path="/reports/inventory" element={currentuser ? <InventoryReport /> : <Navigate to="/login" />} />
           <Route path="/reports/income-expense" element={currentuser ? <IncomeExpenseReport /> : <Navigate to="/login" />} />
-          
+
           {/* Reorder Alerts */}
           <Route path="/inventory/reorder-alerts" element={currentuser ? <ReorderAlerts /> : <Navigate to="/login" />} />
 

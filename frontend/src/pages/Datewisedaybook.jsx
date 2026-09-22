@@ -1,12 +1,29 @@
 import Headers from '../components/Header.jsx';
 import React, { useEffect, useRef, useState } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
-import Select from "react-select";
+import Select, { components } from "react-select";
 import baseUrl from '../api/api.js';
 import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { FiDownload } from "react-icons/fi";
 import useSidebar from "../hooks/useSidebar";
+import LoadingScreen from "../components/LoadingScreen.jsx";
+
+const CheckboxOption = (props) => {
+  return (
+    <components.Option {...props}>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={props.isSelected}
+          onChange={() => null}
+          className="w-4 h-4 text-[#9B48D7] rounded border-gray-300 focus:ring-0 pointer-events-none accent-[#9B48D7]"
+        />
+        <span>{props.label}</span>
+      </div>
+    </components.Option>
+  );
+};
 
 const categories = [
   { value: "all", label: "All" },
@@ -56,6 +73,24 @@ const subCategories = [
   { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
   { value: "bulk amount transfer", label: "Cash to Bank" },
   // Expense sub-categories
+  { value: "ac service", label: "Ac service" },
+  { value: "interior maintenance", label: "Interior Maintenance" },
+  { value: "glass cleaning", label: "Glass Cleaning" },
+  { value: "electrical work", label: "Electrical work" },
+  { value: "telephone/wifi", label: "Telephone/wifi" },
+  { value: "printout", label: "Printout" },
+  { value: "books/pen/checklist/register/bill book/voucher", label: "Books/pen/Checklist/Register/Bill Book/Voucher" },
+  { value: "stationary items", label: "Stationary Items" },
+  { value: "cake purchase", label: "Cake purchase" },
+  { value: "food allowance on special occassion", label: "Food allowance on Special Occassion" },
+  { value: "other refreshment", label: "Other Refreshment" },
+  { value: "staff room rent/electricity", label: "Staff room rent/Electricity" },
+  { value: "steamer", label: "Steamer" },
+  { value: "chairs", label: "Chairs" },
+  { value: "electronic items", label: "Electronic Items" },
+  { value: "any other furniture items", label: "Any other Furniture items" },
+  { value: "spot incentive", label: "Spot incentive" },
+  { value: "weekly incentive", label: "Weekly incentive" },
   { value: "dry cleaning", label: "Dry Cleaning" },
   { value: "altration", label: "Altration" },
   { value: "material", label: "Material" },
@@ -1063,30 +1098,36 @@ const Datewisedaybook = () => {
   const [mongoTransactions, setMongoTransactions] = useState([]);
   const [mergedTransactions, setMergedTransactions] = useState([]);
 
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-  const [selectedSubCategory, setSelectedSubCategory] = useState(subCategories[0]);
+  const [selectedCategory, setSelectedCategory] = useState([categories[0]]);
+  const [selectedSubCategory, setSelectedSubCategory] = useState([subCategories[0]]);
 
-  const selectedCategoryValue = selectedCategory?.value?.toLowerCase() || "all";
-  const selectedSubCategoryValue = selectedSubCategory?.value?.toLowerCase() || "all";
+  const catValues = Array.isArray(selectedCategory)
+    ? selectedCategory.map(c => c?.value?.toLowerCase()).filter(Boolean)
+    : (selectedCategory?.value ? [selectedCategory.value.toLowerCase()] : []);
+  const isAllCategories = catValues.length === 0 || catValues.includes("all");
+
+  const subCatValues = Array.isArray(selectedSubCategory)
+    ? selectedSubCategory.map(sc => sc?.value?.toLowerCase()).filter(Boolean)
+    : (selectedSubCategory?.value ? [selectedSubCategory.value.toLowerCase()] : []);
+  const isAllSubCategories = subCatValues.length === 0 || subCatValues.includes("all");
+
+  const filterTransaction = (t) => {
+    const category = (t.Category ?? t.category ?? t.type ?? "").toLowerCase();
+    const subCategory = (t.SubCategory ?? t.subCategory ?? t.type ?? "").toLowerCase();
+    const subCategory1 = (t.SubCategory1 ?? t.subCategory1 ?? "").toLowerCase();
+
+    const matchesCategory = isAllCategories || catValues.includes(category);
+    const matchesSubCategory = isAllSubCategories ||
+      subCatValues.includes(subCategory) ||
+      subCatValues.includes(subCategory1) ||
+      subCatValues.includes(category);
+
+    return matchesCategory && matchesSubCategory;
+  };
 
   const toNumber = (v) => (isNaN(+v) ? 0 : +v);
 
-  const displayedRows = mergedTransactions.filter((t) => {
-    const category = (t.Category ?? t.type ?? "").toLowerCase();
-    const subCategory = (t.SubCategory ?? "").toLowerCase();
-    const subCategory1 = (t.SubCategory1 ?? "").toLowerCase();
-    const isRentOut = category === "rentout";
-
-    const matchesCategory =
-      selectedCategoryValue === "all" || category === selectedCategoryValue;
-
-    const matchesSubCategory =
-      selectedSubCategoryValue === "all" ||
-      subCategory === selectedSubCategoryValue ||
-      (isRentOut && subCategory1 === selectedSubCategoryValue);
-
-    return matchesCategory && matchesSubCategory;
-  });
+  const displayedRows = mergedTransactions.filter(filterTransaction);
 
   // ✅ CRITICAL FIX: Use 'cash' field (calculated closing cash) for opening balance, not 'Closecash' (physical cash)
   // The 'cash' field contains the previous day's total closing cash, which should be today's opening
@@ -1144,14 +1185,7 @@ const Datewisedaybook = () => {
     },
 
     ...(mergedTransactions)
-      .filter(
-        (t) =>
-          (selectedCategoryValue === "all" ||
-            (t.Category ?? t.type ?? "").toLowerCase() === selectedCategoryValue) &&
-          (selectedSubCategoryValue === "all" ||
-            (t.SubCategory ?? "").toLowerCase() === selectedSubCategoryValue ||
-            (t.SubCategory1 ?? "").toLowerCase() === selectedSubCategoryValue)
-      )
+      .filter(filterTransaction)
       .map((t) => {
         const isReturn = t.Category === "Return";
         const isCancel = t.Category === "Cancel";
@@ -1520,9 +1554,13 @@ const Datewisedaybook = () => {
                   <div className="flex flex-col">
                     <label className="text-sm font-medium text-gray-500 mb-1.5">Category</label>
                     <Select
+                      isMulti
                       options={categories}
                       value={selectedCategory}
                       onChange={setSelectedCategory}
+                      components={{ Option: CheckboxOption }}
+                      closeMenuOnSelect={false}
+                      hideSelectedOptions={false}
                       menuPortalTarget={document.body}
                       styles={{
                         control: (base, state) => ({
@@ -1559,8 +1597,8 @@ const Datewisedaybook = () => {
                         option: (base, state) => ({
                           ...base,
                           fontSize: '0.875rem',
-                          backgroundColor: state.isSelected ? '#9B48D7' : state.isFocused ? '#f5f3ff' : 'white',
-                          color: state.isSelected ? 'white' : '#374151',
+                          backgroundColor: state.isSelected ? '#f3e8ff' : state.isFocused ? '#f5f3ff' : 'white',
+                          color: '#374151',
                           cursor: 'pointer',
                         }),
                       }}
@@ -1571,9 +1609,13 @@ const Datewisedaybook = () => {
                   <div className="flex flex-col">
                     <label className="text-sm font-medium text-gray-500 mb-1.5">Sub Category</label>
                     <Select
+                      isMulti
                       options={subCategories}
                       value={selectedSubCategory}
                       onChange={setSelectedSubCategory}
+                      components={{ Option: CheckboxOption }}
+                      closeMenuOnSelect={false}
+                      hideSelectedOptions={false}
                       menuPortalTarget={document.body}
                       styles={{
                         control: (base, state) => ({
@@ -1610,8 +1652,8 @@ const Datewisedaybook = () => {
                         option: (base, state) => ({
                           ...base,
                           fontSize: '0.875rem',
-                          backgroundColor: state.isSelected ? '#9B48D7' : state.isFocused ? '#f5f3ff' : 'white',
-                          color: state.isSelected ? 'white' : '#374151',
+                          backgroundColor: state.isSelected ? '#f3e8ff' : state.isFocused ? '#f5f3ff' : 'white',
+                          color: '#374151',
                           cursor: 'pointer',
                         }),
                       }}
@@ -1756,22 +1798,8 @@ const Datewisedaybook = () => {
             </div>
 
             <div ref={printRef}>
-              {/* Loading skeleton */}
-              {isFetching && (
-                <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden p-4">
-                  <div className="shimmer h-8 w-full mb-2 rounded-none" />
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex gap-2 mb-2">
-                      <div className="shimmer h-6 rounded-none" style={{ width: '10%' }} />
-                      <div className="shimmer h-6 rounded-none" style={{ width: '14%' }} />
-                      <div className="shimmer h-6 rounded-none" style={{ width: '16%' }} />
-                      <div className="shimmer h-6 rounded-none" style={{ width: '8%' }} />
-                      <div className="shimmer h-6 rounded-none" style={{ width: '10%' }} />
-                      <div className="shimmer h-6 rounded-none flex-1" />
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Loading Screen */}
+              {isFetching && <LoadingScreen title="ROOTFIN" subtitle="BRYNEX FINANCIAL SOFTWARE" />}
 
               {!isFetching && selectedStore === "all" ? (
                 <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
@@ -1841,19 +1869,7 @@ const Datewisedaybook = () => {
                       </thead>
                       <tbody>
                         {multiBranchData
-                          .filter(t =>
-                            (selectedCategoryValue === "all" ||
-                              t.category?.toLowerCase() === selectedCategoryValue ||
-                              t.Category?.toLowerCase() === selectedCategoryValue ||
-                              t.type?.toLowerCase() === selectedCategoryValue) &&
-                            (selectedSubCategoryValue === "all" ||
-                              t.subCategory?.toLowerCase() === selectedSubCategoryValue ||
-                              t.SubCategory?.toLowerCase() === selectedSubCategoryValue ||
-                              t.type?.toLowerCase() === selectedSubCategoryValue ||
-                              t.subCategory1?.toLowerCase() === selectedSubCategoryValue ||
-                              t.SubCategory1?.toLowerCase() === selectedSubCategoryValue ||
-                              t.category?.toLowerCase() === selectedSubCategoryValue)
-                          )
+                          .filter(filterTransaction)
                           .map((t, index) => {
                             if (t.Category === "RentOut") {
                               return (
@@ -2000,20 +2016,7 @@ const Datewisedaybook = () => {
                         </tr>
 
                         {mergedTransactions
-                          .filter(
-                            (t) =>
-                              (selectedCategoryValue === "all" ||
-                                t.category?.toLowerCase() === selectedCategoryValue ||
-                                t.Category?.toLowerCase() === selectedCategoryValue ||
-                                t.type?.toLowerCase() === selectedCategoryValue) &&
-                              (selectedSubCategoryValue === "all" ||
-                                t.subCategory?.toLowerCase() === selectedSubCategoryValue ||
-                                t.SubCategory?.toLowerCase() === selectedSubCategoryValue ||
-                                t.type?.toLowerCase() === selectedSubCategoryValue ||
-                                t.subCategory1?.toLowerCase() === selectedSubCategoryValue ||
-                                t.SubCategory1?.toLowerCase() === selectedSubCategoryValue ||
-                                t.category?.toLowerCase() === selectedSubCategoryValue)
-                          )
+                          .filter(filterTransaction)
                           .map((transaction, index) => {
                             const isEditing = editingIndex === index;
                             const t = isEditing ? editedTransaction : transaction;

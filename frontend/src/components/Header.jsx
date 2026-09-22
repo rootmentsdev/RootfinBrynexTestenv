@@ -246,57 +246,7 @@ const Header = (prop) => {
                         )}
                     </a>
                 </div>
-
-                <div
-                    onClick={() => setlogOut((prev) => !prev)}
-                    className="hidden cursor-pointer w-full md:block md:w-auto"
-                    id="navbar-multi-level"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="text-right">
-                            <p className="text-xs text-gray-500">Location: {formatLocationName(displayName)}</p>
-                        </div>
-                        <IoPersonCircleOutline className="text-4xl text-green-600" />
-                    </div>
-                </div>
             </div>
-
-            {logOut && (
-                <div className="flex flex-col items-stretch w-64 rounded-lg shadow-lg bg-white absolute right-5 top-16 p-4 space-y-3 border border-gray-100 z-50">
-                    <div className="pb-3 border-b border-gray-200">
-                        <p className="text-xs text-gray-500 mb-1">Current Location</p>
-                        <p className="text-sm font-semibold text-gray-800">{formatLocationName(displayName)}</p>
-                    </div>
-                    
-                    {(currentUser.power === 'admin' || (currentUser.role || '').toLowerCase() === 'cluster_manager') && (
-                        <div className="space-y-2">
-                            <label className="block text-xs font-semibold text-gray-600">Switch Location</label>
-                            <select
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-gray-700 bg-white hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm transition-colors"
-                                value={selectedValue}
-                                onChange={handleChange}
-                            >
-                                <option value="">-- Select a location --</option>
-                                {(currentUser.power === 'admin'
-                                    ? AllLoation
-                                    : AllLoation.filter(item => (currentUser.allowedLocCodes || []).includes(item.locCode))
-                                ).map((item) => (
-                                    <option key={item.locCode} value={item.locCode}>
-                                        {formatLocationName(item.locName)}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                    
-                    <button
-                        className="w-full px-3 py-2.5 bg-red-500 text-white rounded-lg hover:bg-red-600 cursor-pointer font-medium text-sm transition-colors"
-                        onClick={HanndleRemove}
-                    >
-                        Logout
-                    </button>
-                </div>
-            )}
         </nav>
     );
 };
