@@ -1,6 +1,8 @@
 import { IoPersonCircleOutline } from "react-icons/io5";
 import Rootments from '../assets/Rootments.jpg';
 import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import baseUrl from '../api/api';
 import salesInventoryAccessConfig from '../config/salesInventoryAccess.json';
 
@@ -66,6 +68,56 @@ const Header = (prop) => {
     // Dropdown state
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
+
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Generate breadcrumbs from path
+    const getBreadcrumbs = () => {
+        const paths = location.pathname.split('/').filter(Boolean);
+        if (paths.length === 0) return null; // Root path (Day Book, etc)
+        
+        // Map common path segments
+        const pathMap = {
+            'shoe-sales': 'Sales',
+            'invoices': 'Invoice',
+            'orders': 'Order',
+            'customers': 'Customer',
+            'inventory': 'Inventory',
+            'items': 'Items',
+            'item-groups': 'Item Groups',
+            'adjustments': 'Adjustments',
+            'transfer-orders': 'Transfer Orders',
+            'store-orders': 'Store Orders',
+            'manage-users': 'Manage Users',
+        };
+
+        const breadcrumbs = [];
+        
+        for (let i = 0; i < paths.length; i++) {
+            const path = paths[i];
+            const isLast = i === paths.length - 1;
+            
+            // Skip ID segments unless it's the last one
+            if (path.length > 20 || !isNaN(path)) {
+                if (isLast) breadcrumbs.push({ name: prop.title || 'Details', isLast: true });
+                continue;
+            }
+            
+            // If it's the last part ("new", "edit", etc) or just standard last part, use prop.title if available to be accurate
+            if (isLast && prop.title) {
+                 breadcrumbs.push({ name: prop.title, isLast: true });
+                 continue;
+            }
+
+            const name = pathMap[path] || (path.charAt(0).toUpperCase() + path.slice(1).replace(/-/g, ' '));
+            breadcrumbs.push({ name, isLast });
+        }
+        
+        return breadcrumbs;
+    };
+    
+    const breadcrumbs = getBreadcrumbs();
 
     // Close on outside click
     useEffect(() => {
@@ -246,10 +298,26 @@ const Header = (prop) => {
         <nav className="bg-white border-b border-gray-200 shadow-sm">
             <div className="max-w-full px-6 py-3.5 flex flex-wrap items-center justify-between mx-auto">
                 <div className="flex items-center gap-3">
-                    {prop.title && (
-                        <h1 className="text-xl font-bold text-gray-800">{prop.title}</h1>
+                    {breadcrumbs && breadcrumbs.length > 0 ? (
+                        <div className="flex items-center gap-4">
+                            <button onClick={() => navigate(-1)} className="p-2.5 rounded-lg bg-[#5a5a5a] hover:bg-[#4a4a4a] text-white transition-colors flex items-center justify-center">
+                                <ArrowLeft size={18} />
+                            </button>
+                            <div className="flex items-center gap-2 text-[15px]">
+                                {breadcrumbs.map((crumb, idx) => (
+                                    <div key={idx} className="flex items-center gap-2">
+                                        <span className={crumb.isLast ? "font-semibold text-gray-900 text-lg" : "text-gray-500"}>
+                                            {crumb.name}
+                                        </span>
+                                        {!crumb.isLast && <span className="text-gray-400">/</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        prop.title && <h1 className="text-xl font-bold text-gray-800">{prop.title}</h1>
                     )}
-                    <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
+                    <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse ml-2">
                         {hasBetaAccess && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md animate-pulse">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -261,24 +329,25 @@ const Header = (prop) => {
                     </a>
                 </div>
                 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 shrink-0">
                     {/* Location Selector */}
                     {(isAdmin || isClusterManager) ? (
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 type="button"
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                className="flex items-center flex-nowrap whitespace-nowrap bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 shadow-sm transition-colors cursor-pointer"
+                                className="bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 shadow-sm transition-colors cursor-pointer"
+                                style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap', whiteSpace: 'nowrap', width: 'max-content', gap: '8px' }}
                             >
-                                <span className="text-gray-500 mr-2 shrink-0">
+                                <span className="text-gray-500 flex-shrink-0 flex items-center">
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 </span>
-                                <span className="text-sm font-medium text-gray-700 mr-2 whitespace-nowrap">
+                                <span className="text-sm font-medium text-gray-700" style={{ whiteSpace: 'nowrap' }}>
                                     {currentUser?.locCode 
                                         ? formatLocationName(AllLoation.find(l => l.locCode === currentUser.locCode)?.locName || "Select Location") 
                                         : "-- Select Location --"}
                                 </span>
-                                <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                <svg className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                             </button>
                             
                             {isDropdownOpen && (
