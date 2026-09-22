@@ -2,11 +2,27 @@ import { useState, useEffect, useRef } from "react";
 import dataCache from "../utils/cache.js";
 
 const useFetch = (url, options = {}) => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { useCache = true, cacheTTL } = options;
+
+  const [data, setData] = useState(() => {
+    if (useCache && url) {
+      const cached = dataCache.get(url);
+      if (cached) return cached;
+    }
+    return null;
+  });
+  
+  const [loading, setLoading] = useState(() => {
+    if (!url) return false;
+    if (useCache && url) {
+      const cached = dataCache.get(url);
+      if (cached) return false;
+    }
+    return true;
+  });
+  
   const [error, setError] = useState(null);
   const abortControllerRef = useRef(null);
-  const { useCache = true, cacheTTL } = options;
 
   useEffect(() => {
     if (!url) {

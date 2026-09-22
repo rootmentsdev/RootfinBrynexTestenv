@@ -54,96 +54,96 @@ const categories = [
 ];
 
 const subCategories = [
-  { value: "all", label: "All" },
-  { value: "advance", label: "Advance" },
-  { value: "Balance Payable", label: "Balance Payable" },
-  { value: "security", label: "Security" },
-  { value: "cancellation Refund", label: "Cancellation Refund" },
-  { value: "security Refund", label: "Security Refund" },
-  { value: "compensation", label: "Compensation" },
-  { value: "petty expenses", label: "Office Expense" },
-  { value: "shoe sales", label: "Shoe Sales" },
-  { value: "shirt sales", label: "Shirt Sales" },
-  { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
-  { value: "bulk amount transfer", label: "Cash to Bank" },
-  // Expense sub-categories
-  { value: "ac service", label: "Ac service" },
-  { value: "interior maintenance", label: "Interior Maintenance" },
-  { value: "glass cleaning", label: "Glass Cleaning" },
-  { value: "electrical work", label: "Electrical work" },
-  { value: "telephone/wifi", label: "Telephone/wifi" },
-  { value: "printout", label: "Printout" },
-  { value: "books/pen/checklist/register/bill book/voucher", label: "Books/pen/Checklist/Register/Bill Book/Voucher" },
-  { value: "stationary items", label: "Stationary Items" },
-  { value: "cake purchase", label: "Cake purchase" },
-  { value: "food allowance on special occassion", label: "Food allowance on Special Occassion" },
-  { value: "other refreshment", label: "Other Refreshment" },
-  { value: "staff room rent/electricity", label: "Staff room rent/Electricity" },
-  { value: "steamer", label: "Steamer" },
-  { value: "chairs", label: "Chairs" },
-  { value: "electronic items", label: "Electronic Items" },
-  { value: "any other furniture items", label: "Any other Furniture items" },
-  { value: "spot incentive", label: "Spot incentive" },
-  { value: "weekly incentive", label: "Weekly incentive" },
-  { value: "dry cleaning", label: "Dry Cleaning" },
-  { value: "altration", label: "Altration" },
-  { value: "material", label: "Material" },
-  { value: "courier charges", label: "Courier Charges" },
-  { value: "maintenance expenses", label: "Repairs & Maintenance" },
-  { value: "travel exp", label: "Travel Exp" },
-  { value: "fuel exp", label: "Fuel Exp" },
-  { value: "telephone internet", label: "Internet Expense" },
-  { value: "utility bill", label: "Electricity Charges" },
-  { value: "waste management", label: "Waste Management" },
-  { value: "water charges", label: "Water Charges" },
-  { value: "salary", label: "Salary / Salary Advance" },
-  { value: "printing stationary", label: "Printing & Stationary" },
-  { value: "staff welfare", label: "Staff Welfare" },
-  { value: "staff reimbursement", label: "Staff Accommodation" },
-  { value: "rent", label: "Store Rent" },
-  { value: "asset purchase", label: "Asset Purchase" },
-  { value: "incentive", label: "Incentive" },
-  { value: "spot incentive", label: "Incentive (Spot)" },
-  { value: "other expenses", label: "Refund" },
-  { value: "write off", label: "Write Off" },
-  { value: "promotion_services", label: "Promotion / Services" },
-  { value: "shoe sales return", label: "Shoe Sales Return" },
-  { value: "shirt sales return", label: "Shirt Sales Return" },
-  // Income sub-categories
-  { value: "compensation from cancellation", label: "Compensation from Cancellation" },
-  { value: "compensation from product damage", label: "Compensation from Product Damage" },
-  { value: "bank to cash", label: "Bank to Cash" },
+    { value: "all", label: "All" },
+    { value: "advance", label: "Advance" },
+    { value: "Balance Payable", label: "Balance Payable" },
+    { value: "security", label: "Security" },
+    { value: "cancellation Refund", label: "Cancellation Refund" },
+    { value: "security Refund", label: "Security Refund" },
+    { value: "compensation", label: "Compensation" },
+    { value: "petty expenses", label: "Office Expense" },
+    { value: "shoe sales", label: "Shoe Sales" },
+    { value: "shirt sales", label: "Shirt Sales" },
+    { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
+    { value: "bulk amount transfer", label: "Cash to Bank" },
+    // Expense sub-categories
+    { value: "ac service", label: "Ac service" },
+    { value: "interior maintenance", label: "Interior Maintenance" },
+    { value: "glass cleaning", label: "Glass Cleaning" },
+    { value: "electrical work", label: "Electrical work" },
+    { value: "telephone/wifi", label: "Telephone/wifi" },
+    { value: "printout", label: "Printout" },
+    { value: "books/pen/checklist/register/bill book/voucher", label: "Books/pen/Checklist/Register/Bill Book/Voucher" },
+    { value: "stationary items", label: "Stationary Items" },
+    { value: "cake purchase", label: "Cake purchase" },
+    { value: "food allowance on special occassion", label: "Food allowance on Special Occassion" },
+    { value: "other refreshment", label: "Other Refreshment" },
+    { value: "staff room rent/electricity", label: "Staff room rent/Electricity" },
+    { value: "steamer", label: "Steamer" },
+    { value: "chairs", label: "Chairs" },
+    { value: "electronic items", label: "Electronic Items" },
+    { value: "any other furniture items", label: "Any other Furniture items" },
+    { value: "spot incentive", label: "Spot incentive" },
+    { value: "weekly incentive", label: "Weekly incentive" },
+    { value: "dry cleaning", label: "Dry Cleaning" },
+    { value: "altration", label: "Altration" },
+    { value: "material", label: "Material" },
+    { value: "courier charges", label: "Courier Charges" },
+    { value: "maintenance expenses", label: "Repairs & Maintenance" },
+    { value: "travel exp", label: "Travel Exp" },
+    { value: "fuel exp", label: "Fuel Exp" },
+    { value: "telephone internet", label: "Internet Expense" },
+    { value: "utility bill", label: "Electricity Charges" },
+    { value: "waste management", label: "Waste Management" },
+    { value: "water charges", label: "Water Charges" },
+    { value: "salary", label: "Salary / Salary Advance" },
+    { value: "printing stationary", label: "Printing & Stationary" },
+    { value: "staff welfare", label: "Staff Welfare" },
+    { value: "staff reimbursement", label: "Staff Accommodation" },
+    { value: "rent", label: "Store Rent" },
+    { value: "asset purchase", label: "Asset Purchase" },
+    { value: "incentive", label: "Incentive" },
+    { value: "spot incentive", label: "Incentive (Spot)" },
+    { value: "other expenses", label: "Refund" },
+    { value: "write off", label: "Write Off" },
+    { value: "promotion_services", label: "Promotion / Services" },
+    { value: "shoe sales return", label: "Shoe Sales Return" },
+    { value: "shirt sales return", label: "Shirt Sales Return" },
+    // Income sub-categories
+    { value: "compensation from cancellation", label: "Compensation from Cancellation" },
+    { value: "compensation from product damage", label: "Compensation from Product Damage" },
+    { value: "bank to cash", label: "Bank to Cash" },
 ];
 
 // Maps raw DB category/subCategory values → human-readable labels
 const CATEGORY_LABEL_MAP = {
-  "dry cleaning":         "Dry Cleaning",
-  "altration":            "Altration",
-  "material":             "Material",
-  "courier charges":      "Courier Charges",
-  "maintenance expenses": "Repairs & Maintenance",
-  "travel exp":           "Travel Exp",
-  "fuel exp":             "Fuel Exp",
-  "petty expenses":       "Office Expense",
-  "telephone internet":   "Internet Expense",
-  "utility bill":         "Electricity Charges",
-  "waste management":     "Waste Management",
-  "water charges":        "Water Charges",
-  "salary":               "Salary / Salary Advance",
-  "printing stationary":  "Printing & Stationary",
-  "staff welfare":        "Staff Welfare",
-  "staff reimbursement":  "Staff Accommodation",
-  "rent":                 "Store Rent",
-  "store rent":           "Store Rent",
-  "asset purchase":       "Asset Purchase",
-  "incentive":            "Incentive",
-  "spot incentive":       "Incentive",
-  "other expenses":       "Refund",
-  "bulk amount transfer": "Cash to Bank",
-  "write off":            "Write Off",
-  "promotion_services":   "Promotion / Services",
-  "shoe sales return":    "Shoe Sales Return",
-  "shirt sales return":   "Shirt Sales Return",
+    "dry cleaning": "Dry Cleaning",
+    "altration": "Altration",
+    "material": "Material",
+    "courier charges": "Courier Charges",
+    "maintenance expenses": "Repairs & Maintenance",
+    "travel exp": "Travel Exp",
+    "fuel exp": "Fuel Exp",
+    "petty expenses": "Office Expense",
+    "telephone internet": "Internet Expense",
+    "utility bill": "Electricity Charges",
+    "waste management": "Waste Management",
+    "water charges": "Water Charges",
+    "salary": "Salary / Salary Advance",
+    "printing stationary": "Printing & Stationary",
+    "staff welfare": "Staff Welfare",
+    "staff reimbursement": "Staff Accommodation",
+    "rent": "Store Rent",
+    "store rent": "Store Rent",
+    "asset purchase": "Asset Purchase",
+    "incentive": "Incentive",
+    "spot incentive": "Incentive",
+    "other expenses": "Refund",
+    "bulk amount transfer": "Cash to Bank",
+    "write off": "Write Off",
+    "promotion_services": "Promotion / Services",
+    "shoe sales return": "Shoe Sales Return",
+    "shirt sales return": "Shirt Sales Return",
 };
 const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()] || val;
 
@@ -206,19 +206,19 @@ const DayBookInc = () => {
     const [preOpen, setPreOpen] = useState(null);
     const [preOpen1, setPreOpen1] = useState(null);
     const [loading, setLoading] = useState(false);
-    
+
     // Edit functionality states
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedTransaction, setEditedTransaction] = useState({});
     const [isSyncing, setIsSyncing] = useState(false);
-    
+
     // Store for edited transactions to override TWS data
     const [editedTransactionsMap, setEditedTransactionsMap] = useState({});
 
     // Filter states (multi-select)
     const [selectedCategory, setSelectedCategory] = useState([categories[0]]);
     const [selectedSubCategory, setSelectedSubCategory] = useState([subCategories[0]]);
-    
+
     const [quantities, setQuantities] = useState(() => {
         const saved = localStorage.getItem(`denominations_${new Date().toISOString().split("T")[0]}_${JSON.parse(localStorage.getItem("rootfinuser"))?.locCode}`);
         return saved ? JSON.parse(saved) : Array(denominations.length).fill("");
@@ -274,25 +274,15 @@ const DayBookInc = () => {
     const { data: data2, loading: l3 } = useFetch(apiUrl2, fetchOptions);
     const { data: data3, loading: l4 } = useFetch(apiUrl3, fetchOptions);
 
-    const [dayBookData, setDayBookData] = useState([]);
-    const [isMongoLoading, setIsMongoLoading] = useState(true);
-
-    // Fetch mongo transactions once on mount
-    useEffect(() => {
-        setIsMongoLoading(true);
-        fetch(apiUrl4_fallback)
-            .then(r => r.ok ? r.json() : null)
-            .then(json => setDayBookData(json?.data || []))
-            .catch(() => setDayBookData([]))
-            .finally(() => setIsMongoLoading(false));
-    }, []);
+    const { data: mongoResponse, loading: isMongoLoading } = useFetch(apiUrl4_fallback, fetchOptions);
+    const dayBookData = mongoResponse?.data || [];
 
     const isDataLoading = l1 || l2 || l3 || l4 || isMongoLoading;
     const isDataReady = true;
 
     const allowedMongoCategories = useMemo(() => [
         "petty expenses",
-        "staff reimbursement", 
+        "staff reimbursement",
         "maintenance expenses",
         "telephone internet",
         "utility bill",
@@ -480,16 +470,16 @@ const DayBookInc = () => {
         });
 
         const expenseCategoryValues = new Set([
-            "petty expenses","staff reimbursement","maintenance expenses","telephone internet",
-            "utility bill","salary","rent","courier charges","asset purchase","promotion_services",
-            "spot incentive","bulk amount transfer","other expenses","shoe sales return",
-            "shirt sales return","dry cleaning","altration","material","travel exp","fuel exp",
-            "waste management","water charges","printing stationary","staff welfare",
-            "staff accommodation","incentive","write off",
+            "petty expenses", "staff reimbursement", "maintenance expenses", "telephone internet",
+            "utility bill", "salary", "rent", "courier charges", "asset purchase", "promotion_services",
+            "spot incentive", "bulk amount transfer", "other expenses", "shoe sales return",
+            "shirt sales return", "dry cleaning", "altration", "material", "travel exp", "fuel exp",
+            "waste management", "water charges", "printing stationary", "staff welfare",
+            "staff accommodation", "incentive", "write off",
         ]);
         const incomeCategoryValues = new Set([
-            "shoe sales","shirt sales","mixed sales","compensation","advance","balance payable",
-            "compensation from cancellation","compensation from product damage",
+            "shoe sales", "shirt sales", "mixed sales", "compensation", "advance", "balance payable",
+            "compensation from cancellation", "compensation from product damage",
         ]);
         const inferType = (tx) => {
             const t = (tx.type || "").toLowerCase();
@@ -560,8 +550,8 @@ const DayBookInc = () => {
 
             if (override) {
                 const isBooking = (t.Category || '').toLowerCase() === 'booking';
-                const isReturn  = (t.Category || '').toLowerCase() === 'return';
-                const isCancel  = (t.Category || '').toLowerCase() === 'cancel';
+                const isReturn = (t.Category || '').toLowerCase() === 'return';
+                const isCancel = (t.Category || '').toLowerCase() === 'cancel';
                 const editedTotal = Number(override.amount || override.totalTransaction || 0);
 
                 return {
@@ -822,13 +812,13 @@ const DayBookInc = () => {
     useEffect(() => {
         GetCreateCashBank();
         takeCreateCashBank();
-        
+
         const fetchEditedTransactions = async () => {
             try {
                 const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers?.locCode}`;
                 const res = await fetch(apiUrl);
                 const json = await res.json();
-                
+
                 const overrideRows = json?.data || [];
                 const editedObj = {};
                 overrideRows.forEach(row => {
@@ -857,7 +847,7 @@ const DayBookInc = () => {
                 console.warn("⚠️ Failed to fetch edited transactions:", err.message);
             }
         };
-        
+
         fetchEditedTransactions();
     }, []);
 
@@ -870,7 +860,7 @@ const DayBookInc = () => {
             const bankVal = transaction.bank || transaction.bookingBankAmount || transaction.rentoutBankAmount || 0;
             const upiVal = transaction.upi || transaction.bookingUPIAmount || transaction.rentoutUPIAmount || 0;
             const totalAmount = Number(cashVal) + Number(rblVal) + Number(bankVal) + Number(upiVal);
-            
+
             const patchedTransaction = {
                 invoiceNo: transaction.invoiceNo || transaction.locCode || "",
                 customerName: transaction.customerName || "",
@@ -1062,7 +1052,7 @@ const DayBookInc = () => {
                 return;
             }
             alert("✅ Transaction updated.");
-            
+
             const updatedRow = {
                 _id,
                 invoiceNo: invoiceNo || invoice,
@@ -1076,13 +1066,13 @@ const DayBookInc = () => {
                 amount: computedTotal,
                 totalTransaction: computedTotal,
             };
-            
+
             const key = `${String(invoiceNo || invoice).trim()}-${(editedTransaction.Category || '').toLowerCase()}`;
             setEditedTransactionsMap(prev => ({
                 ...prev,
                 [key]: updatedRow
             }));
-            
+
             setEditingIndex(null);
             setEditedTransaction({});
 
@@ -1099,27 +1089,27 @@ const DayBookInc = () => {
     }, editingIndex === null);
 
     const csvData = filteredTransactions.map(transaction => ({
-      ...transaction,
-      SubCategory: getCatLabel(transaction.SubCategory || transaction.subCategory || transaction.category || ""),
-      cash:
-        -(parseInt(transaction.deleteCashAmount)) ||
-        parseInt(transaction.rentoutCashAmount) ||
-        parseInt(transaction.bookingCashAmount) ||
-        parseInt(transaction.returnCashAmount) ||
-        parseInt(transaction.cash1) || 0,
-      rbl: parseInt(transaction.rbl) || 0,
-      bank:
-        parseInt(transaction.rentoutBankAmount) ||
-        parseInt(transaction.bookingBank1) ||
-        parseInt(transaction.returnBankAmount) ||
-        parseInt(transaction.deleteBankAmount) * -1 ||
-        parseInt(transaction.bank1) || 0,
-      upi:
-        parseInt(transaction.rentoutUPIAmount) ||
-        parseInt(transaction.bookingUPIAmount) ||
-        parseInt(transaction.returnUPIAmount) ||
-        parseInt(transaction.deleteUPIAmount) * -1 ||
-        parseInt(transaction.Tupi) || 0,
+        ...transaction,
+        SubCategory: getCatLabel(transaction.SubCategory || transaction.subCategory || transaction.category || ""),
+        cash:
+            -(parseInt(transaction.deleteCashAmount)) ||
+            parseInt(transaction.rentoutCashAmount) ||
+            parseInt(transaction.bookingCashAmount) ||
+            parseInt(transaction.returnCashAmount) ||
+            parseInt(transaction.cash1) || 0,
+        rbl: parseInt(transaction.rbl) || 0,
+        bank:
+            parseInt(transaction.rentoutBankAmount) ||
+            parseInt(transaction.bookingBank1) ||
+            parseInt(transaction.returnBankAmount) ||
+            parseInt(transaction.deleteBankAmount) * -1 ||
+            parseInt(transaction.bank1) || 0,
+        upi:
+            parseInt(transaction.rentoutUPIAmount) ||
+            parseInt(transaction.bookingUPIAmount) ||
+            parseInt(transaction.returnUPIAmount) ||
+            parseInt(transaction.deleteUPIAmount) * -1 ||
+            parseInt(transaction.Tupi) || 0,
     }));
 
     const handleDownloadReport = () => {
@@ -1171,7 +1161,7 @@ const DayBookInc = () => {
                         }
                     }
                 `}</style>
-                
+
                 <Headers title={"Day Book"} />
 
                 <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
@@ -1182,7 +1172,7 @@ const DayBookInc = () => {
                             {/* Left Filters */}
                             <div className="flex flex-wrap items-center gap-4">
                                 <div className="w-[220px] sm:w-[260px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">CATEGORY</label>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Category</label>
                                     <Select
                                         isMulti
                                         options={categories}
@@ -1197,7 +1187,7 @@ const DayBookInc = () => {
                                     />
                                 </div>
                                 <div className="w-[240px] sm:w-[300px]">
-                                    <label className="block text-xs font-semibold text-gray-500 mb-1.5 uppercase tracking-wider">SUB CATEGORY</label>
+                                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Sub Category</label>
                                     <Select
                                         isMulti
                                         options={subCategories}
@@ -1215,7 +1205,7 @@ const DayBookInc = () => {
 
                             {/* Right Date Display */}
                             <div className="text-right">
-                                <span className="block text-xs font-semibold text-gray-400 mb-0.5">Date</span>
+                                <span className="block text-xs font-medium text-gray-400 mb-0.5">Date</span>
                                 <span className="text-sm md:text-base font-bold text-gray-900">{displayFormattedDate}</span>
                             </div>
                         </div>
@@ -1357,15 +1347,16 @@ const DayBookInc = () => {
                                                                     {isEditing ? (
                                                                         <button
                                                                             onClick={handleSave}
-                                                                            className="bg-emerald-600 text-white px-2.5 py-1 text-xs font-semibold hover:bg-emerald-700 cursor-pointer"
+                                                                            className="bg-[#a855f7] text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-purple-600 cursor-pointer shadow-sm"
                                                                         >
                                                                             Save
                                                                         </button>
                                                                     ) : (
                                                                         <button
                                                                             onClick={() => handleEditClick(tx, idx)}
-                                                                            className="bg-gray-800 text-white px-2.5 py-1 text-xs font-semibold hover:bg-black cursor-pointer"
+                                                                            className="flex items-center gap-1.5 text-[#a855f7] hover:text-[#9333ea] px-2 py-1 text-xs font-medium cursor-pointer"
                                                                         >
+                                                                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                                                             Edit
                                                                         </button>
                                                                     )}
@@ -1407,80 +1398,96 @@ const DayBookInc = () => {
                             </div>
 
                             {/* Bottom 2-Column Section: Physical Cash Count & Cash Summary */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                                
-                                {/* Left Box: PHYSICAL CASH COUNT (Takes 7 cols on desktop) */}
-                                <div className="lg:col-span-7 bg-white border border-gray-200 overflow-hidden shadow-xs">
-                                    <div className="px-6 py-3 border-b border-gray-200">
-                                        <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">PHYSICAL CASH COUNT</h3>
-                                    </div>
-                                    <div className="bg-[#1c1c1c] text-white px-6 py-3 flex justify-between items-center">
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
-                                        <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
-                                    </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-10">
 
-                                    <div className="divide-y divide-gray-100">
-                                        {denominations.map((denom, index) => {
-                                            const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
-                                            return (
-                                                <div key={denom.label} className="px-6 py-2.5 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
-                                                    <span className="text-sm font-semibold text-gray-700 w-1/3">{denom.label}</span>
-                                                    <div className="w-1/3 flex justify-center">
-                                                        <input
-                                                            type="number"
-                                                            min="0"
-                                                            value={quantities[index]}
-                                                            onChange={(e) => handleQuantityChange(index, e.target.value)}
-                                                            readOnly={preOpen1 != null}
-                                                            placeholder=""
-                                                            className="w-24 h-9 text-center text-sm font-medium text-gray-800 border border-gray-300 rounded-sm focus:outline-none focus:border-blue-500 disabled:bg-gray-100"
-                                                        />
+                                {/* Left Box: PHYSICAL CASH COUNT */}
+                                <div className="lg:col-span-7">
+                                    <div className="border border-gray-200 shadow-sm rounded-lg overflow-hidden">
+                                        <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center">
+                                            <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
+                                            <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
+                                            <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
+                                        </div>
+
+                                        <div className="divide-y divide-gray-100 bg-white">
+                                            {denominations.map((denom, index) => {
+                                                const amt = (parseInt(quantities[index], 10) || 0) * denom.value;
+                                                return (
+                                                    <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
+                                                        <span className="text-sm font-medium text-gray-700 w-1/3">{denom.label}</span>
+                                                        <div className="w-1/3 flex justify-center">
+                                                            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
+                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-r border-gray-300" onClick={() => handleQuantityChange(index, Math.max(0, (parseInt(quantities[index]) || 0) - 1))} disabled={preOpen1 != null}><Minus size={14} /></button>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    value={quantities[index]}
+                                                                    onChange={(e) => handleQuantityChange(index, e.target.value)}
+                                                                    readOnly={preOpen1 != null}
+                                                                    placeholder="0"
+                                                                    className="w-12 h-7 text-center text-sm font-medium text-gray-800 focus:outline-none disabled:bg-gray-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                />
+                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-l border-gray-300" onClick={() => handleQuantityChange(index, (parseInt(quantities[index]) || 0) + 1)} disabled={preOpen1 != null}><Plus size={14} /></button>
+                                                            </div>
+                                                        </div>
+                                                        <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
+                                                            {amt > 0 ? amt.toLocaleString() : "0.00"}
+                                                        </span>
                                                     </div>
-                                                    <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
-                                                        {amt > 0 ? amt.toLocaleString() : "-"}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                            <div className="px-6 py-3.5 flex justify-between items-center bg-[#dedede]">
+                                                <span className="text-sm font-bold text-gray-900 w-2/3">Physical Total</span>
+                                                <span className="text-sm font-bold text-gray-900 w-1/3 text-right">
+                                                    {physicalCash > 0 ? physicalCash.toLocaleString() : "0.00"}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Right Box: CASH SUMMARY Card (Takes 5 cols on desktop) */}
-                                <div className="lg:col-span-5 bg-white border border-gray-200 p-6 flex flex-col justify-between shadow-xs">
+                                {/* Right Box: CASH SUMMARY Card */}
+                                <div className="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-6 flex flex-col shadow-sm">
                                     <div>
-                                        <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-6">CASH SUMMARY</h3>
+                                        <h3 className="text-[17px] font-bold text-gray-900 mb-6">Cash Summary</h3>
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center py-1">
-                                                <span className="text-sm text-gray-600 font-medium">Closing Cash</span>
-                                                <span className="text-base font-bold text-gray-900">
+                                                <span className="text-[14px] text-gray-600 font-medium">Closing Cash</span>
+                                                <span className="text-[16px] font-bold text-gray-900">
                                                     {calculatedTotals.totalCash.toLocaleString()}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center py-1">
-                                                <span className="text-sm text-gray-600 font-medium">Physical Cash</span>
-                                                <span className="text-base font-bold text-gray-900">
+                                                <span className="text-[14px] text-gray-600 font-medium">Physical Cash</span>
+                                                <span className="text-[16px] font-bold text-gray-900">
                                                     {physicalCash.toLocaleString()}
                                                 </span>
                                             </div>
-                                            <div className="border-t border-gray-200 my-2" />
+                                            <div className="border-t border-dashed border-gray-300 my-2" />
                                             <div className="flex justify-between items-center py-1">
-                                                <span className="text-sm font-bold text-red-600">Difference</span>
-                                                <span className={`text-base font-bold ${
-                                                    difference !== 0 ? "text-red-500" : "text-gray-900"
-                                                }`}>
-                                                    {difference.toLocaleString()}
+                                                <span className="text-[15px] font-bold text-gray-900">Difference</span>
+                                                <span className={`text-[16px] font-bold ${difference !== 0 ? "text-red-500" : "text-gray-900"
+                                                    }`}>
+                                                    {difference !== 0 ? difference.toLocaleString() : "0"}
                                                 </span>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action Buttons */}
-                                    <div className="flex items-center gap-4 mt-8 no-print">
+                                    <div className="flex items-center gap-3 mt-8 no-print">
+                                        <button
+                                            type="button"
+                                            onClick={handleDownloadReport}
+                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors text-center cursor-pointer border border-gray-200"
+                                        >
+                                            Download Report
+                                        </button>
+
                                         {loading ? (
                                             <button
                                                 disabled
-                                                className="flex-1 py-2.5 px-4 bg-blue-600 opacity-70 text-white text-sm font-medium rounded-md text-center flex items-center justify-center gap-2 cursor-not-allowed"
+                                                className="flex-1 py-2.5 px-4 bg-[#a855f7] opacity-70 text-white text-sm font-semibold rounded-lg text-center flex items-center justify-center gap-2 cursor-not-allowed"
                                             >
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                                 <span>Saving...</span>
@@ -1489,27 +1496,19 @@ const DayBookInc = () => {
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
-                                                className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
+                                                className="flex-1 py-2.5 px-4 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center cursor-pointer"
                                             >
-                                                Save Day
+                                                Save & Finish Day
                                             </button>
                                         ) : (
                                             <button
                                                 type="button"
                                                 onClick={handlePrint}
-                                                className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
+                                                className="flex-1 py-2.5 px-4 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center cursor-pointer"
                                             >
-                                                Print Summary
+                                                Save & Finish Day
                                             </button>
                                         )}
-
-                                        <button
-                                            type="button"
-                                            onClick={handleDownloadReport}
-                                            className="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-xs transition-colors text-center cursor-pointer"
-                                        >
-                                            Export CSV
-                                        </button>
                                     </div>
                                 </div>
 

@@ -1,6 +1,6 @@
 import { IoPersonCircleOutline } from "react-icons/io5";
 import Rootments from '../assets/Rootments.jpg';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import baseUrl from '../api/api';
 import salesInventoryAccessConfig from '../config/salesInventoryAccess.json';
 
@@ -59,11 +59,24 @@ const Header = (prop) => {
     ];
 
     const [AllLoation, setAllLoation] = useState(fallbackLocations);
-
     const [Value, setValue] = useState({ locCode: '', locName: '' });
-
     const [logOut, setlogOut] = useState(false);
     const [selectedValue, setSelectedValue] = useState("");
+    
+    // Dropdown state
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    // Close on outside click
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
     
     // Initialize currentUser from localStorage immediately to prevent blank display
     const getInitialUser = () => {
@@ -227,6 +240,7 @@ const Header = (prop) => {
         .map(email => email.toLowerCase())
         .includes(userEmail);
     const hasBetaAccess = !isAdmin && isInBetaList; // Only show badge for non-admin beta testers
+    const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
 
     return (
         <nav className="bg-white border-b border-gray-200 shadow-sm">
@@ -245,6 +259,57 @@ const Header = (prop) => {
                             </span>
                         )}
                     </a>
+                </div>
+                
+                <div className="flex items-center gap-4">
+                    {/* Location Selector */}
+                    {(isAdmin || isClusterManager) ? (
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                type="button"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="flex items-center flex-nowrap whitespace-nowrap bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg px-3 py-2 shadow-sm transition-colors cursor-pointer"
+                            >
+                                <span className="text-gray-500 mr-2 shrink-0">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                </span>
+                                <span className="text-sm font-medium text-gray-700 mr-2 whitespace-nowrap">
+                                    {currentUser?.locCode 
+                                        ? formatLocationName(AllLoation.find(l => l.locCode === currentUser.locCode)?.locName || "Select Location") 
+                                        : "-- Select Location --"}
+                                </span>
+                                <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                            
+                            {isDropdownOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                                    {(isAdmin
+                                        ? AllLoation
+                                        : AllLoation.filter(item => (currentUser?.allowedLocCodes || []).includes(item.locCode))
+                                    ).map((item) => (
+                                        <button
+                                            key={item.locCode}
+                                            type="button"
+                                            onClick={() => {
+                                                handleChange({ target: { value: item.locCode } });
+                                                setIsDropdownOpen(false);
+                                            }}
+                                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors hover:bg-gray-50 ${currentUser?.locCode === item.locCode ? 'bg-purple-50 text-purple-700 font-semibold' : 'text-gray-700'}`}
+                                        >
+                                            {formatLocationName(item.locName)}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        currentUser?.locCode && (
+                            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 shadow-sm text-sm font-medium text-gray-700">
+                                <span className="text-purple-500 mr-1.5">📍</span>
+                                {formatLocationName(displayName)}
+                            </div>
+                        )
+                    )}
                 </div>
             </div>
         </nav>

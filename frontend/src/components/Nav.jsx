@@ -303,21 +303,25 @@ const Nav = () => {
         ...(hasSalesInventoryAccess ? ["/reports/sales", "/reports/sales-by-invoice", "/reports/inventory"] : [])
     ].includes(activePath);
 
-    const groupButtonClasses = (isActive) =>
-        `sidebar-button flex items-center justify-between w-full px-4 py-2.5 text-[14px] font-medium rounded-xl transition-all ${isActive
-            ? "bg-[#27272a] text-white font-semibold shadow-sm"
-            : "text-zinc-400 hover:text-white hover:bg-[#27272a]/60"
+    const groupButtonClasses = (isOpen, hasActiveChild) => {
+        const shouldHighlight = (isOpen && !hasActiveChild) || (!isOpen && hasActiveChild);
+        return `sidebar-button flex items-center justify-between w-full px-5 py-3 text-[14px] font-medium rounded-full transition-all ${shouldHighlight
+            ? "bg-[#a855f7] text-white font-semibold shadow-sm"
+            : (isOpen || hasActiveChild)
+                ? "text-white font-semibold"
+                : "text-zinc-400 hover:text-white hover:bg-[#27272a]/60"
         }`;
+    };
 
     const subLinkClasses = (path) =>
-        `block w-full pl-[24px] pr-4 py-2 text-[13px] whitespace-nowrap truncate transition-colors rounded-lg ${activePath === path
-            ? "bg-[#27272a] text-white font-semibold shadow-sm"
-            : "text-zinc-400 font-medium hover:text-white hover:bg-[#27272a]/60"
+        `block w-full pl-6 pr-4 py-2.5 text-[13px] whitespace-nowrap truncate transition-colors ${activePath === path
+            ? "bg-[#a855f7] text-white font-semibold"
+            : "text-zinc-400 font-medium hover:text-white hover:bg-[#27272a]/40"
         }`;
 
     const singleLinkClasses = (path) =>
-        `flex items-center gap-3.5 px-4 py-2.5 text-[14px] font-medium whitespace-nowrap truncate transition-all rounded-xl ${activePath === path
-            ? "bg-[#27272a] text-white font-semibold shadow-sm"
+        `flex items-center gap-3.5 px-5 py-3 text-[14px] font-medium whitespace-nowrap truncate transition-all rounded-full ${activePath === path
+            ? "bg-[#a855f7] text-white font-semibold shadow-sm"
             : "text-zinc-400 hover:text-white hover:bg-[#27272a]/60"
         }`;
 
@@ -343,7 +347,7 @@ const Nav = () => {
                     }`}
             >
                 <div className="flex flex-col flex-1 overflow-hidden">
-                    <div className="pl-7 pr-5 pt-6 pb-6 flex items-center justify-between">
+                    <div className="pl-7 pr-5 pt-6 pb-15 flex items-center justify-between">
                         <Link to="/" className="flex items-center">
                             <img
                                 src={rootfinLogo}
@@ -365,7 +369,7 @@ const Nav = () => {
                                 <div>
                                     <button
                                         onClick={() => setOpenSection(isReportsOpen ? null : "reports")}
-                                        className={groupButtonClasses(isReportsActive || isReportsOpen)}
+                                        className={groupButtonClasses(isReportsOpen, isReportsActive)}
                                     >
                                         <div className="flex w-full items-center gap-3.5">
                                             <LineChart size={18} className="shrink-0" />
@@ -405,7 +409,7 @@ const Nav = () => {
                                 {/* Sales */}
                                 {hasSalesInventoryAccess && (
                                     <div>
-                                        <button onClick={() => setOpenSection(isSalesOpen ? null : "sales")} className={groupButtonClasses(isSalesActive || isSalesOpen)}>
+                                        <button onClick={() => setOpenSection(isSalesOpen ? null : "sales")} className={groupButtonClasses(isSalesOpen, isSalesActive)}>
                                             <div className="flex w-full items-center gap-3.5">
                                                 <ShoppingCart size={18} className="shrink-0" />
                                                 <span className="flex-1 text-left whitespace-nowrap truncate">Sales</span>
@@ -425,7 +429,7 @@ const Nav = () => {
                                 {/* Inventory */}
                                 {hasSalesInventoryAccess && (
                                     <div>
-                                        <button onClick={() => setOpenSection(isInventoryOpen ? null : "inventory")} className={groupButtonClasses(isInventoryActive || isInventoryOpen)}>
+                                        <button onClick={() => setOpenSection(isInventoryOpen ? null : "inventory")} className={groupButtonClasses(isInventoryOpen, isInventoryActive)}>
                                             <div className="flex w-full items-center gap-3.5">
                                                 <Box size={18} className="shrink-0" />
                                                 <span className="flex-1 text-left whitespace-nowrap truncate">Inventory</span>
@@ -445,7 +449,7 @@ const Nav = () => {
                                 {/* Purchase */}
                                 {(currentuser.power === 'admin' || currentuser.power === 'warehouse') && (
                                     <div>
-                                        <button onClick={() => setOpenSection(isPurchaseOpen ? null : "purchase")} className={groupButtonClasses(isPurchaseActive || isPurchaseOpen)}>
+                                        <button onClick={() => setOpenSection(isPurchaseOpen ? null : "purchase")} className={groupButtonClasses(isPurchaseOpen, isPurchaseActive)}>
                                             <div className="flex w-full items-center gap-3.5">
                                                 <Truck size={18} className="shrink-0" />
                                                 <span className="flex-1 text-left whitespace-nowrap truncate">Purchase</span>
@@ -464,7 +468,7 @@ const Nav = () => {
 
                                 {/* Reports */}
                                 <div>
-                                    <button onClick={() => setOpenSection(isReportsOpen ? null : "reports")} className={groupButtonClasses(isReportsActive || isReportsOpen)}>
+                                    <button onClick={() => setOpenSection(isReportsOpen ? null : "reports")} className={groupButtonClasses(isReportsOpen, isReportsActive)}>
                                         <div className="flex w-full items-center gap-3.5">
                                             <LineChart size={18} className="shrink-0" />
                                             <span className="flex-1 text-left whitespace-nowrap truncate">Reports</span>
@@ -505,7 +509,7 @@ const Nav = () => {
                                         {/* Manage Users — admin only */}
                                         {currentuser.power === 'admin' && (
                                             <div>
-                                                <button onClick={() => setOpenSection(isManageUsersOpen ? null : "manageUsers")} className={groupButtonClasses(isManageUsersActive || isManageUsersOpen)}>
+                                                <button onClick={() => setOpenSection(isManageUsersOpen ? null : "manageUsers")} className={groupButtonClasses(isManageUsersOpen, isManageUsersActive)}>
                                                     <div className="flex w-full items-center gap-3.5">
                                                         <Users size={18} className="shrink-0" />
                                                         <span className="flex-1 text-left whitespace-nowrap truncate">Manage Users</span>
@@ -528,92 +532,8 @@ const Nav = () => {
                     </nav>
                 </div>
 
-                {/* Fixed Bottom Section: Store Location Tab & User Profile Tab */}
-                <div className="p-3 border-t border-[#27272a]/50 space-y-2 bg-[#18181b]/95">
-                    {/* ── Store Location Tab ── */}
-                    <div className="relative" ref={locationMenuRef}>
-                        {/* Location Switcher Popover */}
-                        {showLocationMenu && (
-                            <div
-                                className="absolute bottom-full left-0 right-0 mb-2 bg-[#18181b] border border-zinc-700 shadow-2xl rounded-2xl p-4 text-white z-50 space-y-3"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                {/* Current Location Info */}
-                                <div className="pb-2.5 border-b border-zinc-800 flex items-center justify-between">
-                                    <div>
-                                        <p className="text-[11px] font-medium text-zinc-400">Current Location</p>
-                                        <p className="text-sm font-semibold text-white flex items-center gap-1.5 mt-0.5">
-                                            <span className="text-purple-400">📍</span>
-                                            <span>{formatLocationName(locationDisplayName) || "G-Calicut"}</span>
-                                        </p>
-                                    </div>
-                                    {currentUser?.locCode && (
-                                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                                            {currentUser.locCode}
-                                        </span>
-                                    )}
-                                </div>
-
-                                {/* Switch Location dropdown (Admin / Cluster Manager) */}
-                                {(isAdmin || isClusterManager) ? (
-                                    <div className="space-y-1.5">
-                                        <label className="block text-xs font-semibold text-zinc-300">
-                                            Switch Location
-                                        </label>
-                                        <select
-                                            className="w-full px-3 py-2 bg-[#27272a] border border-zinc-700 rounded-xl text-xs text-white focus:outline-none focus:border-purple-500 transition-colors cursor-pointer"
-                                            value={currentUser?.locCode || ""}
-                                            onChange={handleChangeLocation}
-                                        >
-                                            <option value="">-- Select a location --</option>
-                                            {(isAdmin
-                                                ? allLocations
-                                                : allLocations.filter(item => (currentUser?.allowedLocCodes || []).includes(item.locCode))
-                                            ).map((item) => (
-                                                <option key={item.locCode} value={item.locCode} className="bg-[#18181b] text-white">
-                                                    {formatLocationName(item.locName)}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                ) : (
-                                    <p className="text-xs text-zinc-400">
-                                        You are currently assigned to {formatLocationName(locationDisplayName) || "this store"}.
-                                    </p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Store Location Tab Trigger */}
-                        <div
-                            onClick={() => {
-                                setShowLocationMenu(prev => !prev);
-                                setShowUserMenu(false);
-                            }}
-                            className={`flex items-center justify-between bg-[#27272a]/50 hover:bg-[#27272a] transition-all px-3 py-2.5 rounded-xl cursor-pointer border ${showLocationMenu ? "border-purple-500/50 bg-[#27272a]" : "border-[#27272a] hover:border-zinc-600"
-                                }`}
-                            title="Current Store Location"
-                        >
-                            <div className="flex items-center gap-2.5 overflow-hidden">
-                                <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center shrink-0 text-purple-400">
-                                    <Store className="w-4 h-4 text-purple-400" />
-                                </div>
-                                <div className="flex flex-col overflow-hidden text-left">
-                                    <span className="text-[10px] uppercase font-bold tracking-wider text-zinc-400">
-                                        Store Location
-                                    </span>
-                                    <span className="text-xs font-semibold text-white truncate">
-                                        📍 {formatLocationName(locationDisplayName) || "G-Calicut"}
-                                    </span>
-                                </div>
-                            </div>
-                            {(isAdmin || isClusterManager) && (
-                                <ChevronDown className={`w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform ${showLocationMenu ? 'rotate-180 text-purple-400' : ''}`} />
-                            )}
-                        </div>
-                    </div>
-
-                    {/* ── User Profile Tab (Bigger, only profile pic and name) ── */}
+                {/* Fixed Bottom Section: User Profile Tab */}
+                <div className="p-4 bg-[#18181b]">
                     <div className="relative" ref={userMenuRef}>
                         {/* User Menu Popover */}
                         {showUserMenu && (
@@ -622,10 +542,8 @@ const Nav = () => {
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <div className="pb-3 border-b border-zinc-800 flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#9d4edd] to-[#c77dff] flex items-center justify-center shrink-0 shadow-lg ring-2 ring-purple-500/30">
-                                        <span className="text-white font-bold text-lg">
-                                            {(displayName).charAt(0).toUpperCase()}
-                                        </span>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#a855f7] to-[#ec4899] flex items-center justify-center shrink-0 shadow-lg text-white font-bold text-lg">
+                                        {displayName?.charAt(0)?.toUpperCase() || "U"}
                                     </div>
                                     <div className="flex flex-col overflow-hidden">
                                         <span className="text-sm font-bold text-white truncate">
@@ -639,35 +557,33 @@ const Nav = () => {
 
                                 <button
                                     onClick={handleLogout}
-                                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer"
+                                    className="w-full py-2.5 bg-red-600 hover:bg-red-700 active:scale-[0.99] text-white font-semibold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 shadow-md cursor-pointer mt-2"
                                 >
                                     <span>Logout</span>
                                 </button>
                             </div>
                         )}
 
-                        {/* Profile Tab Trigger (Bigger, only avatar & name) */}
+                        {/* Profile Tab Trigger */}
                         <div
                             onClick={() => {
                                 setShowUserMenu(prev => !prev);
                                 setShowLocationMenu(false);
                             }}
-                            className={`flex items-center justify-between bg-[#27272a]/70 hover:bg-[#27272a] transition-all p-3 rounded-2xl cursor-pointer border ${showUserMenu ? "border-purple-500/50 bg-[#27272a]" : "border-[#27272a] hover:border-zinc-600"
+                            className={`flex items-center gap-3 p-1.5 pr-4 bg-[#27272a] hover:bg-[#3f3f46] transition-all rounded-full cursor-pointer border ${showUserMenu ? "border-purple-500/50" : "border-transparent"
                                 }`}
                         >
-                            <div className="flex items-center gap-3 overflow-hidden">
-                                <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-[#9d4edd] to-[#c77dff] flex items-center justify-center shrink-0 shadow-md ring-2 ring-purple-500/30">
-                                    <span className="text-white font-bold text-base">
-                                        {(displayName).charAt(0).toUpperCase()}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col overflow-hidden text-left">
-                                    <span className="text-[15px] font-bold text-white truncate leading-tight">
-                                        {displayName}
-                                    </span>
-                                </div>
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#a855f7] to-[#ec4899] flex items-center justify-center shrink-0 text-white font-bold text-[15px] shadow-sm">
+                                        {displayName?.charAt(0)?.toUpperCase() || "U"}
                             </div>
-                            <ChevronDown className={`w-4 h-4 text-zinc-400 shrink-0 transition-transform ${showUserMenu ? 'rotate-180 text-purple-400' : ''}`} />
+                            <div className="flex flex-col overflow-hidden text-left">
+                                <span className="text-[13px] font-semibold text-white truncate leading-tight">
+                                    {displayName}
+                                </span>
+                                <span className="text-[11px] text-zinc-400 truncate">
+                                    {currentUser?.email || "admin@gmail.com"}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>
