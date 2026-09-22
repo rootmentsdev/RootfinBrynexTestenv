@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Head from "../components/Head";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
 
 const StoreOrderView = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -253,7 +255,7 @@ const StoreOrderView = () => {
   
   if (loading) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen flex items-center justify-center">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-[#64748b]">Loading store order...</div>
       </div>
     );
@@ -261,7 +263,7 @@ const StoreOrderView = () => {
   
   if (error || !storeOrder) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen flex items-center justify-center">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-[#64748b]">{error || "Store order not found"}</div>
       </div>
     );
@@ -282,7 +284,7 @@ const StoreOrderView = () => {
         }
       />
       
-      <div className="ml-64 px-10 pb-16 pt-8">
+      <div className={`transition-all duration-300 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-3xl border border-[#e6ebfa] bg-white">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#edf1ff] px-10 py-6">
             <div className="space-y-1">

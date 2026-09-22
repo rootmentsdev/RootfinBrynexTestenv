@@ -3,8 +3,10 @@ import Header from "../components/Header";
 import SingleImageUpload from "../components/SingleImageUpload";
 import baseUrl from "../api/api";
 import { useEnterToSave } from "../hooks/useEnterToSave";
+import useSidebar from "../hooks/useSidebar";
 
 const SecurityPending = () => {
+  const isSidebarOpen = useSidebar();
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
 
     const [selectedOption, setSelectedOption] = useState("radioDefault01");
@@ -90,7 +92,7 @@ const SecurityPending = () => {
         <>
             <Header title="Cash Bank Ledger" />
             <div>
-                <div className="ml-[290px] mt-[80px]">
+                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px]`}>
                     <form onSubmit={handleSubmit}>
                         {/* Radio Buttons */}
                         <div className="flex gap-[50px]">

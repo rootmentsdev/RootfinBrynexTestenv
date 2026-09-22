@@ -2,8 +2,10 @@ import { useRef, useState, useEffect } from 'react';
 import Headers from '../components/Header.jsx';
 import { Helmet } from "react-helmet";
 import dataCache from '../utils/cache.js';
+import { useSidebar } from '../hooks/useSidebar.js';
 
 const DayBook = () => {
+    const isSidebarOpen = useSidebar();
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
     const [allTransactions, setAllTransactions] = useState([]);
@@ -131,7 +133,7 @@ const DayBook = () => {
             </Helmet>
             <div>
       <Headers title={'Rent out Report'} />
-      <div className='ml-[240px]'>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="p-6 bg-gray-100 min-h-screen">
           {/* Date Inputs */}
           <div className="flex gap-4 mb-6 w-[600px]">

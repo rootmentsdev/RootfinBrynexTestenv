@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Edit, Printer, ChevronDown, MoreVertical } from "lucide-react";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const InventoryAdjustmentDetail = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -64,7 +66,7 @@ const InventoryAdjustmentDetail = () => {
   
   if (loading) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen flex items-center justify-center">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-[#64748b]">Loading adjustment...</div>
       </div>
     );
@@ -72,7 +74,7 @@ const InventoryAdjustmentDetail = () => {
   
   if (!adjustment) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen flex items-center justify-center">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center">
           <p className="text-[#64748b] mb-4">Adjustment not found</p>
           <Link
@@ -108,7 +110,7 @@ const InventoryAdjustmentDetail = () => {
     : adjustment.adjustmentType || "-";
   
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] p-6">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-6 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Top Bar with Actions */}
       <div className="mb-4 flex items-center justify-between bg-white rounded-lg border border-[#e2e8f0] px-4 py-3 shadow-sm">
         <div className="flex items-center gap-3">

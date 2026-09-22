@@ -6,6 +6,7 @@ import { Search, X, Plus, Pencil, Image as ImageIcon, ChevronDown, Mail, Printer
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import ImageUpload from "../components/ImageUpload";
+import useSidebar from "../hooks/useSidebar";
 
 const Label = ({ children, required = false }) => (
   <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
@@ -15,6 +16,7 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
+  const isSidebarOpen = useSidebar();
   const baseClasses = "w-full rounded-lg border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#6366f1] focus:outline-none focus:ring-2 focus:ring-[#6366f1]/20 transition-all";
   const tableInputClasses = "h-[40px] px-3 py-2";
   const defaultClasses = "px-4 py-3";
@@ -2051,7 +2053,7 @@ const NewBillForm = ({ billId, isEditMode = false }) => {
   useEnterToSave(() => handleSaveBill("completed"), saving);
 
   return (
-    <div className="ml-64 min-h-screen bg-gradient-to-br from-[#f8f9fc] to-[#f1f5f9]">
+    <div className={`transition-all duration-300 min-h-screen bg-gradient-to-br from-[#f8f9fc] to-[#f1f5f9] ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white border-b border-[#e2e8f0] shadow-sm">
         <div className="px-8 py-5 flex items-center justify-between">
@@ -3651,7 +3653,7 @@ const Bills = () => {
   }
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f8fafc] p-8">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f8fafc] p-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">

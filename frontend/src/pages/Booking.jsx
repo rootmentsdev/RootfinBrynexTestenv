@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import Headers from '../components/Header.jsx';
 import useFetch from '../hooks/useFetch.jsx';
 import { Helmet } from "react-helmet";
+import { useSidebar } from '../hooks/useSidebar.js';
 
 
 // const transactions = [
@@ -27,6 +28,7 @@ const Booking = () => {
 
     const [toDate, setToDate] = useState("");
     const [apiUrl, setApiUrl] = useState("");
+    const isSidebarOpen = useSidebar();
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
 
 
@@ -85,7 +87,7 @@ const Booking = () => {
 
            <div>
       <Headers title={'Booking Report'} />
-      <div className='ml-[240px]'>
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
         <div className="p-6 bg-gray-100 min-h-screen">
           {/* Date Inputs */}
           <div className="flex gap-4 mb-6 w-[600px]">

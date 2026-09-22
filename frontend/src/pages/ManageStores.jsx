@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { FaEye, FaEyeSlash, FaEdit, FaTrash } from "react-icons/fa";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const ManageStores = () => {
+  const isSidebarOpen = useSidebar();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -223,7 +225,7 @@ const ManageStores = () => {
     return (
         <>
             <Header title="Manage Stores" />
-            <div className="ml-[290px] mt-[80px] p-4">
+            <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[290px]' : 'ml-0'} mt-[80px] p-4`}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Add New Store Section */}
                     <div className="bg-white shadow-lg rounded-lg p-8">

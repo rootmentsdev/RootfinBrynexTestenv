@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ShieldCheck, ChevronDown } from "lucide-react";
 import baseUrl from "../api/api";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const ResetUserPassword = () => {
+    const isSidebarOpen = useSidebar();
     const [users, setUsers] = useState([]);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [userSearch, setUserSearch] = useState("");
@@ -85,7 +87,7 @@ const ResetUserPassword = () => {
     };
 
     return (
-        <div className="ml-[240px] bg-white min-h-screen">
+        <div className={`bg-white min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
             {/* Header */}
             <div className="bg-white px-10 py-7 border-b border-gray-200">
                 <div className="flex items-center gap-4">

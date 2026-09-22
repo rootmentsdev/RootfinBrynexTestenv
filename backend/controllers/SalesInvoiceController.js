@@ -337,7 +337,7 @@ export const getNextInvoiceNumber = async (req, res) => {
 // Get all sales invoices for a user
 export const getSalesInvoices = async (req, res) => {
   try {
-    const { userId, userPower, status, locCode, warehouse, filterLocCode, fromDate, toDate } = req.query;
+    const { userId, userPower, status, locCode, warehouse, filterLocCode, fromDate, toDate, branch } = req.query;
 
     const query = {};
 
@@ -376,12 +376,16 @@ export const getSalesInvoices = async (req, res) => {
     const isAdminViewingSpecificStore = isAdmin && warehouse && warehouse !== "All Stores";
 
     // Store-level access control: filter invoices by store for non-admin users OR admins viewing specific store
-    if ((!isAdmin || isAdminViewingSpecificStore) && (warehouse || filterLocCode)) {
+    if ((!isAdmin || isAdminViewingSpecificStore) && (warehouse || filterLocCode || branch)) {
       // Check warehouse, branch, or locCode fields for compatibility with old invoices
       const orConditions = [];
       if (warehouse) {
         orConditions.push({ warehouse: warehouse });
         orConditions.push({ branch: warehouse });
+      }
+      if (branch) {
+        orConditions.push({ branch: branch });
+        orConditions.push({ warehouse: branch });
       }
       if (filterLocCode) {
         orConditions.push({ locCode: filterLocCode });

@@ -4,6 +4,7 @@ import baseUrl from "../api/api";
 import { BsBank2 } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
 import { ChevronDown } from "lucide-react";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const baseIncomeCats = [
   { value: "compensation from cancellation", label: "Compensation from Cancellation" },
@@ -12,6 +13,7 @@ const baseIncomeCats = [
 ];
 
 const Income = () => {
+  const isSidebarOpen = useSidebar();
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
   const cats = isAdmin ? baseIncomeCats : baseIncomeCats.filter(c => c.value !== "bank to cash");
@@ -79,7 +81,7 @@ const Income = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] ml-64">
+    <div className={`min-h-screen bg-[#f0f4ff] transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="px-10 pt-8 pb-16">
         {/* Page title */}
         <div className="mb-6">

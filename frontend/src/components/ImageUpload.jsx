@@ -106,17 +106,17 @@ const ImageUpload = ({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
+        className={`flex flex-col items-center justify-center rounded-none border-2 border-dashed p-8 text-center transition-colors ${
           dragActive
-            ? 'border-[#2563eb] bg-[#eff6ff]'
-            : 'border-[#d7dcf5] bg-[#f8f9ff]'
+            ? 'border-[#8B5CF6] bg-[#F5F3FF]'
+            : 'border-[#E5E7EB] hover:border-[#8B5CF6] bg-white'
         }`}
       >
-        <UploadCloud size={36} className="mb-3 text-[#94a3b8]" />
-        <p className="text-sm font-medium text-[#64748b]">
+        <UploadCloud size={36} className="mb-3 text-[#9CA3AF]" />
+        <p className="text-sm font-semibold text-[#111827]">
           Drag image(s) here or browse images
         </p>
-        <p className="mt-2 text-xs leading-5 text-[#94a3b8]">
+        <p className="mt-1.5 text-xs leading-5 text-[#6B7280]">
           You can add up to {IMAGE_CONFIG.MAX_FILES} images, each not exceeding{' '}
           {IMAGE_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB in size and{' '}
           {IMAGE_CONFIG.MAX_DIMENSIONS.width}x{IMAGE_CONFIG.MAX_DIMENSIONS.height}{' '}
@@ -126,7 +126,7 @@ const ImageUpload = ({
           type="button"
           onClick={handleClickUpload}
           disabled={uploading}
-          className="mt-4 rounded-full border border-[#cbd5f5] px-4 py-2 text-sm font-medium text-[#3762f9] hover:bg-[#eef2ff] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="mt-4 rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#111827] shadow-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
         >
           {uploading ? 'Uploading...' : 'Upload'}
         </button>
@@ -148,7 +148,7 @@ const ImageUpload = ({
           {errors.map((error, idx) => (
             <div
               key={idx}
-              className="rounded-md bg-[#fee2e2] p-3 text-sm text-[#991b1b]"
+              className="rounded-none bg-[#fee2e2] border border-red-200 p-3 text-xs font-semibold text-[#991b1b]"
             >
               {error}
             </div>
@@ -159,7 +159,7 @@ const ImageUpload = ({
       {/* Image Preview */}
       {existingImages.length > 0 && (
         <div className="space-y-3">
-          <h4 className="text-sm font-medium text-[#1f2937]">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-[#6B7280]">
             Images ({existingImages.length}/{IMAGE_CONFIG.MAX_FILES})
           </h4>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -172,7 +172,7 @@ const ImageUpload = ({
               return (
                 <div
                   key={idx}
-                  className="group relative overflow-hidden rounded-lg border border-[#e6eafb] bg-[#f8f9ff]"
+                  className="group relative overflow-hidden rounded-none border border-[#E5E7EB] bg-[#F9FAFB]"
                 >
                   <img
                     src={imageSrc}
@@ -182,10 +182,10 @@ const ImageUpload = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(idx)}
-                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#ef4444] text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-none bg-[#EF4444] text-white opacity-0 transition-opacity group-hover:opacity-100 cursor-pointer"
                     title="Remove image"
                   >
-                    <X size={14} />
+                    <X size={13} />
                   </button>
                   <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
                 </div>

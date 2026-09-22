@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Search, X, Plus, Trash2, AlertTriangle } from "lucide-react";
-import Head from "../components/Head";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
+import useSidebar from "../hooks/useSidebar";
+import Select from "react-select";
 
 const InventoryAdjustments = () => {
+  const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
   
@@ -384,275 +387,295 @@ const InventoryAdjustments = () => {
     setDeleteStep(1);
     setItemsToDelete([]);
   };
-  
-  return (
-    <div className="ml-64 min-h-screen bg-[#f8fafc] p-8">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-[#1e293b]">
-              Inventory Adjustments
-            </h1>
-            {!loading && (
-              <span className="px-3 py-1 rounded-full bg-[#e2e8f0] text-sm font-medium text-[#475569]">
-                {filteredAdjustments.length} {filteredAdjustments.length === 1 ? 'adjustment' : 'adjustments'}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            {selectedAdjustments.size > 0 && (
-              <button
-                onClick={handleDeleteClick}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#dc2626] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#b91c1c] hover:shadow-md"
-              >
-                <Trash2 size={18} />
-                <span>Delete ({selectedAdjustments.size})</span>
-              </button>
-            )}
-            <Link
-              to="/inventory/adjustments/new"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-[#1d4ed8] hover:shadow-md"
-            >
-              <Plus size={18} />
-              <span>New Adjustment</span>
-            </Link>
-          </div>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="relative max-w-md mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#94a3b8]" size={18} />
-          <input
-            type="text"
-            placeholder="Search by reference number, reason, description, or warehouse..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#e2e8f0] bg-white text-sm text-[#1e293b] placeholder:text-[#94a3b8] focus:outline-none focus:ring-2 focus:ring-[#2563eb] focus:border-transparent transition-all"
-          />
-          {searchTerm && (
-            <button
-              onClick={() => setSearchTerm("")}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#94a3b8] hover:text-[#64748b] transition-colors"
-            >
-              <X size={18} />
-            </button>
-          )}
-        </div>
-        
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748b]">Filter By:</span>
-          <select
-            value={filters.type}
-            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="rounded-lg border border-[#d7dcf5] bg-white px-3 py-2 text-sm text-[#1f2937] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors"
-          >
-            <option value="All">Type: All</option>
-            <option value="Quantity">Type: Quantity</option>
-            <option value="Value">Type: Value</option>
-          </select>
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-            className="rounded-lg border border-[#d7dcf5] bg-white px-3 py-2 text-sm text-[#1f2937] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors"
-          >
-            <option value="All">Status: All</option>
-            <option value="Draft">Status: Draft</option>
-            <option value="Adjusted">Status: Adjusted</option>
-          </select>
-          <select
-            value={filters.period}
-            onChange={(e) => setFilters({ ...filters, period: e.target.value })}
-            className="rounded-lg border border-[#d7dcf5] bg-white px-3 py-2 text-sm text-[#1f2937] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors"
-          >
-            <option value="All">Period: All</option>
-            <option value="This Month">Period: This Month</option>
-            <option value="Last Month">Period: Last Month</option>
-            <option value="This Year">Period: This Year</option>
-          </select>
-        </div>
-      </div>
 
-      {/* Adjustments Table */}
-      <div className="rounded-lg border border-[#e2e8f0] bg-white shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="px-6 py-12 text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#2563eb] border-r-transparent"></div>
-              <p className="mt-4 text-sm text-[#64748b]">Loading adjustments...</p>
-            </div>
-          ) : filteredAdjustments.length === 0 ? (
-            <div className="px-6 py-12 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-[#f1f5f9] flex items-center justify-center mb-4">
-                <Search className="text-[#94a3b8]" size={24} />
-              </div>
-              <p className="text-sm font-medium text-[#1e293b] mb-1">
-                {searchTerm ? "No adjustments found" : "No adjustments yet"}
-              </p>
-              <p className="text-sm text-[#64748b] mb-4">
-                {searchTerm ? "Try adjusting your search or filters" : "Create your first inventory adjustment to get started"}
-              </p>
-              {!searchTerm && (
-                <Link
-                  to="/inventory/adjustments/new"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1d4ed8] transition-colors"
+  const customSelectStyles = {
+    control: (base, state) => ({
+      ...base,
+      minHeight: '40px',
+      height: '40px',
+      border: state.isFocused ? '1px solid #9B48D7' : '1px solid #E5E7EB',
+      borderRadius: '0px',
+      boxShadow: state.isFocused ? '0 0 0 2px rgba(155,72,215,0.15)' : 'none',
+      fontSize: '0.875rem',
+      backgroundColor: 'white',
+      transition: 'all 0.15s ease',
+      cursor: 'pointer',
+      '&:hover': { border: '1px solid #cbd5e1' }
+    }),
+    valueContainer: base => ({ ...base, height: '40px', padding: '0 12px' }),
+    input: base => ({ ...base, margin: '0px', padding: '0px' }),
+    indicatorSeparator: base => ({ ...base, display: 'none' }),
+    dropdownIndicator: (base, state) => ({
+      ...base,
+      padding: '0 12px',
+      transition: 'transform 0.2s ease',
+      transform: state.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      color: '#6b7280'
+    }),
+    singleValue: base => ({
+      ...base,
+      color: '#1f2937'
+    }),
+    menu: base => ({
+      ...base,
+      zIndex: 9999,
+      borderRadius: '0px',
+      boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+      marginTop: '2px',
+      backgroundColor: 'white',
+      overflow: 'hidden'
+    }),
+    option: (base, state) => ({
+      ...base,
+      fontSize: '0.875rem',
+      cursor: 'pointer',
+      backgroundColor: state.isSelected ? '#9B48D7' : state.isFocused ? '#f5f3ff' : 'white',
+      color: state.isSelected ? 'white' : '#1f2937',
+      padding: '10px 12px',
+      '&:active': { backgroundColor: '#9B48D7', color: 'white' }
+    })
+  };
+
+  return (
+    <>
+      <Header title="Inventory Adjustments" />
+      <div className={`transition-all duration-300 min-h-screen bg-[#F9FAFB] flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        
+        {/* ── Top Header Bar ── */}
+        <div className="px-6 pt-5 pb-4 border-b border-[#E5E7EB] bg-white">
+          <div className="flex flex-wrap items-center justify-end gap-4">
+            <div className="flex items-center gap-2.5">
+              {selectedAdjustments.size > 0 && (
+                <button
+                  onClick={handleDeleteClick}
+                  className="inline-flex h-9 items-center gap-2 rounded-none border border-[#dc2626] bg-[#fef2f2] hover:bg-[#fee2e2] px-3.5 text-xs font-semibold text-[#dc2626] shadow-sm transition-colors cursor-pointer"
                 >
-                  <Plus size={16} />
-                  Create Adjustment
-                </Link>
+                  <Trash2 size={14} />
+                  <span>Delete ({selectedAdjustments.size})</span>
+                </button>
               )}
+              <Link
+                to="/inventory/adjustments/new"
+                className="inline-flex h-9 items-center gap-1.5 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
+              >
+                <Plus size={15} className="text-white" />
+                <span>New Adjustment</span>
+              </Link>
             </div>
-          ) : (
-            <table className="min-w-full divide-y divide-[#e2e8f0]">
-              <thead className="bg-[#f8fafc]">
-                <tr>
-                  <th scope="col" className="px-6 py-4 text-center border-r border-[#e2e8f0] text-xs font-semibold uppercase tracking-wider text-[#64748b] w-12">
-                    <input 
-                      type="checkbox" 
-                      className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca] cursor-pointer" 
-                      checked={filteredAdjustments.length > 0 && filteredAdjustments.every(adj => {
-                        const id = adj.id || adj._id;
-                        return id && selectedAdjustments.has(id);
-                      })}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Date
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Reference Number
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Reason
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Type
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Warehouse
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Created By
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b] border-r border-[#e2e8f0]">
-                    Created Time
-                  </th>
-                  <th scope="col" className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-[#64748b]">
-                    Description
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#e2e8f0] bg-white">
-                {filteredAdjustments.map((adjustment, index) => {
-                  const adjustmentId = adjustment.id || adjustment._id;
-                  if (!adjustmentId) {
-                    console.warn("Adjustment missing ID:", adjustment);
-                    return null;
-                  }
-                  return (
-                    <tr
-                      key={adjustmentId}
-                      className="hover:bg-[#f8fafc] transition-colors cursor-pointer group"
-                      onClick={() => handleAdjustmentClick(adjustment)}
+          </div>
+        </div>
+
+        {/* ── Controls Row: Search, Filters, Badges ── */}
+        <div className="px-6 pt-4 pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            {/* Search Box & Filters */}
+            <div className="flex items-center gap-2.5 flex-1 max-w-2xl">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search size={14} className="text-[#9CA3AF]" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by reference number, reason, description, or warehouse..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-9 pl-9 pr-3 rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none transition-colors"
+                />
+              </div>
+
+              <Select
+                value={{ value: filters.type, label: filters.type === 'All' ? 'Type: All' : filters.type }}
+                onChange={(opt) => setFilters({ ...filters, type: opt.value })}
+                options={[
+                  { value: "All", label: "Type: All" },
+                  { value: "Quantity", label: "Quantity" },
+                  { value: "Value", label: "Value" }
+                ]}
+                styles={customSelectStyles}
+                isSearchable={false}
+              />
+              <Select
+                value={{ value: filters.status, label: filters.status === 'All' ? 'Status: All' : filters.status }}
+                onChange={(opt) => setFilters({ ...filters, status: opt.value })}
+                options={[
+                  { value: "All", label: "Status: All" },
+                  { value: "Draft", label: "Draft" },
+                  { value: "Adjusted", label: "Adjusted" }
+                ]}
+                styles={customSelectStyles}
+                isSearchable={false}
+              />
+              <Select
+                value={{ value: filters.period, label: filters.period === 'All' ? 'Period: All' : filters.period }}
+                onChange={(opt) => setFilters({ ...filters, period: opt.value })}
+                options={[
+                  { value: "All", label: "Period: All" },
+                  { value: "This Month", label: "This Month" },
+                  { value: "Last Month", label: "Last Month" },
+                  { value: "This Year", label: "This Year" }
+                ]}
+                styles={customSelectStyles}
+                isSearchable={false}
+              />
+            </div>
+
+            {/* Badges / Metrics */}
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] px-3 py-1 text-xs font-bold text-[#7C3AED]">
+                Total: {filteredAdjustments.length} {filteredAdjustments.length === 1 ? 'Adjustment' : 'Adjustments'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Main Table Card ── */}
+        <div className="px-6 pb-8 pt-2">
+          <section className="rounded-none border border-[#E5E7EB] bg-white shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              {loading ? (
+                <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                  <div className="inline-block animate-spin h-6 w-6 border-2 border-[#8B5CF6] border-t-transparent mb-2" />
+                  <p className="text-xs font-medium text-[#6B7280]">Loading adjustments...</p>
+                </div>
+              ) : filteredAdjustments.length === 0 ? (
+                <div className="px-8 py-16 text-center flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-none bg-[#F5F3FF] border border-[#DDD6FE] flex items-center justify-center mb-3">
+                    <Search className="text-[#8B5CF6]" size={24} />
+                  </div>
+                  <h3 className="text-sm font-bold text-[#111827] uppercase tracking-wide mb-1">
+                    {searchTerm ? "No adjustments found" : "No adjustments yet"}
+                  </h3>
+                  <p className="text-xs text-[#6B7280] max-w-sm mb-4">
+                    {searchTerm ? "Try adjusting your search or filters" : "Create your first inventory adjustment to get started"}
+                  </p>
+                  {!searchTerm && (
+                    <Link
+                      to="/inventory/adjustments/new"
+                      className="inline-flex items-center gap-2 rounded-none bg-[#8B5CF6] hover:bg-[#7C3AED] px-4 py-2 text-xs font-bold uppercase tracking-wider text-white shadow-sm transition-colors cursor-pointer"
                     >
-                      <td className="px-6 py-4 text-center border-r border-[#e2e8f0]" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <input 
-                            type="checkbox" 
-                            className="h-4 w-4 rounded border-[#d1d9f2] text-[#4f46e5] focus:ring-[#4338ca] cursor-pointer" 
-                            checked={selectedAdjustments.has(adjustmentId)}
-                            onChange={(e) => handleCheckboxChange(adjustmentId, e.target.checked)}
-                          />
-                          {selectedAdjustments.has(adjustmentId) && (
-                            <button
+                      <Plus size={14} className="text-white" />
+                      Create Adjustment
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                <table className="min-w-full border-collapse">
+                  <thead className="sticky top-0 z-10">
+                    <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
+                      <th className="w-10 px-3 py-3 text-center border-r border-[#333333] whitespace-nowrap">
+                        <input 
+                          type="checkbox" 
+                          className="h-3.5 w-3.5 rounded-none border-gray-600 bg-[#2d2d2d] accent-[#8B5CF6] cursor-pointer" 
+                          checked={filteredAdjustments.length > 0 && filteredAdjustments.every(adj => {
+                            const id = adj.id || adj._id;
+                            return id && selectedAdjustments.has(id);
+                          })}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                        />
+                      </th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Date</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Reference Number</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Reason</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Type</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Status</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Warehouse</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Created By</th>
+                      <th className="px-3 py-3 text-left border-r border-[#333333] whitespace-nowrap">Created Time</th>
+                      <th className="px-3 py-3 text-left whitespace-nowrap">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#F3F4F6] text-xs text-[#1F2937]">
+                    {filteredAdjustments.map((adjustment, index) => {
+                      const adjustmentId = adjustment.id || adjustment._id;
+                      if (!adjustmentId) return null;
+                      return (
+                        <tr
+                          key={adjustmentId}
+                          className={`${index % 2 === 0 ? "bg-white" : "bg-[#F9FAFB]/40"} hover:bg-purple-50/25 transition-colors cursor-pointer group`}
+                          onClick={() => handleAdjustmentClick(adjustment)}
+                        >
+                          <td className="px-3 py-2.5 text-center border-r border-[#E5E7EB]" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                className="h-3.5 w-3.5 rounded-none border-[#D1D5DB] accent-[#8B5CF6] cursor-pointer" 
+                                checked={selectedAdjustments.has(adjustmentId)}
+                                onChange={(e) => handleCheckboxChange(adjustmentId, e.target.checked)}
+                              />
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap text-[#4B5563] border-r border-[#E5E7EB]">
+                            {formatDate(adjustment.date)}
+                          </td>
+                          <td className="px-3 py-2.5 whitespace-nowrap font-semibold border-r border-[#E5E7EB]">
+                            <span
+                              className="text-[#8B5CF6] hover:text-[#7C3AED] hover:underline cursor-pointer"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleSingleDelete(adjustment);
+                                handleAdjustmentClick(adjustment);
                               }}
-                              className="p-1 rounded hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors"
-                              title="Delete this adjustment"
                             >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#475569] border-r border-[#e2e8f0]">
-                        {formatDate(adjustment.date)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm border-r border-[#e2e8f0]">
-                        <span
-                          className="font-semibold text-[#2563eb] group-hover:text-[#1d4ed8] group-hover:underline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAdjustmentClick(adjustment);
-                          }}
-                        >
-                          {adjustment.referenceNumber || (adjustmentId && String(adjustmentId).slice(-8)) || "-"}
-                        </span>
-                      </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#1e293b] font-medium border-r border-[#e2e8f0]">
-                      {adjustment.reason || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#475569] border-r border-[#e2e8f0]">
-                      <span className="inline-flex items-center rounded-full bg-[#f1f5f9] px-2.5 py-1 text-xs font-medium text-[#475569]">
-                        {adjustment.adjustmentType === "quantity" ? "Quantity" : "Value"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm border-r border-[#e2e8f0]">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-                        adjustment.status === "adjusted"
-                          ? "bg-[#dbeafe] text-[#1e40af]"
-                          : "bg-[#fef3c7] text-[#92400e]"
-                      }`}>
-                        {adjustment.status === "adjusted" ? "Adjusted" : "Draft"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#475569] border-r border-[#e2e8f0]">
-                      {adjustment.warehouse || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#475569] border-r border-[#e2e8f0]">
-                      {adjustment.createdBy || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#64748b] border-r border-[#e2e8f0]">
-                      {formatDateTime(adjustment.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-[#475569] max-w-xs truncate">
-                      {adjustment.description || "-"}
-                    </td>
-                  </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+                              {adjustment.referenceNumber || (adjustmentId && String(adjustmentId).slice(-8)) || "-"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-[#111827] font-medium border-r border-[#E5E7EB]">
+                            {adjustment.reason || "-"}
+                          </td>
+                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
+                            <span className="inline-flex items-center rounded-none bg-gray-100 border border-gray-200 px-2 py-0.5 text-[10px] font-bold text-gray-700">
+                              {adjustment.adjustmentType === "quantity" ? "QUANTITY" : "VALUE"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 border-r border-[#E5E7EB]">
+                            <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-bold rounded-none ${
+                              adjustment.status === "adjusted"
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                : "bg-gray-100 text-gray-700 border border-gray-200"
+                            }`}>
+                              {adjustment.status === "adjusted" ? "ADJUSTED" : "DRAFT"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
+                            {adjustment.warehouse || "-"}
+                          </td>
+                          <td className="px-3 py-2.5 text-[#4B5563] border-r border-[#E5E7EB]">
+                            {adjustment.createdBy || "-"}
+                          </td>
+                          <td className="px-3 py-2.5 text-[#6B7280] border-r border-[#E5E7EB]">
+                            {formatDateTime(adjustment.createdAt)}
+                          </td>
+                          <td className="px-3 py-2.5 text-[#4B5563] max-w-xs truncate">
+                            {adjustment.description || "-"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
         </div>
-      </div>
 
       {/* 2-Step Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+          <div className="bg-white rounded-none shadow-xl max-w-md w-full mx-4 border border-[#E5E7EB]">
             <div className="p-6">
               {deleteStep === 1 ? (
                 <>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center border border-red-200">
                       <AlertTriangle className="text-red-600" size={20} />
                     </div>
-                    <h3 className="text-lg font-semibold text-[#1e293b]">
+                    <h3 className="text-lg font-bold text-[#111827] uppercase">
                       Delete {itemsToDelete.length === 1 ? 'Adjustment' : `${itemsToDelete.length} Adjustments`}?
                     </h3>
                   </div>
-                  <p className="text-sm text-[#64748b] mb-6">
+                  <p className="text-xs text-[#6B7280] mb-6 font-medium">
                     Are you sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}? 
                     {itemsToDelete.some(item => item.status === 'adjusted') && (
-                      <span className="block mt-2 text-red-600 font-medium">
+                      <span className="block mt-2 text-red-600 font-bold">
                         ⚠️ Some adjustments are already applied. Stock will be reversed before deletion.
                       </span>
                     )}
@@ -660,13 +683,13 @@ const InventoryAdjustments = () => {
                   <div className="flex gap-3 justify-end">
                     <button
                       onClick={handleCancelDelete}
-                      className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] transition-colors"
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280] bg-[#EEEEEE] border border-[#E5E7EB] rounded-none hover:bg-[#E2E2E2] transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleConfirmDeleteStep1}
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-lg hover:bg-[#b91c1c] transition-colors"
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors"
                     >
                       Continue
                     </button>
@@ -675,22 +698,22 @@ const InventoryAdjustments = () => {
               ) : (
                 <>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-none bg-red-100 flex items-center justify-center border border-red-200">
                       <AlertTriangle className="text-red-600" size={20} />
                     </div>
-                    <h3 className="text-lg font-semibold text-[#1e293b]">
+                    <h3 className="text-lg font-bold text-[#111827] uppercase">
                       Final Confirmation
                     </h3>
                   </div>
-                  <p className="text-sm text-[#64748b] mb-4">
+                  <p className="text-xs text-[#6B7280] mb-4 font-medium">
                     This action cannot be undone. Are you absolutely sure you want to delete {itemsToDelete.length === 1 ? 'this adjustment' : `these ${itemsToDelete.length} adjustments`}?
                   </p>
                   {itemsToDelete.length > 0 && (
-                    <div className="mb-4 p-3 bg-[#f8fafc] rounded-lg max-h-40 overflow-y-auto">
-                      <p className="text-xs font-semibold text-[#64748b] mb-2">Items to be deleted:</p>
-                      <ul className="text-xs text-[#475569] space-y-1">
+                    <div className="mb-4 p-3 bg-[#F9FAFB] rounded-none max-h-40 overflow-y-auto border border-[#E5E7EB]">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#4B5563] mb-2">Items to be deleted:</p>
+                      <ul className="text-xs text-[#4B5563] space-y-1">
                         {itemsToDelete.map((item, idx) => (
-                          <li key={item.id || item._id || idx}>
+                          <li key={item.id || item._id || idx} className="font-medium">
                             • {item.referenceNumber || `Ref-${String(item.id || item._id).slice(-8)}`} - {item.reason || 'No reason'}
                           </li>
                         ))}
@@ -700,7 +723,7 @@ const InventoryAdjustments = () => {
                   <div className="flex gap-3 justify-end">
                     <button
                       onClick={() => setDeleteStep(1)}
-                      className="px-4 py-2 text-sm font-medium text-[#64748b] bg-white border border-[#e2e8f0] rounded-lg hover:bg-[#f8fafc] transition-colors"
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#6B7280] bg-[#EEEEEE] border border-[#E5E7EB] rounded-none hover:bg-[#E2E2E2] transition-colors"
                       disabled={deleting}
                     >
                       Back
@@ -708,15 +731,15 @@ const InventoryAdjustments = () => {
                     <button
                       onClick={handleConfirmDeleteStep2}
                       disabled={deleting}
-                      className="px-4 py-2 text-sm font-medium text-white bg-[#dc2626] rounded-lg hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-4 py-2 text-xs font-bold uppercase tracking-wider text-white bg-[#dc2626] rounded-none hover:bg-[#b91c1c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                       {deleting ? (
                         <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Deleting...
+                          <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          DELETING...
                         </>
                       ) : (
-                        'Confirm Delete'
+                        'CONFIRM DELETE'
                       )}
                     </button>
                   </div>
@@ -726,7 +749,8 @@ const InventoryAdjustments = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

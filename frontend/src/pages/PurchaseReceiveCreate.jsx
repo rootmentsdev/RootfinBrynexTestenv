@@ -4,23 +4,25 @@ import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { X, ChevronDown, ArrowUp, Calendar, Search, Check, Plus, Pencil } from "lucide-react";
 import ImageUpload from "../components/ImageUpload";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const Label = ({ children, required = false }) => (
-  <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
+  <span className={`text-[10px] font-bold uppercase tracking-wider ${required ? "text-[#EF4444]" : "text-[#6B7280]"}`}>
     {children}
     {required && <span className="ml-0.5">*</span>}
   </span>
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const baseClasses = "rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors";
-  const tableInputClasses = "h-[36px] px-[10px] py-[6px]";
-  const defaultClasses = "w-full px-3 py-2.5";
-  
+  const baseClasses = "rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]/20 transition-colors";
+  const tableInputClasses = "h-[34px] px-[10px] py-[6px]";
+  const defaultClasses = "w-full h-9 px-3";
+
   const isTableInput = className.includes("table-input");
   const finalClasses = `${baseClasses} ${isTableInput ? tableInputClasses : defaultClasses} ${className}`;
-  
+
   return (
     <input
       {...props}
@@ -31,10 +33,10 @@ const Input = ({ placeholder = "", className = "", ...props }) => {
 };
 
 const Select = ({ className = "", ...props }) => {
-  const baseClasses = "w-full rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors cursor-pointer";
-  const defaultClasses = "px-3 py-2.5";
+  const baseClasses = "w-full rounded-none border border-[#E5E7EB] bg-white text-xs text-[#111827] focus:border-[#8B5CF6] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]/20 transition-colors cursor-pointer";
+  const defaultClasses = "h-9 px-3";
   const finalClasses = `${baseClasses} ${defaultClasses} ${className}`;
-  
+
   return (
     <select
       {...props}
@@ -65,14 +67,14 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
       try {
         const userStr = localStorage.getItem("rootfinuser");
         const user = userStr ? JSON.parse(userStr) : null;
-        // Use email as primary identifier (e.g., officerootments@gmail.com)
-        const userId = user?.email || user?._id || user?.id || user?.locCode || null;
-        
+        const userId = user?.email || null;
+        const userPower = user?.power || "";
+
         let vendorsFromAPI = [];
-        
+
         if (userId) {
           try {
-            const response = await fetch(`${API_URL}/api/purchase/vendors?userId=${userId}`);
+            const response = await fetch(`${API_URL}/api/purchase/vendors?userId=${encodeURIComponent(userId)}${userPower ? `&userPower=${encodeURIComponent(userPower)}` : ""}`);
             if (response.ok) {
               const data = await response.json();
               vendorsFromAPI = Array.isArray(data) ? data : [];
@@ -81,7 +83,7 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
             console.warn("API fetch failed, trying localStorage:", apiError);
           }
         }
-        
+
         let vendorsFromLocalStorage = [];
         try {
           const savedVendors = JSON.parse(localStorage.getItem("vendors") || "[]");
@@ -89,22 +91,22 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
         } catch (localError) {
           console.warn("Error reading localStorage:", localError);
         }
-        
+
         const vendorMap = new Map();
-        
         vendorsFromAPI.forEach(vendor => {
           const key = vendor.displayName || vendor.companyName || vendor._id || vendor.id;
           if (key) vendorMap.set(key, vendor);
         });
-        
         vendorsFromLocalStorage.forEach(vendor => {
           const key = vendor.displayName || vendor.companyName || vendor.id;
-          if (key && !vendorMap.has(key)) {
-            vendorMap.set(key, vendor);
-          }
+          if (key && !vendorMap.has(key)) vendorMap.set(key, vendor);
         });
-        
-        setVendors(Array.from(vendorMap.values()));
+
+        const allVendors = Array.from(vendorMap.values()).map(v => ({
+          ...v,
+          id: v.id || v._id || v.displayName || v.companyName,
+        }));
+        setVendors(allVendors);
       } catch (error) {
         console.error("Error loading vendors:", error);
         try {
@@ -232,59 +234,73 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
         zIndex: 999999,
       }}
     >
-      <div className="rounded-xl shadow-xl bg-white border border-[#d7dcf5] w-full overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-[#e2e8f0] px-3 py-2.5 bg-[#fafbff]">
-          <Search size={14} className="text-[#94a3b8]" />
+      <div className="rounded-none shadow-xl bg-white border border-[#E5E7EB] w-full overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-[#E5E7EB] px-3 py-2 bg-[#F9FAFB]">
+          <Search size={13} className="text-[#9CA3AF] flex-shrink-0" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search vendors"
-            className="h-8 w-full border-none bg-transparent text-sm text-[#1f2937] outline-none placeholder:text-[#94a3b8]"
+            placeholder="Search vendors..."
+            className="h-8 w-full border-none bg-transparent text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             onClick={(e) => e.stopPropagation()}
             autoFocus
           />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm("")} className="flex-shrink-0 text-[#9CA3AF] hover:text-[#6B7280]">
+              <X size={12} />
+            </button>
+          )}
         </div>
-        <div className="py-2 max-h-[400px] overflow-y-auto">
+        <div className="max-h-[300px] overflow-y-auto">
           {loading ? (
-            <div className="px-4 py-8 text-center text-sm text-[#64748b]">Loading vendors...</div>
+            <div className="px-4 py-6 text-center">
+              <div className="inline-block h-4 w-4 animate-spin rounded-none border-2 border-[#8B5CF6] border-t-transparent mb-1" />
+              <p className="text-xs text-[#6B7280]">Loading vendors...</p>
+            </div>
           ) : filteredVendors.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-[#64748b]">
-              {searchTerm ? "No vendors found" : "No vendors available"}
+            <div className="px-4 py-6 text-center">
+              <p className="text-xs font-medium text-[#6B7280]">
+                {searchTerm ? `No vendors matching "${searchTerm}"` : "No vendors found. Add one below."}
+              </p>
             </div>
           ) : (
-            <>
-              {filteredVendors.map((vendor) => (
-                <div
-                  key={vendor._id || vendor.id || vendor.displayName}
-                  onClick={() => handleSelectVendor(vendor)}
-                  className="flex items-center gap-3 px-4 py-2.5 hover:bg-[#f8fafc] cursor-pointer transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1f2937] truncate">
-                      {vendor.displayName || vendor.companyName || "Unnamed Vendor"}
-                    </p>
-                    {vendor.email && (
-                      <p className="text-xs text-[#64748b] truncate mt-0.5">{vendor.email}</p>
-                    )}
-                  </div>
-                  {selectedVendor && (selectedVendor._id === vendor._id || selectedVendor.id === vendor.id) && (
-                    <Check size={16} className="text-[#2563eb] shrink-0" />
+            filteredVendors.map((vendor) => (
+              <div
+                key={vendor._id || vendor.id || vendor.displayName}
+                onClick={() => handleSelectVendor(vendor)}
+                className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition-colors border-b border-[#F3F4F6] last:border-0 ${
+                  selectedVendor && (selectedVendor._id === vendor._id || selectedVendor.id === vendor.id)
+                    ? "bg-[#F5F3FF]"
+                    : "hover:bg-[#FAFAFA]"
+                }`}
+              >
+                <div className="w-7 h-7 rounded-none bg-[#EDE9FE] flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-bold text-[#7C3AED]">
+                    {(vendor.displayName || vendor.companyName || "?").charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[#111827] truncate">
+                    {vendor.displayName || vendor.companyName || "Unnamed Vendor"}
+                  </p>
+                  {vendor.email && (
+                    <p className="text-[10px] text-[#6B7280] truncate">{vendor.email}</p>
                   )}
                 </div>
-              ))}
-              <div
-                onClick={() => {
-                  onNewVendor();
-                  setIsOpen(false);
-                }}
-                className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#2563eb] hover:bg-[#f8fafc] cursor-pointer transition-colors border-t border-[#e2e8f0] mt-2"
-              >
-                <Plus size={16} />
-                <span>New Vendor</span>
+                {selectedVendor && (selectedVendor._id === vendor._id || selectedVendor.id === vendor.id) && (
+                  <Check size={13} className="text-[#8B5CF6] shrink-0" />
+                )}
               </div>
-            </>
+            ))
           )}
+        </div>
+        <div
+          onClick={() => { onNewVendor(); setIsOpen(false); }}
+          className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-[#8B5CF6] hover:bg-[#F5F3FF] cursor-pointer transition-colors border-t border-[#E5E7EB]"
+        >
+          <Plus size={13} />
+          <span>Add New Vendor</span>
         </div>
       </div>
     </div>
@@ -293,28 +309,29 @@ const VendorDropdown = ({ value, onChange, onNewVendor }) => {
   return (
     <>
       <div className="relative w-full">
-        <div className="flex items-center gap-2">
-          <input
-            ref={buttonRef}
-            type="text"
-            value={selectedVendor ? (selectedVendor.displayName || selectedVendor.companyName || "") : ""}
-            onChange={() => {}}
-            onClick={toggleDropdown}
-            readOnly
-            placeholder="Type or click to select a vendor."
-            className="w-full rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors cursor-pointer px-3 py-2.5"
-          />
-          {selectedVendor && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange(null);
-              }}
-              className="text-[#dc2626] hover:text-[#b91c1c] transition-colors"
-            >
-              <X size={16} />
-            </button>
-          )}
+        <div
+          ref={buttonRef}
+          onClick={toggleDropdown}
+          className={`flex items-center justify-between w-full h-9 px-3 rounded-none border cursor-pointer transition-colors ${
+            isOpen ? "border-[#8B5CF6] ring-1 ring-[#8B5CF6]/20" : "border-[#E5E7EB] hover:border-[#9CA3AF]"
+          } bg-white`}
+        >
+          <span className={`text-xs truncate ${selectedVendor ? "text-[#111827] font-medium" : "text-[#9CA3AF]"}`}>
+            {selectedVendor
+              ? (selectedVendor.displayName || selectedVendor.companyName)
+              : "Click to select a vendor..."}
+          </span>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {selectedVendor && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onChange(null); }}
+                className="p-0.5 text-[#9CA3AF] hover:text-[#EF4444] transition-colors"
+              >
+                <X size={12} />
+              </button>
+            )}
+            <ChevronDown size={13} className={`text-[#9CA3AF] transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          </div>
         </div>
       </div>
       {typeof document !== "undefined" && document.body && createPortal(dropdownPortal, document.body)}
@@ -326,6 +343,7 @@ const PurchaseReceiveCreate = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
+  const isSidebarOpen = useSidebar();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
   // Initial form state - only show first 2 fields
@@ -1033,37 +1051,39 @@ const PurchaseReceiveCreate = () => {
   // Show loading state while fetching receive data in edit mode
   if (loading && isEditMode) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center text-[#64748b]">Loading purchase receive...</div>
       </div>
     );
   }
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb]">
-      {/* Header */}
-      <div className="border-b border-[#e6eafb] bg-white px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#f5f7ff]">
-              <ArrowUp size={16} className="text-[#2563eb]" />
-            </div>
-            <h1 className="text-xl font-semibold text-[#1f2937]">{isEditMode ? "Edit Purchase Receive" : "New Purchase Receive"}</h1>
-          </div>
-          <Link
-            to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
-            className="rounded-md p-2 text-[#64748b] hover:bg-[#f5f7fb] transition-colors"
-          >
-            <X size={20} />
-          </Link>
-        </div>
-      </div>
+    <>
+      <Header title={isEditMode ? "Edit Purchase Receive" : "New Purchase Receive"} />
+      <div className={`transition-all duration-300 min-h-screen bg-slate-50 flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
 
-      {/* Form Content */}
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="space-y-6">
-          {/* Initial Fields - Always Visible */}
-          <div className="grid gap-6 md:grid-cols-2">
+        {/* Top Bar */}
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <span className="text-xs text-[#6B7280] font-medium uppercase tracking-wider">
+              {isEditMode ? "Edit Receive" : "New Receive"}
+            </span>
+            <Link
+              to={isEditMode ? `/purchase/receives/${id}` : "/purchase/receives"}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-none border border-[#E5E7EB] bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#6B7280] transition-colors"
+            >
+              <X size={16} />
+            </Link>
+          </div>
+        </div>
+
+        {/* Form Content */}
+        <div className="mx-auto max-w-4xl w-full px-6 py-8">
+          <div className="space-y-6">
+            {/* Initial Fields - Always Visible */}
+            <div className="bg-white rounded-none border border-[#E5E7EB] shadow-sm p-6">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#6B7280] mb-5 pb-3 border-b border-[#E5E7EB]">Receive Details</h2>
+              <div className="grid gap-6 md:grid-cols-2">
             {/* Vendor Name */}
             <div className="space-y-2">
               <Label>Vendor Name</Label>
@@ -1437,10 +1457,11 @@ const PurchaseReceiveCreate = () => {
             </Link>
           )}
         </div>
+        </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
 export default PurchaseReceiveCreate;
-

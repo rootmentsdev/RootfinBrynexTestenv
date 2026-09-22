@@ -5,6 +5,7 @@ import baseUrl from '../api/api.js';
 import { CSVLink } from 'react-csv';
 import { Helmet } from "react-helmet";
 import { FiDownload, FiSearch, FiPackage, FiBarChart2 } from "react-icons/fi";
+import useSidebar from '../hooks/useSidebar.js';
 
 // Add CSS animations
 const styles = `
@@ -40,6 +41,7 @@ if (typeof document !== 'undefined') {
 }
 
 const InventoryReport = () => {
+  const isSidebarOpen = useSidebar();
   const [selectedStore, setSelectedStore] = useState("All Stores");
   const [reportType, setReportType] = useState("summary");
   const [loading, setLoading] = useState(false);
@@ -70,6 +72,7 @@ const InventoryReport = () => {
     adminEmails.some(email => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
     ['858', '103'].includes(currentUser?.locCode);
   const canChooseStore = (isAdmin && isMainAdmin) || isClusterManager;
+  const canSeeCost = isAdmin || (currentUser?.power || "").toLowerCase() === "warehouse" || isMainAdmin;
   
   // For store users, set their store as default and disable selection
   useEffect(() => {
@@ -211,7 +214,7 @@ const InventoryReport = () => {
         "Item Name": item.itemName,
         SKU: item.sku,
         Category: item.category,
-        "Cost": item.cost,
+        ...(canSeeCost ? { "Cost": item.cost } : {}),
         "Total Stock": item.totalStock,
         "Total Value": item.totalValue
       })) || [];
@@ -251,7 +254,7 @@ const InventoryReport = () => {
         "Stock In": item.stockIn,
         "Stock Out": item.stockOut,
         "Closing Stock": item.closingStock,
-        "Cost Price": item.costPrice,
+        ...(canSeeCost ? { "Cost Price": item.costPrice } : {}),
         "Stock Value": item.stockValue,
         "Group Name": item.itemGroupName || ''
       })) || [];
@@ -695,12 +698,13 @@ const InventoryReport = () => {
       </Helmet>
       <Headers />
       <div style={{ 
-        marginLeft: "256px", 
+        marginLeft: isSidebarOpen ? "256px" : "0px", 
         padding: "24px", 
-        maxWidth: "calc(100% - 256px)",
+        width: isSidebarOpen ? "calc(100% - 256px)" : "100%",
+        maxWidth: isSidebarOpen ? "calc(100% - 256px)" : "100%",
         minHeight: "100vh",
         backgroundColor: "#fafbfc",
-        transition: "all 0.3s ease"
+        transition: "margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
       }}>
         {/* Page Header */}
         <div style={{ 
@@ -1266,11 +1270,13 @@ const InventoryReport = () => {
                   <table style={{ 
                     width: "100%", 
                     borderCollapse: "collapse",
-                    backgroundColor: "white"
+                    backgroundColor: "white",
+                    tableLayout: "fixed"
                   }}>
                     <thead>
                       <tr style={{ backgroundColor: "#f1f3f4" }}>
                         <th style={{ 
+                          width: canSeeCost ? "28%" : "35%",
                           padding: "16px 20px", 
                           textAlign: "left", 
                           fontWeight: "600",
@@ -1279,6 +1285,7 @@ const InventoryReport = () => {
                           borderBottom: "2px solid #dee2e6"
                         }}>Item Name</th>
                         <th style={{ 
+                          width: canSeeCost ? "16%" : "20%",
                           padding: "16px 20px", 
                           textAlign: "left", 
                           fontWeight: "600",
@@ -1287,6 +1294,7 @@ const InventoryReport = () => {
                           borderBottom: "2px solid #dee2e6"
                         }}>SKU</th>
                         <th style={{ 
+                          width: canSeeCost ? "14%" : "15%",
                           padding: "16px 20px", 
                           textAlign: "left", 
                           fontWeight: "600",
@@ -1294,15 +1302,19 @@ const InventoryReport = () => {
                           fontSize: "14px",
                           borderBottom: "2px solid #dee2e6"
                         }}>Category</th>
+                        {canSeeCost && (
+                          <th style={{ 
+                            width: "14%",
+                            padding: "16px 20px", 
+                            textAlign: "right", 
+                            fontWeight: "600",
+                            color: "#495057",
+                            fontSize: "14px",
+                            borderBottom: "2px solid #dee2e6"
+                          }}>Cost</th>
+                        )}
                         <th style={{ 
-                          padding: "16px 20px", 
-                          textAlign: "right", 
-                          fontWeight: "600",
-                          color: "#495057",
-                          fontSize: "14px",
-                          borderBottom: "2px solid #dee2e6"
-                        }}>Cost</th>
-                        <th style={{ 
+                          width: canSeeCost ? "14%" : "15%",
                           padding: "16px 20px", 
                           textAlign: "right", 
                           fontWeight: "600",
@@ -1311,6 +1323,7 @@ const InventoryReport = () => {
                           borderBottom: "2px solid #dee2e6"
                         }}>Total Stock</th>
                         <th style={{ 
+                          width: canSeeCost ? "14%" : "15%",
                           padding: "16px 20px", 
                           textAlign: "right", 
                           fontWeight: "600",
@@ -1351,11 +1364,13 @@ const InventoryReport = () => {
                               {item.category}
                             </span>
                           </td>
-                          <td style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right",
-                            color: "#6c757d"
-                          }}>₹{item.cost.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                          {canSeeCost && (
+                            <td style={{ 
+                              padding: "16px 20px", 
+                              textAlign: "right",
+                              color: "#6c757d"
+                            }}>₹{item.cost.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                          )}
                           <td style={{ 
                             padding: "16px 20px", 
                             textAlign: "right",
@@ -2072,7 +2087,7 @@ const InventoryReport = () => {
                 {/* Summary Cards */}
                 <div style={{ 
                   display: "grid", 
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+                  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", 
                   gap: "20px", 
                   marginBottom: "40px"
                 }}>
@@ -2235,38 +2250,6 @@ const InventoryReport = () => {
                       lineHeight: "1"
                     }}>₹{(reportData.summary?.totalStockValue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</div>
                   </div>
-
-                  <div style={{ 
-                    backgroundColor: "#e8f4fd", 
-                    padding: "24px", 
-                    borderRadius: "12px", 
-                    border: "1px solid #b8daff",
-                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                    cursor: "default"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-2px)";
-                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(0,123,255,0.1)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}>
-                    <div style={{ 
-                      fontSize: "13px", 
-                      color: "#0c5aa6", 
-                      fontWeight: "500",
-                      marginBottom: "8px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px"
-                    }}>Period</div>
-                    <div style={{ 
-                      fontSize: "18px", 
-                      fontWeight: "600",
-                      color: "#0c5aa6",
-                      lineHeight: "1.2"
-                    }}>{reportData.summary?.period || "Current Stock"}</div>
-                  </div>
                 </div>
 
                 {/* Item Details Report */}
@@ -2299,6 +2282,7 @@ const InventoryReport = () => {
                       <thead>
                         <tr style={{ backgroundColor: "#f1f3f4" }}>
                           <th style={{ 
+                            width: canSeeCost ? "22%" : "26%",
                             padding: "16px 20px", 
                             textAlign: "left", 
                             fontWeight: "600",
@@ -2307,6 +2291,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Item Name</th>
                           <th style={{ 
+                            width: canSeeCost ? "10%" : "12%",
                             padding: "16px 20px", 
                             textAlign: "left", 
                             fontWeight: "600",
@@ -2315,6 +2300,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>SKU</th>
                           <th style={{ 
+                            width: canSeeCost ? "10%" : "11%",
                             padding: "16px 20px", 
                             textAlign: "left", 
                             fontWeight: "600",
@@ -2323,6 +2309,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Category</th>
                           <th style={{ 
+                            width: canSeeCost ? "12%" : "15%",
                             padding: "16px 20px", 
                             textAlign: "left", 
                             fontWeight: "600",
@@ -2331,6 +2318,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Warehouse</th>
                           <th style={{ 
+                            width: canSeeCost ? "7%" : "8%",
                             padding: "16px 20px", 
                             textAlign: "right", 
                             fontWeight: "600",
@@ -2339,6 +2327,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Opening Stock</th>
                           <th style={{ 
+                            width: canSeeCost ? "7%" : "8%",
                             padding: "16px 20px", 
                             textAlign: "right", 
                             fontWeight: "600",
@@ -2347,6 +2336,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Stock In</th>
                           <th style={{ 
+                            width: canSeeCost ? "7%" : "8%",
                             padding: "16px 20px", 
                             textAlign: "right", 
                             fontWeight: "600",
@@ -2355,6 +2345,7 @@ const InventoryReport = () => {
                             borderBottom: "2px solid #dee2e6"
                           }}>Stock Out</th>
                           <th style={{ 
+                            width: canSeeCost ? "8%" : "9%",
                             padding: "16px 20px", 
                             textAlign: "right", 
                             fontWeight: "600",
@@ -2362,15 +2353,19 @@ const InventoryReport = () => {
                             fontSize: "14px",
                             borderBottom: "2px solid #dee2e6"
                           }}>Closing Stock</th>
+                          {canSeeCost && (
+                            <th style={{ 
+                              width: "8%",
+                              padding: "16px 20px", 
+                              textAlign: "right", 
+                              fontWeight: "600",
+                              color: "#495057",
+                              fontSize: "14px",
+                              borderBottom: "2px solid #dee2e6"
+                            }}>Cost Price</th>
+                          )}
                           <th style={{ 
-                            padding: "16px 20px", 
-                            textAlign: "right", 
-                            fontWeight: "600",
-                            color: "#495057",
-                            fontSize: "14px",
-                            borderBottom: "2px solid #dee2e6"
-                          }}>Cost Price</th>
-                          <th style={{ 
+                            width: canSeeCost ? "9%" : "11%",
                             padding: "16px 20px", 
                             textAlign: "right", 
                             fontWeight: "600",
@@ -2383,9 +2378,9 @@ const InventoryReport = () => {
                       <tbody>
                         {reportData.itemDetails?.length === 0 ? (
                           <tr>
-                            <td colSpan="10" style={{ 
+                            <td colSpan={canSeeCost ? 10 : 9} style={{ 
                               padding: "40px 20px", 
-                              textAlign: "center",
+                              textAlign: "center", 
                               color: "#6c757d",
                               fontSize: "16px"
                             }}>
@@ -2466,11 +2461,13 @@ const InventoryReport = () => {
                                 fontWeight: "600",
                                 color: "#17a2b8"
                               }}>{item.closingStock || 0}</td>
-                              <td style={{ 
-                                padding: "16px 20px", 
-                                textAlign: "right",
-                                color: "#6c757d"
-                              }}>₹{(item.costPrice || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                              {canSeeCost && (
+                                <td style={{ 
+                                  padding: "16px 20px", 
+                                  textAlign: "right", 
+                                  color: "#6c757d"
+                                }}>₹{(item.costPrice || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                              )}
                               <td style={{ 
                                 padding: "16px 20px", 
                                 textAlign: "right",

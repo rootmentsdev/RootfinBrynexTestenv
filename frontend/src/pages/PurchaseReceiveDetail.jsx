@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { X, Edit, FileText, Check, ChevronRight } from "lucide-react";
 import AttachmentDisplay from "../components/AttachmentDisplay";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const formatCurrency = (value) => {
+  const isSidebarOpen = useSidebar();
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -109,7 +111,7 @@ const PurchaseReceiveDetail = () => {
 
   if (loading) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center">Loading...</div>
       </div>
     );
@@ -117,7 +119,7 @@ const PurchaseReceiveDetail = () => {
 
   if (!receive) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center">
           <p className="text-lg text-[#64748b] mb-4">Purchase Receive not found</p>
           <Link to="/purchase/receives" className="text-[#2563eb] hover:underline">
@@ -426,7 +428,7 @@ const PurchaseReceiveDetail = () => {
   };
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] flex">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Left Sidebar - Receives List */}
       <div className="w-80 bg-white border-r border-[#e6eafb] flex flex-col">
         {/* Header */}

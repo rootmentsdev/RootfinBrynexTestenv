@@ -4,38 +4,40 @@ import baseUrl from "../api/api";
 import { BsBank2 } from "react-icons/bs";
 import { MdCurrencyRupee } from "react-icons/md";
 import { ChevronDown } from "lucide-react";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const baseExpenseCats = [
-  { value: "dry cleaning",          label: "Dry Cleaning",           subs: ["Dry cleaning"] },
-  { value: "altration",             label: "Altration",              subs: ["Altration"] },
-  { value: "material",              label: "Material",               subs: ["Material"] },
-  { value: "courier charges",       label: "Courier Charges",        subs: ["Courier charges"] },
-  { value: "maintenance expenses",  label: "Repairs & Maintenance",  subs: ["Ac service", "Interior Maintenance", "Glass Cleaning", "Electrical work"] },
-  { value: "travel exp",            label: "Travel Exp",             subs: ["Travel exp"] },
-  { value: "fuel exp",              label: "Fuel Exp",               subs: ["Fuel exp"] },
-  { value: "petty expenses",        label: "Office Expense",         subs: ["Air freshner", "Grooming Kit", "Cleaning Products", "Parking charge"] },
-  { value: "telephone internet",    label: "Internet Expense",       subs: ["Telephone/wifi"] },
-  { value: "utility bill",          label: "Electricity Charges",    subs: ["Electricity Charges"] },
-  { value: "waste management",      label: "Waste Management",       subs: ["Waste management"] },
-  { value: "water charges",         label: "Water Charges",          subs: ["Water charges"] },
-  { value: "salary",                label: "Salary/Salary Advance",  subs: ["Salary/salary advance"] },
+  { value: "dry cleaning",          label: "Dry Cleaning" },
+  { value: "altration",             label: "Altration" },
+  { value: "material",              label: "Material" },
+  { value: "courier charges",       label: "Courier Charges" },
+  { value: "maintenance expenses",  label: "Repairs & Maintenance" },
+  { value: "travel exp",            label: "Travel Exp" },
+  { value: "fuel exp",              label: "Fuel Exp" },
+  { value: "petty expenses",        label: "Office Expense" },
+  { value: "telephone internet",    label: "Internet Expense" },
+  { value: "utility bill",          label: "Electricity Charges" },
+  { value: "waste management",      label: "Waste Management" },
+  { value: "water charges",         label: "Water Charges" },
+  { value: "salary",                label: "Salary/Salary Advance" },
   { value: "printing stationary",   label: "Printing & Stationary",  subs: ["Printout", "Books/pen/Checklist/Register/Bill Book/Voucher", "Stationary Items"] },
-  { value: "staff welfare",         label: "Staff Welfare",          subs: ["Cake purchase", "Food allowance on Special Occassion", "Other Refreshment"] },
-  { value: "staff reimbursement",   label: "Staff Accommodation",    subs: ["Staff room rent/Electricity"] },
-  { value: "rent",                  label: "Rent",                   subs: ["Store Rent"] },
-  { value: "asset purchase",        label: "Asset Purchase",         subs: ["Steamer", "Chairs", "Electronic Items", "Any other Furniture items"] },
-  { value: "spot incentive",        label: "Incentive",              subs: ["Spot incentive", "Weekly incentive"] },
-  { value: "other expenses",        label: "Refund",                 subs: ["Security Refund", "Cancellation Refund", "Compensation"] },
-  { value: "bulk amount transfer",  label: "Cash to Bank",           subs: ["Cash Deposit"] },
+  { value: "staff welfare",         label: "Staff Welfare" },
+  { value: "staff reimbursement",   label: "Staff Accommodation" },
+  { value: "rent",                  label: "Store Rent" },
+  { value: "asset purchase",        label: "Asset Purchase" },
+  { value: "spot incentive",        label: "Incentive" },
+  { value: "other expenses",        label: "Refund" },
+  { value: "bulk amount transfer",  label: "Cash to Bank" },
 ];
 
 const Expenses = () => {
+  const isSidebarOpen = useSidebar();
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
   const cats = baseExpenseCats;
 
   const [selectedCategory, setSelectedCategory] = useState(cats[0]);
-  const [subCategory, setSubCategory] = useState("");
+  const [subCategory, setSubCategory] = useState(cats[0].subs?.[0] || "");
   const [amount, setAmount] = useState("");
   const [remark, setRemark] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -53,7 +55,7 @@ const Expenses = () => {
       setPaymentMethod("cash");
       setSplitPayment(false);
     }
-    setSubCategory("");
+    setSubCategory(cat.subs?.[0] || "");
   };
 
   const handleSubmit = async (e) => {
@@ -73,7 +75,7 @@ const Expenses = () => {
     const data = {
       type: "expense",
       category: selectedCategory.value,
-      subCategory: subCategory || undefined,
+      subCategory: subCategory || (selectedCategory.subs?.[0] || ""),
       remark,
       locCode: currentusers.locCode,
       amount: `-${amount}`,
@@ -94,7 +96,7 @@ const Expenses = () => {
       else {
         alert("Expense recorded successfully!");
         setAmount(""); setCashAmount(""); setBankAmount(""); setUpiAmount("");
-        setRemark(""); setAttachmentFile(null); setSubCategory("");
+        setRemark(""); setAttachmentFile(null); setSubCategory(selectedCategory.subs?.[0] || "");
       }
     } catch { alert("Failed to create transaction."); }
     finally { setIsSubmitting(false); }
@@ -102,13 +104,13 @@ const Expenses = () => {
 
   const handleCancel = () => {
     setAmount(""); setRemark(""); setAttachmentFile(null);
-    setSubCategory(""); setCashAmount(""); setBankAmount(""); setUpiAmount("");
+    setSubCategory(cats[0].subs?.[0] || ""); setCashAmount(""); setBankAmount(""); setUpiAmount("");
     setPaymentMethod("cash"); setSplitPayment(false);
     setSelectedCategory(cats[0]);
   };
 
   return (
-    <div className="min-h-screen bg-[#f0f4ff] ml-64">
+    <div className={`min-h-screen bg-[#f0f4ff] transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <div className="px-10 pt-8 pb-16">
         {/* Page title */}
         <div className="mb-6">
@@ -120,21 +122,40 @@ const Expenses = () => {
         <div className="rounded-2xl bg-white shadow-sm border border-[#e6ebfa] p-8">
           <form onSubmit={handleSubmit}>
 
-            {/* Row 1: Category + Amount */}
-            <div className="grid grid-cols-2 gap-6 mb-2">
+            {/* Row 1: Category, Sub Category (if available), Amount */}
+            <div className={`grid grid-cols-1 ${selectedCategory.subs?.length > 0 ? "md:grid-cols-3" : "md:grid-cols-2"} gap-6 mb-6`}>
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-widest text-[#9ca3af] mb-2">Category</label>
                 <div className="relative">
                   <select
                     value={selectedCategory.value}
                     onChange={e => handleCategoryChange(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-[#d9def1] bg-white px-5 py-4 text-base text-[#101828] focus:outline-none focus:border-[#1e3a8a] pr-10"
+                    className="w-full appearance-none rounded-xl border border-[#d9def1] bg-white px-5 py-4 text-base text-[#101828] focus:outline-none focus:border-[#1e3a8a] pr-10 cursor-pointer"
                   >
                     {cats.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                   <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
                 </div>
               </div>
+
+              {selectedCategory.subs?.length > 0 && (
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-widest text-[#9ca3af] mb-2">Sub Category</label>
+                  <div className="relative">
+                    <select
+                      value={subCategory}
+                      onChange={e => setSubCategory(e.target.value)}
+                      className="w-full appearance-none rounded-xl border border-[#d9def1] bg-white px-5 py-4 text-base text-[#101828] focus:outline-none focus:border-[#1e3a8a] pr-10 cursor-pointer"
+                    >
+                      {selectedCategory.subs.map(sub => (
+                        <option key={sub} value={sub}>{sub}</option>
+                      ))}
+                    </select>
+                    <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#9ca3af]" />
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-widest text-[#9ca3af] mb-2">Amount</label>
                 <div className="relative">
@@ -150,17 +171,6 @@ const Expenses = () => {
                 </div>
               </div>
             </div>
-
-            {/* Sub-category labels */}
-            {selectedCategory.subs?.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-6 mt-3">
-                {selectedCategory.subs.map(sub => (
-                  <span key={sub} className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#3b5bdb] bg-[#e8edff]">
-                    {sub}
-                  </span>
-                ))}
-              </div>
-            )}
 
             <hr className="border-[#e6ebfa] my-6" />
 

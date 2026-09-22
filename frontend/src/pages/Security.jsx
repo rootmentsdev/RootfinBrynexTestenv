@@ -7,6 +7,7 @@ import { CSVLink } from "react-csv";
 import Headers from "../components/Header.jsx";
 import useFetch from "../hooks/useFetch.jsx";
 import openingBalanceMap from "../data/openingBalance.json";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 /* ---------- CSV helpers ---------- */
 const csvHeaders = [
@@ -60,6 +61,7 @@ const dayBefore = (iso) => {
 };
 
 const Security = () => {
+  const isSidebarOpen = useSidebar();
   const _now = new Date();
   const today = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-${String(_now.getDate()).padStart(2, "0")}`;
   const firstOfMonth = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, "0")}-01`;
@@ -293,7 +295,7 @@ const Security = () => {
     <>
       <Helmet><title>Security Report | RootFin</title></Helmet>
       <Headers title="Security Report" />
-      <div className="ml-[240px] p-6 bg-gray-100 min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-gray-100 min-h-screen ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
 
         {/* filters */}
         <div className="flex gap-4 mb-6 w-[1000px]">

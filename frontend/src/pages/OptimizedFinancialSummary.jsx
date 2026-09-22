@@ -6,8 +6,10 @@ import OptimizedTable from '../components/OptimizedTable';
 import { useFinancialData } from '../hooks/useFinancialData';
 import { categories, subCategories } from '../data/categories';
 import { baseUrl } from '../api/api';
+import useSidebar from "../hooks/useSidebar";
 
 const OptimizedFinancialSummary = () => {
+  const isSidebarOpen = useSidebar();
   const todayStr = new Date().toISOString().split('T')[0];
   const [fromDate, setFromDate] = useState(todayStr);
   const [toDate, setToDate] = useState(todayStr);
@@ -189,7 +191,7 @@ const OptimizedFinancialSummary = () => {
 
         <Headers title={"Financial Summary Report"} />
         
-        <div className='ml-[240px]'>
+        <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
           <div className="p-6 bg-gray-100 min-h-screen">
             
             {/* Controls */}

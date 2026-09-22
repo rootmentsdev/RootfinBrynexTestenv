@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, Plus, ChevronRight, ChevronDown, ChevronLeft, Pencil, Trash2, Mail, Phone, MapPin, ShieldCheck, Eye } from "lucide-react";
 import baseUrl from "../api/api";
+import { useSidebar } from "../hooks/useSidebar.js";
 
 const ROLE_GROUPS = [
     { key: "admin",           label: "ADMIN" },
@@ -43,6 +44,7 @@ const getStoreName = (code) => {
 };
 
 const ExistingUsers = () => {
+    const isSidebarOpen = useSidebar();
     const [stores, setStores] = useState([]);
     const [loadingStores, setLoadingStores] = useState(false);
     const [openGroups, setOpenGroups] = useState({});
@@ -195,7 +197,7 @@ const ExistingUsers = () => {
     );
 
     return (
-        <div className="ml-[240px] bg-[#EEF2F7] min-h-screen">
+        <div className={`bg-[#EEF2F7] min-h-screen transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
             {/* Header */}
             <div className="bg-white px-10 py-7 border-b border-gray-200 flex items-center justify-between">
                 <div className="flex items-center gap-4">

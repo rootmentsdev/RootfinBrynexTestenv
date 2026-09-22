@@ -36,8 +36,22 @@ const connectMongoDB = async () => {
   }
 
   try {
-    // Remove deprecated options (not needed in Mongoose 6+)
-    await mongoose.connect(dbURI);
+    // Add connection event listeners for resilience against network drops
+    mongoose.connection.on('disconnected', () => {
+      console.warn('⚠️ MongoDB disconnected. Attempting automatic reconnection...');
+    });
+    mongoose.connection.on('reconnected', () => {
+      console.log('✅ MongoDB reconnected successfully.');
+    });
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ MongoDB runtime connection error:', err.message);
+    });
+
+    // Connect to MongoDB
+    await mongoose.connect(dbURI, {
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    });
     console.log(`✅ MongoDB connected [${env}]`);
   } catch (error) {
     console.error('❌ MongoDB connection error:', error.message);

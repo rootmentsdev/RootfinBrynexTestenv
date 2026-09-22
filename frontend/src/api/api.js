@@ -8,13 +8,13 @@
 
 
 
-  
+
 
 
 
 
 const baseUrl = {
-     baseUrl:'https://rootfinbrynextestenv-45cz.onrender.com/',
+     baseUrl: 'http://localhost:7001/',
 }
 export default baseUrl
 

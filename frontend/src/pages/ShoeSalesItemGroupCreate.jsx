@@ -5,6 +5,7 @@ import { Trash2, ArrowLeft, X, ChevronDown, Search, Settings, Check, ShoppingBag
 import Head from "../components/Head";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
+import useSidebar from "../hooks/useSidebar";
 
 const STORAGE_KEYS = {
   manufacturers: "shoeSalesManufacturers",
@@ -12,6 +13,7 @@ const STORAGE_KEYS = {
 };
 
 const loadStoredList = (key) => {
+  const isSidebarOpen = useSidebar();
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(key);
@@ -892,7 +894,7 @@ const ShoeSalesItemGroupCreate = () => {
 
   if (loading) {
     return (
-      <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+      <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="rounded-2xl border border-[#e4e6f2] bg-white shadow-lg p-8 text-center">
           <p className="text-lg font-medium text-[#475569]">Loading item group...</p>
         </div>
@@ -903,7 +905,7 @@ const ShoeSalesItemGroupCreate = () => {
   const selectedTaxRateValue = intraStateTaxRate || interStateTaxRate;
 
   return (
-    <div className="p-6 ml-64 bg-[#f5f7fb] min-h-screen">
+    <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={isEditMode ? "Edit Item Group" : "New Item Group"}
         description={isEditMode ? "Update item group details and attributes." : "Define a reusable item group template with shared pricing and attributes."}

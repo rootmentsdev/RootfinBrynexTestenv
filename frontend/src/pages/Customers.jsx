@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Head from "../components/Head";
+import useSidebar from "../hooks/useSidebar";
 
 const columns = [
   "Name",
@@ -24,11 +25,12 @@ const customers = [
 const formatValue = (value) => (value ? value : "—");
 
 const Customers = () => {
+  const isSidebarOpen = useSidebar();
   return (
     <div className="min-h-screen bg-[#f6f8ff]">
       <Head title="Customers" />
 
-      <div className="ml-64 flex min-h-[calc(100vh-6rem)] flex-col gap-6 px-10 pb-16 pt-8">
+      <div className={`transition-all duration-300 flex min-h-[calc(100vh-6rem)] flex-col gap-6 px-10 pb-16 pt-8 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <header className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold text-[#111827]">All Customers</h1>
 

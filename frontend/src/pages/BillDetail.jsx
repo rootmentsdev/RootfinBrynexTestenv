@@ -3,8 +3,10 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { X, Edit, Check, ChevronRight, Download, Trash2 } from "lucide-react";
 import baseUrl from "../api/api";
 import AttachmentDisplay from "../components/AttachmentDisplay";
+import useSidebar from "../hooks/useSidebar";
 
 const formatCurrency = (value) => {
+  const isSidebarOpen = useSidebar();
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -282,7 +284,7 @@ const BillDetail = () => {
 
   if (loading) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center">Loading...</div>
       </div>
     );
@@ -290,7 +292,7 @@ const BillDetail = () => {
 
   if (!bill) {
     return (
-      <div className="ml-64 min-h-screen bg-[#f5f7fb] flex items-center justify-center">
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex items-center justify-center ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
         <div className="text-center">
           <p className="text-lg text-[#64748b] mb-4">Bill not found</p>
           <Link to="/purchase/bills" className="text-[#2563eb] hover:underline">
@@ -393,7 +395,7 @@ const BillDetail = () => {
   });
 
   return (
-    <div className="ml-64 min-h-screen bg-[#f5f7fb] flex">
+    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] flex ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       {/* Left Sidebar - Bills List */}
       <div className="w-80 bg-white border-r border-[#e6eafb] flex flex-col">
         {/* Header */}
