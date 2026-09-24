@@ -339,7 +339,7 @@ button.action-delete-btn:hover {
 }
 @media print {
   /* Hide everything except printable content */
-  body > *:not(#root),
+  body > *:not(#root):not(#printable-invoice):not(#printable-daybook):not(.print-content-wrapper),
   nav,
   aside,
   header:not(#printable-invoice header):not(#printable-daybook header),
@@ -532,3 +532,82 @@ html body.sidebar-open [class*="ml-[290px]"] {
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+
+@media print {
+  .daybook-print-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  .daybook-print-table th,
+  .daybook-print-table td {
+    border: 1px solid black !important;
+    padding: 6px 8px !important;
+  }
+  .daybook-print-table thead tr th {
+    background-color: #7a7a7a !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .daybook-print-table tbody tr:first-child td {
+    font-weight: bold !important;
+  }
+  .daybook-print-table tfoot tr td {
+    font-weight: bold !important;
+    background-color: #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .print-no-shadow {
+    box-shadow: none !important;
+  }
+  .print-border-none {
+    border: none !important;
+  }
+  
+  /* Physical Cash Count and Cash Summary grids */
+  .print-summary-grid {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+  }
+  .print-summary-grid > div:first-child {
+    flex: 1.2 !important; /* Denom takes slightly more space */
+  }
+  .print-summary-grid > div:last-child {
+    flex: 1 !important; /* Summary takes less */
+  }
+  
+  .print-denom-header {
+    background-color: #ffffff !important;
+    color: #4b5563 !important;
+    border-bottom: 2px solid #e5e7eb !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-denom-header span {
+    color: #3b5998 !important; /* Match screenshot blueish font */
+  }
+  
+  .print-denom-input {
+    border: 1px solid #d1d5db !important;
+    border-radius: 4px !important;
+    padding: 2px 4px !important;
+    width: 60px !important;
+    display: inline-block !important;
+    background-color: white !important;
+    -webkit-appearance: none !important;
+    box-shadow: none !important;
+  }
+  
+  .print-denom-box {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0 !important;
+  }
+  .print-summary-box {
+    border: 1px solid #d1d5db !important;
+    border-radius: 0 !important;
+  }
+}

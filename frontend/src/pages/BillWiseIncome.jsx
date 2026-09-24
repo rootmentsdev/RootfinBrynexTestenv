@@ -7,6 +7,7 @@ import baseUrl from '../api/api.js';
 import { Minus, Plus } from "lucide-react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import LoadingScreen from "../components/LoadingScreen.jsx";
+import { useReactToPrint } from "react-to-print";
 
 const CheckboxOption = (props) => {
     return (
@@ -206,6 +207,7 @@ const DayBookInc = () => {
     const [preOpen, setPreOpen] = useState(null);
     const [preOpen1, setPreOpen1] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     // Edit functionality states
     const [editingIndex, setEditingIndex] = useState(null);
@@ -277,8 +279,21 @@ const DayBookInc = () => {
     const { data: mongoResponse, loading: isMongoLoading } = useFetch(apiUrl4_fallback, fetchOptions);
     const dayBookData = mongoResponse?.data || [];
 
-    const isDataLoading = l1 || l2 || l3 || l4 || isMongoLoading;
+    const isDataLoading = l1 || l2 || l3 || l4 || isMongoLoading || isInitialLoading;
     const isDataReady = true;
+
+    // To prevent users from clicking save too early while the page is stabilizing
+    const [isSaveEnabled, setIsSaveEnabled] = useState(false);
+    useEffect(() => {
+        if (!isDataLoading) {
+            const timer = setTimeout(() => {
+                setIsSaveEnabled(true);
+            }, 2500); // 2.5 seconds delay after load
+            return () => clearTimeout(timer);
+        } else {
+            setIsSaveEnabled(false);
+        }
+    }, [isDataLoading]);
 
     const allowedMongoCategories = useMemo(() => [
         "petty expenses",
@@ -758,8 +773,7 @@ const DayBookInc = () => {
 
             alert("Data saved successfully");
             setLoading(false);
-            window.location.reload();
-
+            takeCreateCashBank();
         } catch (error) {
             console.error("Error saving data:", error);
             alert("An unexpected error occurred.");
@@ -810,45 +824,50 @@ const DayBookInc = () => {
     };
 
     useEffect(() => {
-        GetCreateCashBank();
-        takeCreateCashBank();
+        const loadInitialData = async () => {
+            const fetchEditedTransactions = async () => {
+                try {
+                    const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers?.locCode}`;
+                    const res = await fetch(apiUrl);
+                    const json = await res.json();
+    
+                    const overrideRows = json?.data || [];
+                    const editedObj = {};
+                    overrideRows.forEach(row => {
+                        const invoicePart = String(row.invoiceNo || row.invoice).trim();
+                        const categoryPart = (row.type || row.category || "").toLowerCase();
+                        const key = `${invoicePart}-${categoryPart}`;
+                        if (invoicePart) {
+                            editedObj[key] = {
+                                _id: row._id,
+                                invoiceNo: invoicePart,
+                                cash: Number(row.cash || 0),
+                                rbl: Number(row.rbl || 0),
+                                bank: Number(row.bank || 0),
+                                upi: Number(row.upi || 0),
+                                securityAmount: Number(row.securityAmount || 0),
+                                Balance: Number(row.Balance || 0),
+                                billValue: Number(row.billValue || row.invoiceAmount || 0),
+                                amount: Number(row.amount || 0),
+                                totalTransaction: Number(row.totalTransaction || 0),
+                            };
+                        }
+                    });
+                    setEditedTransactionsMap(editedObj);
+                } catch (err) {
+                    console.warn("⚠️ Failed to fetch edited transactions:", err.message);
+                }
+            };
 
-        const fetchEditedTransactions = async () => {
-            try {
-                const apiUrl = `${baseUrl.baseUrl}api/tws/getEditedTransactions?fromDate=${currentDate}&toDate=${currentDate}&locCode=${currentusers?.locCode}`;
-                const res = await fetch(apiUrl);
-                const json = await res.json();
-
-                const overrideRows = json?.data || [];
-                const editedObj = {};
-                overrideRows.forEach(row => {
-                    const invoicePart = String(row.invoiceNo || row.invoice).trim();
-                    const categoryPart = (row.type || row.category || "").toLowerCase();
-                    const key = `${invoicePart}-${categoryPart}`;
-                    if (invoicePart) {
-                        editedObj[key] = {
-                            ...row,
-                            _id: row._id,
-                            invoiceNo: invoicePart,
-                            cash: Number(row.cash || 0),
-                            rbl: Number(row.rbl || 0),
-                            bank: Number(row.bank || 0),
-                            upi: Number(row.upi || 0),
-                            securityAmount: Number(row.securityAmount || 0),
-                            Balance: Number(row.Balance || 0),
-                            billValue: Number(row.billValue || row.invoiceAmount || 0),
-                            amount: Number(row.amount || 0),
-                            totalTransaction: Number(row.totalTransaction || 0),
-                        };
-                    }
-                });
-                setEditedTransactionsMap(editedObj);
-            } catch (err) {
-                console.warn("⚠️ Failed to fetch edited transactions:", err.message);
-            }
+            await Promise.all([
+                GetCreateCashBank(),
+                takeCreateCashBank(),
+                fetchEditedTransactions()
+            ]);
+            setIsInitialLoading(false);
         };
-
-        fetchEditedTransactions();
+        
+        loadInitialData();
     }, []);
 
     const handleEditClick = async (transaction, index) => {
@@ -1112,17 +1131,23 @@ const DayBookInc = () => {
             parseInt(transaction.Tupi) || 0,
     }));
 
-    const handleDownloadReport = () => {
-        if (csvLinkRef.current) {
-            csvLinkRef.current.link.click();
-        }
-    };
+    const handleDownloadReport = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `${currentDate}_DayBook_report`,
+    });
 
     const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
     const difference = physicalCash - calculatedTotals.totalCash;
 
     if (isDataLoading) {
-        return <LoadingScreen title="ROOTFIN" subtitle="BRYNEX FINANCIAL SOFTWARE" />;
+        return (
+            <div className="flex min-h-[60vh] w-full items-center justify-center bg-transparent">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-gray-200 border-t-purple-600 rounded-full animate-spin"></div>
+                    <span className="text-gray-500 font-medium text-sm">Loading Day Book...</span>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -1210,11 +1235,11 @@ const DayBookInc = () => {
                             </div>
                         </div>
 
-                        <div ref={printRef}>
+                        <div ref={printRef} className="print-content-wrapper">
                             {/* Main Transactions Table */}
-                            <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8">
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left border-collapse min-w-[1200px]">
+                            <div className="bg-white border border-gray-200 overflow-hidden shadow-xs mb-8 print-no-shadow print-border-none print:overflow-visible">
+                                <div className="overflow-x-auto print:overflow-visible">
+                                    <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-0 print:w-full daybook-print-table">
                                         <thead>
                                             <tr className="bg-[#1c1c1c] text-white">
                                                 <th className="py-3.5 pl-4 pr-2 text-[11px] font-bold uppercase tracking-wider">DATE</th>
@@ -1231,7 +1256,7 @@ const DayBookInc = () => {
                                                 <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">RAZORPAY</th>
                                                 <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-right">CARD/BANK</th>
                                                 <th className="py-3.5 pl-2 pr-4 text-[11px] font-bold uppercase tracking-wider text-right">UPI</th>
-                                                {showAction && <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-center">ACTION</th>}
+                                                {showAction && <th className="py-3.5 px-2 text-[11px] font-bold uppercase tracking-wider text-center print:hidden">ACTION</th>}
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100 text-sm">
@@ -1246,7 +1271,7 @@ const DayBookInc = () => {
                                                 <td className="py-3.5 px-2 text-right font-bold text-xs text-gray-900">0</td>
                                                 <td className="py-3.5 px-2 text-right font-bold text-xs text-gray-900">0</td>
                                                 <td className="py-3.5 pl-2 pr-4 text-right font-bold text-xs text-gray-900">0</td>
-                                                {showAction && <td className="py-3.5 px-2"></td>}
+                                                {showAction && <td className="py-3.5 px-2 print:hidden"></td>}
                                             </tr>
 
                                             {/* Data Rows */}
@@ -1343,7 +1368,7 @@ const DayBookInc = () => {
                                                                 ) : displayUpi}
                                                             </td>
                                                             {showAction && (
-                                                                <td className="py-3.5 px-2 text-center whitespace-nowrap">
+                                                                <td className="py-3.5 px-2 text-center whitespace-nowrap print:hidden">
                                                                     {isEditing ? (
                                                                         <button
                                                                             onClick={handleSave}
@@ -1390,7 +1415,7 @@ const DayBookInc = () => {
                                                 <td className="py-3.5 pl-2 pr-4 text-right text-xs font-bold">
                                                     {calculatedTotals.totalBankAmountupi}
                                                 </td>
-                                                {showAction && <td className="py-3.5 px-2"></td>}
+                                                {showAction && <td className="py-3.5 px-2 print:hidden"></td>}
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -1398,12 +1423,13 @@ const DayBookInc = () => {
                             </div>
 
                             {/* Bottom 2-Column Section: Physical Cash Count & Cash Summary */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-10">
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-10 print-summary-grid">
 
                                 {/* Left Box: PHYSICAL CASH COUNT */}
                                 <div className="lg:col-span-7">
-                                    <div className="border border-gray-200 shadow-sm rounded-lg overflow-hidden">
-                                        <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center">
+                                    <h3 className="text-[14px] font-bold text-gray-900 mb-4 hidden print:block uppercase tracking-wider">Physical Cash Count</h3>
+                                    <div className="border border-gray-200 shadow-sm rounded-lg overflow-hidden print-no-shadow print-denom-box">
+                                        <div className="bg-[#1c1c1c] text-white px-6 py-3.5 flex justify-between items-center print-denom-header">
                                             <span className="text-[11px] font-bold uppercase tracking-wider w-1/3">DENOMINATION</span>
                                             <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-center">QUANTITY</span>
                                             <span className="text-[11px] font-bold uppercase tracking-wider w-1/3 text-right">AMOUNT</span>
@@ -1416,8 +1442,8 @@ const DayBookInc = () => {
                                                     <div key={denom.label} className="px-6 py-3 flex justify-between items-center hover:bg-gray-50/70 transition-colors">
                                                         <span className="text-sm font-medium text-gray-700 w-1/3">{denom.label}</span>
                                                         <div className="w-1/3 flex justify-center">
-                                                            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
-                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-r border-gray-300" onClick={() => handleQuantityChange(index, Math.max(0, (parseInt(quantities[index]) || 0) - 1))} disabled={preOpen1 != null}><Minus size={14} /></button>
+                                                            <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white print:border-none print:rounded-none">
+                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-r border-gray-300 print:hidden" onClick={() => handleQuantityChange(index, Math.max(0, (parseInt(quantities[index]) || 0) - 1))} disabled={preOpen1 != null}><Minus size={14} /></button>
                                                                 <input
                                                                     type="number"
                                                                     min="0"
@@ -1425,9 +1451,9 @@ const DayBookInc = () => {
                                                                     onChange={(e) => handleQuantityChange(index, e.target.value)}
                                                                     readOnly={preOpen1 != null}
                                                                     placeholder="0"
-                                                                    className="w-12 h-7 text-center text-sm font-medium text-gray-800 focus:outline-none disabled:bg-gray-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                                    className="w-12 h-7 text-center text-sm font-medium text-gray-800 focus:outline-none disabled:bg-gray-100 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none print-denom-input"
                                                                 />
-                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-l border-gray-300" onClick={() => handleQuantityChange(index, (parseInt(quantities[index]) || 0) + 1)} disabled={preOpen1 != null}><Plus size={14} /></button>
+                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-l border-gray-300 print:hidden" onClick={() => handleQuantityChange(index, (parseInt(quantities[index]) || 0) + 1)} disabled={preOpen1 != null}><Plus size={14} /></button>
                                                             </div>
                                                         </div>
                                                         <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
@@ -1447,9 +1473,9 @@ const DayBookInc = () => {
                                 </div>
 
                                 {/* Right Box: CASH SUMMARY Card */}
-                                <div className="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-6 flex flex-col shadow-sm">
+                                <div className="lg:col-span-5 bg-white border border-gray-200 rounded-2xl p-6 flex flex-col shadow-sm print-no-shadow print-summary-box">
                                     <div>
-                                        <h3 className="text-[17px] font-bold text-gray-900 mb-6">Cash Summary</h3>
+                                        <h3 className="text-[17px] font-bold text-gray-900 mb-6 print:uppercase print:text-[14px]">Cash Summary</h3>
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center py-1">
                                                 <span className="text-[14px] text-gray-600 font-medium">Closing Cash</span>
@@ -1492,21 +1518,14 @@ const DayBookInc = () => {
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                                 <span>Saving...</span>
                                             </button>
-                                        ) : preOpen1 == null ? (
-                                            <button
-                                                type="button"
-                                                onClick={CreateCashBank}
-                                                className="flex-1 py-2.5 px-4 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center cursor-pointer"
-                                            >
-                                                Save & Finish Day
-                                            </button>
                                         ) : (
                                             <button
                                                 type="button"
-                                                onClick={handlePrint}
-                                                className="flex-1 py-2.5 px-4 bg-[#a855f7] hover:bg-[#9333ea] text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center cursor-pointer"
+                                                onClick={CreateCashBank}
+                                                disabled={!isSaveEnabled || isSyncing}
+                                                className={`flex-1 py-2.5 px-4 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center ${(!isSaveEnabled || isSyncing) ? 'bg-[#a855f7] opacity-60 cursor-not-allowed' : 'bg-[#a855f7] hover:bg-[#9333ea] cursor-pointer'}`}
                                             >
-                                                Save & Finish Day
+                                                {!isSaveEnabled ? "Stabilizing..." : "Save & Finish Day"}
                                             </button>
                                         )}
                                     </div>
