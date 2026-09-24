@@ -572,31 +572,17 @@ export default function IncomeExpenseReport() {
       const catTotal = g.cash + g.rbl + g.bank + g.upi;
       const catKey = `${typeLabel}-${cat}`;
       const isCatExp = !!expanded[catKey];
-      const sign = (v) => isIncome || isReturnable ? fmt(v) : (v !== 0 ? `-${fmt(Math.abs(v))}` : "-");
+      const signStr = (v) => v !== 0 ? fmt(Math.abs(v)) : "-";
 
-      const headerBg = typeLabel === "RETURNABLE"
-        ? "bg-amber-50 hover:bg-amber-100/70 border-amber-200/80 text-amber-900"
-        : typeLabel === "BANK_CASH"
-        ? "bg-teal-50 hover:bg-teal-100/70 border-teal-200/80 text-teal-900"
-        : typeLabel === "HOLDED_SEC"
-        ? "bg-purple-50 hover:bg-purple-100/70 border-purple-200/80 text-purple-900"
-        : typeLabel === "CASH_BANK"
-        ? "bg-sky-50 hover:bg-sky-100/70 border-sky-200/80 text-sky-900"
-        : isIncome
-        ? "bg-emerald-50/50 hover:bg-emerald-100/60 border-emerald-100 text-emerald-800"
-        : "bg-rose-50/50 hover:bg-rose-100/60 border-rose-100 text-rose-800";
+      const isIncomeGroup = typeLabel === "INCOME" || typeLabel === "RETURNABLE" || typeLabel === "BANK_CASH";
+      const isExpenseGroup = typeLabel === "EXPENSE" || typeLabel === "HOLDED_SEC" || typeLabel === "CASH_BANK";
 
-      const totalTextColor = typeLabel === "RETURNABLE"
-        ? "text-amber-800"
-        : typeLabel === "BANK_CASH"
-        ? "text-teal-800"
-        : typeLabel === "HOLDED_SEC"
-        ? "text-purple-800"
-        : typeLabel === "CASH_BANK"
-        ? "text-sky-800"
-        : isIncome
-        ? "text-emerald-700"
-        : "text-rose-700";
+      const headerBg = isIncomeGroup ? "bg-[#e8fce8] hover:bg-[#dcf5dc] text-gray-900 border-[#dcf5dc]" 
+                     : isExpenseGroup ? "bg-[#ffeae8] hover:bg-[#ffdad8] text-gray-900 border-[#ffdad8]" 
+                     : "bg-white hover:bg-gray-50 text-gray-900 border-gray-200";
+
+      const textColor = "text-gray-900";
+      const totalTextColor = "text-gray-900";
 
       // Collect all transactions directly under this category
       const transactions = Object.values(g.subCategories).flatMap(sg => sg.transactions);
@@ -609,67 +595,70 @@ export default function IncomeExpenseReport() {
             onClick={() => toggleExpand(catKey)}
           >
             <td className="px-4 py-3 text-center w-12">
-              {isCatExp ? <ChevronDown size={16} className="inline-block text-gray-600" /> : <ChevronRight size={16} className="inline-block text-gray-600" />}
+              {isCatExp ? <ChevronDown size={16} className={`inline-block ${textColor}`} /> : <ChevronRight size={16} className={`inline-block ${textColor}`} />}
             </td>
-            <td className="px-4 py-3 text-sm font-semibold text-gray-800" colSpan={showBranch ? 4 : 3}>
-              <span className="inline-flex items-center gap-1.5 font-bold text-gray-900">
+            <td className="px-4 py-3 text-sm font-semibold" colSpan={showBranch ? 4 : 3}>
+              <span className={`inline-flex items-center gap-1.5 font-bold ${textColor}`}>
                 {getCategoryLabel(cat)}
               </span>
             </td>
-            <td className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{g.cash !== 0 ? sign(g.cash) : "-"}</td>
-            <td className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{g.rbl  !== 0 ? sign(g.rbl)  : "-"}</td>
-            <td className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{g.bank !== 0 ? sign(g.bank) : "-"}</td>
-            <td className="px-4 py-3 text-right text-xs font-semibold text-gray-700">{g.upi  !== 0 ? sign(g.upi)  : "-"}</td>
+            <td className={`px-4 py-3 text-right text-xs font-semibold ${textColor}`}>{g.rbl  !== 0 ? signStr(g.rbl)  : "-"}</td>
+            <td className={`px-4 py-3 text-right text-xs font-semibold ${textColor}`}>{g.cash !== 0 ? signStr(g.cash) : "-"}</td>
+            <td className={`px-4 py-3 text-right text-xs font-semibold ${textColor}`}>{g.bank !== 0 ? signStr(g.bank) : "-"}</td>
+            <td className={`px-4 py-3 text-right text-xs font-semibold ${textColor}`}>{g.upi  !== 0 ? signStr(g.upi)  : "-"}</td>
             <td className={`px-4 py-3 text-right text-sm font-bold ${totalTextColor}`}>
-              {isIncome || isReturnable ? fmt(catTotal) : `-${fmt(Math.abs(catTotal))}`}
+              {fmt(Math.abs(catTotal))}
             </td>
           </tr>
 
           {/* Direct Transaction Rows (no nested subcategory header) */}
-          {isCatExp && transactions.map((t, i) => {
-            const dateStr = t.date
-              ? new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" })
-              : "-";
-            const isRentOutOrReturnable = cat === "RentOut" || cat === "Returnable Income";
-            const isIncentiveCat = cat.toLowerCase() === "incentive";
-            const tCash = isRentOutOrReturnable ? (t.amount || 0) : (t.cash || 0);
-            return (
-              <tr key={`${catKey}-tx-${i}`} className="bg-slate-50/50 hover:bg-slate-100/60 border-t border-slate-100 text-xs">
-                <td className="px-4 py-2.5 text-gray-400 pl-8 whitespace-nowrap">{dateStr}</td>
-                <td className="px-4 py-2.5 text-gray-600 font-medium">{t.invoiceNo || t.customerName || "-"}</td>
-                <td className="px-4 py-2.5 text-gray-700">
-                  {isIncentiveCat ? (t.remark || t.customerName || "-") : (t.customerName || "-")}
-                </td>
-                <td className="px-4 py-2.5 text-gray-500 italic max-w-[180px] truncate" title={t.remark || ""}>
-                  {t.remark || "-"}
-                </td>
-                {showBranch && (
-                  <td className="px-4 py-2.5 text-blue-700 font-medium">
-                    {getBranchName(t.locCode)}
-                  </td>
-                )}
-                <td className="px-4 py-2.5 text-right text-gray-600 font-mono">
-                  {tCash !== 0 ? (isIncome || isReturnable ? fmt(tCash) : `-${fmt(Math.abs(tCash))}`) : "-"}
-                </td>
-                <td className="px-4 py-2.5 text-right text-gray-600 font-mono">
-                  {!isRentOutOrReturnable && t.rbl !== 0 ? (isIncome ? fmt(t.rbl) : `-${fmt(Math.abs(t.rbl))}`) : "-"}
-                </td>
-                <td className="px-4 py-2.5 text-right text-gray-600 font-mono">
-                  {!isRentOutOrReturnable && t.bank !== 0 ? (isIncome ? fmt(t.bank) : `-${fmt(Math.abs(t.bank))}`) : "-"}
-                </td>
-                <td className="px-4 py-2.5 text-right text-gray-600 font-mono">
-                  {!isRentOutOrReturnable && t.upi !== 0 ? (isIncome ? fmt(t.upi) : `-${fmt(Math.abs(t.upi))}`) : "-"}
-                </td>
-                <td className="px-4 py-2.5 text-right text-gray-800 font-mono font-semibold">
-                  {isRentOutOrReturnable ? fmt(tCash) : (
-                    isIncome 
-                      ? fmt(tCash + (t.rbl || 0) + (t.bank || 0) + (t.upi || 0))
-                      : `-${fmt(Math.abs(tCash + (t.rbl || 0) + (t.bank || 0) + (t.upi || 0)))}`
-                  )}
-                </td>
-              </tr>
-            );
-          })}
+          {isCatExp && (
+            <>
+
+              {transactions.map((t, i) => {
+                const dateStr = t.date
+                  ? new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+                  : "-";
+                const isRentOutOrReturnable = cat === "RentOut" || cat === "Returnable Income";
+                const isIncentiveCat = cat.toLowerCase() === "incentive";
+                const tCash = isRentOutOrReturnable ? (t.amount || 0) : (t.cash || 0);
+                const tTotal = tCash + (t.rbl || 0) + (t.bank || 0) + (t.upi || 0);
+                
+                return (
+                  <tr key={`${catKey}-tx-${i}`} className="bg-white hover:bg-slate-50/60 border-b border-slate-50 text-xs">
+                    <td className="px-4 py-2.5 text-gray-500 pl-8 whitespace-nowrap italic">{dateStr}</td>
+                    <td className="px-4 py-2.5 text-gray-600 font-medium italic">{t.subCategory || getCategoryLabel(cat)}</td>
+                    <td className="px-4 py-2.5 text-gray-700 italic">
+                      {isIncentiveCat ? (t.remark || t.customerName || "-") : (t.customerName || "-")}
+                    </td>
+                    <td className="px-4 py-2.5 text-gray-500 italic max-w-[180px] truncate" title={t.remark || ""}>
+                      {t.remark || "-"}
+                    </td>
+                    {showBranch && (
+                      <td className="px-4 py-2.5 text-gray-600 font-medium italic">
+                        {getBranchName(t.locCode)}
+                      </td>
+                    )}
+                    <td className="px-4 py-2.5 text-right text-gray-600 font-mono italic">
+                      {!isRentOutOrReturnable && t.rbl !== 0 ? fmt(Math.abs(t.rbl)) : "-"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-600 font-mono italic">
+                      {tCash !== 0 ? fmt(Math.abs(tCash)) : "-"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-600 font-mono italic">
+                      {!isRentOutOrReturnable && t.bank !== 0 ? fmt(Math.abs(t.bank)) : "-"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-600 font-mono italic">
+                      {!isRentOutOrReturnable && t.upi !== 0 ? fmt(Math.abs(t.upi)) : "-"}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-gray-800 font-mono font-bold italic">
+                      {isRentOutOrReturnable ? fmt(Math.abs(tCash)) : fmt(Math.abs(tTotal))}
+                    </td>
+                  </tr>
+                );
+              })}
+            </>
+          )}
         </tbody>
       );
     });
@@ -793,15 +782,6 @@ export default function IncomeExpenseReport() {
             {/* Action Buttons */}
             <div className="flex items-center gap-2">
               <button
-                onClick={fetchData}
-                disabled={loading}
-                className="h-[38px] px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm hover:shadow transition-all active:scale-95 disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
-              >
-                <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-                <span>Apply Filter</span>
-              </button>
-
-              <button
                 onClick={() => {
                   setFromDate(firstOfMonth());
                   setToDate(today());
@@ -812,25 +792,29 @@ export default function IncomeExpenseReport() {
                   setExpenseRows([]);
                   setHoldedSecurityRefundRows([]);
                   setCashToBankRows([]);
+                  setBankToCashRows([]);
                   setExpanded({});
                   setHasSearched(false);
                 }}
-                className="h-[38px] w-[38px] border border-gray-300 hover:bg-gray-100 text-gray-600 rounded-lg transition-all cursor-pointer shadow-sm inline-flex items-center justify-center shrink-0"
+                className="w-[38px] h-[38px] bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all cursor-pointer flex items-center justify-center shrink-0 border-none"
+                style={{ padding: 0 }}
                 title="Reset Filters"
               >
-                <RefreshCw size={15} />
+                <div className="flex items-center justify-center w-full h-full">
+                  <RefreshCw size={15} />
+                </div>
               </button>
 
-              {hasData && (
-                <CSVLink
-                  data={csvData}
-                  filename={`Income_Expenses_Report_${fromDate}_to_${toDate}.csv`}
-                  className="h-[38px] px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95 cursor-pointer no-underline inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
-                >
-                  <Download size={14} />
-                  <span>Export CSV</span>
-                </CSVLink>
-              )}
+              <button
+                onClick={fetchData}
+                disabled={loading}
+                className="h-[38px] px-6 bg-[#a855f7] hover:bg-[#9333ea] text-white text-xs font-semibold rounded-lg shadow-sm transition-all active:scale-95 disabled:opacity-60 cursor-pointer inline-flex items-center justify-center whitespace-nowrap"
+              >
+                {loading ? <RefreshCw size={14} className="animate-spin mr-1.5" /> : null}
+                <span>Fetch Data</span>
+              </button>
+
+
             </div>
           </div>
         </div>
@@ -839,66 +823,107 @@ export default function IncomeExpenseReport() {
         {hasData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {/* Total Income */}
-            <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Total Income</p>
-                <h3 className="text-2xl font-black text-gray-900 font-mono">{fmt(incTotal)}</h3>
-                <div className="flex flex-wrap gap-x-2 text-[11px] text-gray-500 mt-2">
-                  <span>Cash: <strong className="text-gray-700">{fmt(incTotals.cash)}</strong></span>
-                  <span>• Bank: <strong className="text-gray-700">{fmt(incTotals.bank)}</strong></span>
-                  <span>• UPI: <strong className="text-gray-700">{fmt(incTotals.upi)}</strong></span>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[15px] font-bold text-gray-800">Total Income</p>
+                  <div className="w-10 h-10 rounded-lg bg-[#dcfce7] text-green-600 flex items-center justify-center shrink-0">
+                    <TrendingUp size={20} />
+                  </div>
                 </div>
+                <h3 className="text-[32px] leading-none font-bold text-gray-900 mb-5">{fmt(incTotal)}</h3>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                <TrendingUp size={24} />
+              <div className="border-t border-gray-100 pt-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Cash :</span>
+                    <strong className="text-gray-800">{fmt(incTotals.cash)}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Card/Bank :</span>
+                    <strong className="text-gray-800">{fmt(incTotals.bank)}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>UPI :</span>
+                    <strong className="text-gray-800">{fmt(incTotals.upi)}</strong>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Returnable Income */}
-            <div className="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1">Returnable Income</p>
-                <h3 className="text-2xl font-black text-amber-900 font-mono">{fmt(retTotal)}</h3>
-                <p className="text-[11px] text-amber-600/90 mt-2">
-                  Total returnable income held
-                </p>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[15px] font-bold text-gray-800">Returnable Income</p>
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+                    <ShieldCheck size={20} />
+                  </div>
+                </div>
+                <h3 className="text-[32px] leading-none font-bold text-gray-900 mb-5">{fmt(retTotal)}</h3>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                <ShieldCheck size={24} />
+              <div className="border-t border-gray-100 pt-3">
+                <p className="text-[13px] text-gray-500">Total returnable income held</p>
               </div>
             </div>
 
             {/* Total Expenses */}
-            <div className="bg-white p-5 rounded-2xl border border-rose-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Total Expenses</p>
-                <h3 className="text-2xl font-black text-gray-900 font-mono">{fmt(Math.abs(expTotal))}</h3>
-                <div className="flex flex-wrap gap-x-2 text-[11px] text-gray-500 mt-2">
-                  <span>Cash: <strong className="text-gray-700">{fmt(Math.abs(expTotals.cash))}</strong></span>
-                  <span>• Bank: <strong className="text-gray-700">{fmt(Math.abs(expTotals.bank))}</strong></span>
-                  <span>• UPI: <strong className="text-gray-700">{fmt(Math.abs(expTotals.upi))}</strong></span>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[15px] font-bold text-gray-800">Total Expenses</p>
+                  <div className="w-10 h-10 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <TrendingDown size={20} />
+                  </div>
                 </div>
+                <h3 className="text-[32px] leading-none font-bold text-gray-900 mb-5">{fmt(Math.abs(expTotal))}</h3>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                <TrendingDown size={24} />
+              <div className="border-t border-gray-100 pt-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Cash :</span>
+                    <strong className="text-gray-800">{fmt(Math.abs(expTotals.cash))}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Card/Bank :</span>
+                    <strong className="text-gray-800">{fmt(Math.abs(expTotals.bank))}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>UPI :</span>
+                    <strong className="text-gray-800">{fmt(Math.abs(expTotals.upi))}</strong>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Net Difference */}
-            <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between">
+            <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Net Difference</p>
-                <h3 className={`text-2xl font-black font-mono ${netTotal >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[15px] font-bold text-gray-800">Net Difference</p>
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                    <ArrowUpDown size={20} />
+                  </div>
+                </div>
+                <h3 className={`text-[32px] leading-none font-bold mb-5 ${netTotal >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
                   {netTotal >= 0 ? fmt(netTotal) : `-${fmt(Math.abs(netTotal))}`}
                 </h3>
-                <div className="flex flex-wrap gap-x-2 text-[11px] text-gray-500 mt-2">
-                  <span>Cash: <strong className="text-gray-700">{fmt(netCash)}</strong></span>
-                  <span>• Bank: <strong className="text-gray-700">{fmt(netBank)}</strong></span>
-                  <span>• UPI: <strong className="text-gray-700">{fmt(netUpi)}</strong></span>
-                </div>
               </div>
-              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <ArrowUpDown size={24} />
+              <div className="border-t border-gray-100 pt-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Cash :</span>
+                    <strong className="text-gray-800">{fmt(netCash)}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>Card/Bank :</span>
+                    <strong className="text-gray-800">{fmt(netBank)}</strong>
+                  </div>
+                  <div className="flex justify-between text-[13px] text-gray-500">
+                    <span>UPI :</span>
+                    <strong className="text-gray-800">{fmt(netUpi)}</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -908,20 +933,21 @@ export default function IncomeExpenseReport() {
         <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-gray-200">
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500 w-12 text-center">#</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-600">Category</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-600">Customer</th>
-                  <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-600">Remarks</th>
-                  {showBranch && (
-                    <th className="px-4 py-3.5 text-left text-xs font-bold uppercase tracking-wider text-slate-600">Branch</th>
-                  )}
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-slate-600">Cash</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-slate-600">Razorpay</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-slate-600">Bank</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-slate-600">UPI</th>
-                  <th className="px-4 py-3.5 text-right text-xs font-bold uppercase tracking-wider text-slate-600">Total</th>
+              <thead className="">
+                <tr className="bg-[#222]">
+                  <th colSpan={showBranch ? 10 : 9} className="h-2 p-0"></th>
+                </tr>
+                <tr className="bg-white border-b border-gray-100">
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700 pl-8">DATE</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">CATEGORY/ SUBCATEGORY</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">CUSTOMER</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">REMARKS</th>
+                  {showBranch && <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700">BRANCH</th>}
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">RAZORPAY</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">CASH</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">CARD/ BANK</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">UPI</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-wider text-gray-700">TOTAL</th>
                 </tr>
               </thead>
 
@@ -945,7 +971,7 @@ export default function IncomeExpenseReport() {
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Filter size={32} className="text-gray-300" />
                         <p className="text-base font-medium text-gray-600">Apply a filter to load data.</p>
-                        <p className="text-xs text-gray-400">Select dates and category, then click "Apply Filter".</p>
+                        <p className="text-xs text-gray-400">Select dates and category, then click "Fetch Data".</p>
                       </div>
                     </td>
                   </tr>
@@ -969,12 +995,18 @@ export default function IncomeExpenseReport() {
                 <>
                   {/* 1. INCOME SECTION */}
                   <tbody>
-                    <tr className="bg-emerald-100/70 border-y border-emerald-200">
-                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-emerald-900 uppercase tracking-wider">
-                        <span className="inline-flex items-center gap-2">
-                          <TrendingUp size={18} className="text-emerald-700" />
-                          INCOME
-                        </span>
+                    <tr className="bg-white border-b-0 border-y border-transparent">
+                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-green-700 uppercase tracking-wider relative">
+                        <div className="absolute left-0 top-1 bottom-1 w-1 bg-green-500 rounded-r-md"></div>
+                        <div className="flex justify-between items-center pl-2">
+                          <span className="inline-flex items-center gap-2">
+                            <TrendingUp size={18} className="text-green-600" />
+                            INCOME
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full border border-green-200 text-[10px] text-green-700 bg-white">
+                            {Object.keys(incomeGrouped).length} Categories
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -982,15 +1014,15 @@ export default function IncomeExpenseReport() {
                   {renderCategoryRows(incomeGrouped, "INCOME", true)}
 
                   <tbody>
-                    <tr className="bg-emerald-50 border-t-2 border-emerald-200">
-                      <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-emerald-900">
-                        Total Income:
+                    <tr className="bg-[#1c1c1c] border-t border-[#1c1c1c]">
+                      <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-white">
+                        Total Income
                       </td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{incTotals.cash !== 0 ? fmt(incTotals.cash) : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{incTotals.rbl  !== 0 ? fmt(incTotals.rbl)  : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{incTotals.bank !== 0 ? fmt(incTotals.bank) : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{incTotals.upi  !== 0 ? fmt(incTotals.upi)  : "-"}</td>
-                      <td className="px-4 py-3 text-right text-sm font-black text-emerald-700 font-mono">{fmt(incTotal)}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.rbl  !== 0 ? fmt(Math.abs(incTotals.rbl))  : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.cash !== 0 ? fmt(Math.abs(incTotals.cash)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.bank !== 0 ? fmt(Math.abs(incTotals.bank)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.upi  !== 0 ? fmt(Math.abs(incTotals.upi))  : "-"}</td>
+                      <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(incTotal))}</td>
                     </tr>
                   </tbody>
 
@@ -1002,12 +1034,18 @@ export default function IncomeExpenseReport() {
 
                   {/* 4. EXPENSES SECTION */}
                   <tbody>
-                    <tr className="bg-rose-100/70 border-y border-rose-200">
-                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-rose-900 uppercase tracking-wider">
-                        <span className="inline-flex items-center gap-2">
-                          <TrendingDown size={18} className="text-rose-700" />
-                          EXPENSES
-                        </span>
+                    <tr className="bg-white border-b-0 border-y border-transparent mt-4">
+                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-rose-600 uppercase tracking-wider relative">
+                        <div className="absolute left-0 top-1 bottom-1 w-1 bg-rose-500 rounded-r-md"></div>
+                        <div className="flex justify-between items-center pl-2">
+                          <span className="inline-flex items-center gap-2">
+                            <TrendingDown size={18} className="text-rose-600" />
+                            EXPENSE
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full border border-rose-200 text-[10px] text-rose-600 bg-white">
+                            {Object.keys(expenseGrouped).length} Categories
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -1015,15 +1053,15 @@ export default function IncomeExpenseReport() {
                   {renderCategoryRows(expenseGrouped, "EXPENSE", false)}
 
                   <tbody>
-                    <tr className="bg-rose-50 border-t-2 border-rose-200">
-                      <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-rose-900">
-                        Total Expenses:
+                    <tr className="bg-[#1c1c1c] border-t border-[#1c1c1c]">
+                      <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-white">
+                        Total Income
                       </td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{expTotals.cash !== 0 ? `-${fmt(Math.abs(expTotals.cash))}` : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{expTotals.rbl  !== 0 ? `-${fmt(Math.abs(expTotals.rbl))}` : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{expTotals.bank !== 0 ? `-${fmt(Math.abs(expTotals.bank))}` : "-"}</td>
-                      <td className="px-4 py-3 text-right text-xs font-bold text-gray-800 font-mono">{expTotals.upi  !== 0 ? `-${fmt(Math.abs(expTotals.upi))}` : "-"}</td>
-                      <td className="px-4 py-3 text-right text-sm font-black text-rose-700 font-mono">{expTotal !== 0 ? `-${fmt(Math.abs(expTotal))}` : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.rbl  !== 0 ? fmt(Math.abs(expTotals.rbl)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.cash !== 0 ? fmt(Math.abs(expTotals.cash)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.bank !== 0 ? fmt(Math.abs(expTotals.bank)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.upi  !== 0 ? fmt(Math.abs(expTotals.upi)) : "-"}</td>
+                      <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{expTotal !== 0 ? fmt(Math.abs(expTotal)) : "-"}</td>
                     </tr>
                   </tbody>
 
@@ -1039,8 +1077,8 @@ export default function IncomeExpenseReport() {
                       <td colSpan={showBranch ? 5 : 4} className="px-4 py-3.5 text-right text-sm font-black text-blue-950 uppercase tracking-wider">
                         Net Difference Total:
                       </td>
-                      <td className="px-4 py-3.5 text-right text-xs font-bold text-gray-900 font-mono">{netCash !== 0 ? fmt(netCash) : "-"}</td>
                       <td className="px-4 py-3.5 text-right text-xs font-bold text-gray-900 font-mono">{netRbl  !== 0 ? fmt(netRbl)  : "-"}</td>
+                      <td className="px-4 py-3.5 text-right text-xs font-bold text-gray-900 font-mono">{netCash !== 0 ? fmt(netCash) : "-"}</td>
                       <td className="px-4 py-3.5 text-right text-xs font-bold text-gray-900 font-mono">{netBank !== 0 ? fmt(netBank) : "-"}</td>
                       <td className="px-4 py-3.5 text-right text-xs font-bold text-gray-900 font-mono">{netUpi  !== 0 ? fmt(netUpi)  : "-"}</td>
                       <td className={`px-4 py-3.5 text-right text-base font-black font-mono ${netTotal >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
