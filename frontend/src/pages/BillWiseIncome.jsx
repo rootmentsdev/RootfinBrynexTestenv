@@ -703,7 +703,7 @@ const DayBookInc = () => {
         if (preOpen1 != null) return;
         setQuantities(prev => {
             const next = [...prev];
-            next[index] = value === "" ? "" : Math.max(0, parseInt(value, 10) || 0);
+            next[index] = value === "" ? "" : (parseInt(value, 10) || 0);
             return next;
         });
     }, [preOpen1]);
@@ -723,7 +723,7 @@ const DayBookInc = () => {
         setQuantities(prev => {
             const next = [...prev];
             const currentVal = parseInt(next[index], 10) || 0;
-            next[index] = Math.max(0, currentVal - 1);
+            next[index] = currentVal - 1;
             return next;
         });
     }, [preOpen1]);
@@ -1445,10 +1445,9 @@ const DayBookInc = () => {
                                                         <span className="text-sm font-medium text-gray-700 w-1/3">{denom.label}</span>
                                                         <div className="w-1/3 flex justify-center">
                                                             <div className="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white print:border-none print:rounded-none">
-                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-r border-gray-300 print:hidden" onClick={() => handleQuantityChange(index, Math.max(0, (parseInt(quantities[index]) || 0) - 1))} disabled={preOpen1 != null}><Minus size={14} /></button>
+                                                                <button type="button" className="px-2.5 py-1 text-gray-500 hover:bg-gray-100 border-r border-gray-300 print:hidden" onClick={() => handleQuantityChange(index, (parseInt(quantities[index]) || 0) - 1)} disabled={preOpen1 != null}><Minus size={14} /></button>
                                                                 <input
                                                                     type="number"
-                                                                    min="0"
                                                                     value={quantities[index]}
                                                                     onChange={(e) => handleQuantityChange(index, e.target.value)}
                                                                     readOnly={preOpen1 != null}
@@ -1459,7 +1458,7 @@ const DayBookInc = () => {
                                                             </div>
                                                         </div>
                                                         <span className="text-sm font-semibold text-gray-800 w-1/3 text-right">
-                                                            {amt > 0 ? amt.toLocaleString() : "0.00"}
+                                                            {amt !== 0 ? amt.toLocaleString() : "0.00"}
                                                         </span>
                                                     </div>
                                                 );
@@ -1467,7 +1466,7 @@ const DayBookInc = () => {
                                             <div className="px-6 py-3.5 flex justify-between items-center bg-[#dedede]">
                                                 <span className="text-sm font-bold text-gray-900 w-2/3">Physical Total</span>
                                                 <span className="text-sm font-bold text-gray-900 w-1/3 text-right">
-                                                    {physicalCash > 0 ? physicalCash.toLocaleString() : "0.00"}
+                                                    {physicalCash !== 0 ? physicalCash.toLocaleString() : "0.00"}
                                                 </span>
                                             </div>
                                         </div>
