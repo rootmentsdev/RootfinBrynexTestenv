@@ -1245,8 +1245,7 @@ const InventoryAdjustmentCreate = () => {
       rows.map(row => {
         if (row.id === rowId) {
           const adjusted = parseFloat(value) || 0;
-          const currentQty = parseFloat(row.currentQuantity) || 0;
-          const newQty = Math.max(0, currentQty + adjusted);
+          const newQty = Math.max(0, row.currentQuantity + adjusted);
           return {
             ...row,
             quantityAdjusted: value,
@@ -1266,8 +1265,7 @@ const InventoryAdjustmentCreate = () => {
           const newQty = parseFloat(value) || 0;
           const unitCost = parseFloat(row.unitCost) || 0;
           const newVal = newQty * unitCost;
-          const currentVal = parseFloat(row.currentValue) || 0;
-          const adjusted = newVal - currentVal;
+          const adjusted = newVal - row.currentValue;
           return {
             ...row,
             newQuantity: value,
