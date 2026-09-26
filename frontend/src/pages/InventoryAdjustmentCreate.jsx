@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Search, X, Plus, ChevronDown, Trash2, RefreshCw } from "lucide-react";
 import Head from "../components/Head";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
@@ -16,7 +17,6 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const isSidebarOpen = useSidebar();
   const baseClasses = "w-full rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors";
   const tableInputClasses = "h-[36px] px-[10px] py-[6px]";
   const defaultClasses = "px-3 py-2.5";
@@ -704,6 +704,7 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onStockFetched, userW
 };
 
 const InventoryAdjustmentCreate = () => {
+  const isSidebarOpen = useSidebar();
   const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = !!id;
@@ -1244,7 +1245,8 @@ const InventoryAdjustmentCreate = () => {
       rows.map(row => {
         if (row.id === rowId) {
           const adjusted = parseFloat(value) || 0;
-          const newQty = Math.max(0, row.currentQuantity + adjusted);
+          const currentQty = parseFloat(row.currentQuantity) || 0;
+          const newQty = Math.max(0, currentQty + adjusted);
           return {
             ...row,
             quantityAdjusted: value,
@@ -1264,7 +1266,8 @@ const InventoryAdjustmentCreate = () => {
           const newQty = parseFloat(value) || 0;
           const unitCost = parseFloat(row.unitCost) || 0;
           const newVal = newQty * unitCost;
-          const adjusted = newVal - row.currentValue;
+          const currentVal = parseFloat(row.currentValue) || 0;
+          const adjusted = newVal - currentVal;
           return {
             ...row,
             newQuantity: value,
@@ -1440,6 +1443,8 @@ const InventoryAdjustmentCreate = () => {
   }
   
   return (
+    <>
+      <Header title={isEditMode ? "Edit Adjustment" : "New Adjustment"} />
     <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={isEditMode ? "Edit Adjustment" : "New Adjustment"}
@@ -1725,6 +1730,7 @@ const InventoryAdjustmentCreate = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

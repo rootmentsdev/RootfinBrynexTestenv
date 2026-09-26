@@ -123,33 +123,33 @@ const subCategories = [
 
 // Maps raw DB category/subCategory values → human-readable labels
 const CATEGORY_LABEL_MAP = {
-  "dry cleaning":         "Dry Cleaning",
-  "altration":            "Altration",
-  "material":             "Material",
-  "courier charges":      "Courier Charges",
+  "dry cleaning": "Dry Cleaning",
+  "altration": "Altration",
+  "material": "Material",
+  "courier charges": "Courier Charges",
   "maintenance expenses": "Repairs & Maintenance",
-  "travel exp":           "Travel Exp",
-  "fuel exp":             "Fuel Exp",
-  "petty expenses":       "Office Expense",
-  "telephone internet":   "Internet Expense",
-  "utility bill":         "Electricity Charges",
-  "waste management":     "Waste Management",
-  "water charges":        "Water Charges",
-  "salary":               "Salary / Salary Advance",
-  "printing stationary":  "Printing & Stationary",
-  "staff welfare":        "Staff Welfare",
-  "staff reimbursement":  "Staff Accommodation",
-  "rent":                 "Store Rent",
-  "store rent":           "Store Rent",
-  "asset purchase":       "Asset Purchase",
-  "incentive":            "Incentive",
-  "spot incentive":       "Incentive",
-  "other expenses":       "Refund",
+  "travel exp": "Travel Exp",
+  "fuel exp": "Fuel Exp",
+  "petty expenses": "Office Expense",
+  "telephone internet": "Internet Expense",
+  "utility bill": "Electricity Charges",
+  "waste management": "Waste Management",
+  "water charges": "Water Charges",
+  "salary": "Salary / Salary Advance",
+  "printing stationary": "Printing & Stationary",
+  "staff welfare": "Staff Welfare",
+  "staff reimbursement": "Staff Accommodation",
+  "rent": "Store Rent",
+  "store rent": "Store Rent",
+  "asset purchase": "Asset Purchase",
+  "incentive": "Incentive",
+  "spot incentive": "Incentive",
+  "other expenses": "Refund",
   "bulk amount transfer": "Cash to Bank",
-  "write off":            "Write Off",
-  "promotion_services":   "Promotion / Services",
-  "shoe sales return":    "Shoe Sales Return",
-  "shirt sales return":   "Shirt Sales Return",
+  "write off": "Write Off",
+  "promotion_services": "Promotion / Services",
+  "shoe sales return": "Shoe Sales Return",
+  "shirt sales return": "Shirt Sales Return",
 };
 const getCatLabel = (val) => CATEGORY_LABEL_MAP[(val || "").toLowerCase().trim()] || val;
 
@@ -287,7 +287,7 @@ const Datewisedaybook = () => {
         // The 'cash' field contains the previous day's total closing cash, which should be today's opening
         openingCash = Number(openData?.data?.cash ?? openData?.data?.Closecash ?? 0);
         openingRbl = Number(openData?.data?.rbl ?? 0); // ✅ Added RBL opening
-      } catch {}
+      } catch { }
 
       const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
       const bookingU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
@@ -303,7 +303,7 @@ const Datewisedaybook = () => {
         );
         const json = await res.json();
         overrideRowsStore = json?.data || [];
-      } catch {}
+      } catch { }
 
       let bookingData = {}, rentoutData = {}, returnData = {}, deleteData = {}, mongoData = {};
       try {
@@ -313,7 +313,7 @@ const Datewisedaybook = () => {
         [bookingData, rentoutData, returnData, deleteData, mongoData] = await Promise.all([
           bookingRes.json(), rentoutRes.json(), returnRes.json(), deleteRes.json(), mongoRes.json()
         ]);
-      } catch {}
+      } catch { }
 
       const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
         ...item,
@@ -366,7 +366,7 @@ const Datewisedaybook = () => {
       const returnList = (returnData?.dataSet?.data || []).map(item => {
         const returnCashAmount = -Math.abs(Number(item.returnCashAmount || 0));
         const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
+
         // ✅ Only process bank/UPI if no RBL value
         const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
         const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
@@ -394,7 +394,7 @@ const Datewisedaybook = () => {
       const deleteList = (deleteData?.dataSet?.data || []).map(item => {
         const deleteCashAmount = -Math.abs(Number(item.deleteCashAmount || 0));
         const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
+
         // ✅ Only process bank/UPI if no RBL value
         const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
         const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
@@ -509,8 +509,8 @@ const Datewisedaybook = () => {
           allTransactions.map((tx) => {
             const dateKey = new Date(tx.date).toISOString().split("T")[0];
             // Use _id as primary key if available (for mongo transactions), otherwise use invoiceNo + category + date + source
-            const key = tx._id 
-              ? tx._id 
+            const key = tx._id
+              ? tx._id
               : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}`;
             return [key, tx];
           })
@@ -569,7 +569,7 @@ const Datewisedaybook = () => {
             );
             const json = await res.json();
             overrideRowsMulti = json?.data || [];
-          } catch {}
+          } catch { }
 
           let bookingData = {}, rentoutData = {}, returnData = {}, deleteData = {}, mongoData = {};
           try {
@@ -579,7 +579,7 @@ const Datewisedaybook = () => {
             [bookingData, rentoutData, returnData, deleteData, mongoData] = await Promise.all([
               bRes.json(), rRes.json(), retRes.json(), dRes.json(), mRes.json()
             ]);
-          } catch {}
+          } catch { }
 
           const bList = (bookingData?.dataSet?.data || []).map(item => ({
             ...item,
@@ -855,7 +855,7 @@ const Datewisedaybook = () => {
       const returnList = (returnData?.dataSet?.data || []).map(item => {
         const returnCashAmount = -Math.abs(Number(item.returnCashAmount || 0));
         const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
+
         // ✅ Only process bank/UPI if no RBL value
         const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
         const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
@@ -884,7 +884,7 @@ const Datewisedaybook = () => {
       const deleteList = (deleteData?.dataSet?.data || []).map(item => {
         const deleteCashAmount = -Math.abs(Number(item.deleteCashAmount || 0));
         const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
-       
+
         // ✅ Only process bank/UPI if no RBL value
         const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
         const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
@@ -1011,13 +1011,13 @@ const Datewisedaybook = () => {
       });
 
       const allTransactions = [...finalTws, ...mongoList];
-      
+
       const deduped = Array.from(
         new Map(
           allTransactions.map((tx) => {
             const dateKey = new Date(tx.date).toISOString().split("T")[0];
-            const key = tx._id 
-              ? tx._id 
+            const key = tx._id
+              ? tx._id
               : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}`;
             return [key, tx];
           })
@@ -1736,8 +1736,8 @@ const Datewisedaybook = () => {
                       {isFetching ? (
                         <>
                           <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                           </svg>
                           <span>Fetching...</span>
                         </>
@@ -1750,7 +1750,7 @@ const Datewisedaybook = () => {
                         onClick={() => setShowStoreSelector(prev => !prev)}
                         className="h-[42px] px-4 rounded-none border border-gray-200 bg-white text-gray-700 text-sm font-medium flex items-center gap-2 hover:bg-gray-50 transition-colors"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-gray-500 shrink-0"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-4 h-4 text-gray-500 shrink-0"><path d="M3 6h18M7 12h10M11 18h2" /></svg>
                         <span>
                           {selectedStores.length === 0 ? "Select Branches" : `${selectedStores.length} Branch${selectedStores.length > 1 ? "es" : ""}`}
                         </span>
@@ -1762,7 +1762,7 @@ const Datewisedaybook = () => {
                             {selectedStores.length}
                           </span>
                         )}
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-gray-400 transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`w-3.5 h-3.5 text-gray-400 transition-transform shrink-0 ${showStoreSelector ? "rotate-180" : ""}`}><path d="M6 9l6 6 6-6" /></svg>
                       </button>
                     )}
                   </div>
@@ -1777,20 +1777,20 @@ const Datewisedaybook = () => {
                       <button
                         type="button"
                         style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
-                        className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
+                        className="h-[40px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex flex-row items-center justify-center gap-2.5 whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer shadow-none"
                       >
-                        <span>Export CSV</span>
                         <FiDownload className="w-4 h-4 text-[#111827]" />
+                        <span>Export CSV</span>
                       </button>
                     </CSVLink>
                     <button
                       type='button'
                       onClick={handlePrint}
                       style={{ backgroundColor: '#EEEEEE', color: '#111827', borderRadius: '0px' }}
-                      className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex items-center gap-2.5 transition-colors cursor-pointer shadow-none"
+                      className="h-[42px] rounded-none bg-[#EEEEEE] hover:bg-[#E2E2E2] text-[#111827] px-5 text-sm font-medium flex flex-row items-center justify-center gap-2.5 whitespace-nowrap flex-shrink-0 transition-colors cursor-pointer shadow-none"
                     >
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#111827]"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" /><path d="M6 14h12v8H6z" /></svg>
                       <span>Print PDF</span>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-[#111827]"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
                     </button>
                   </div>
                 </div>
@@ -1821,22 +1821,22 @@ const Datewisedaybook = () => {
                           <tr key={s.locCode} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
                             <td className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs font-medium">{s.store}</td>
                             <td className="px-3 py-2 text-gray-500 border-r border-gray-100 text-xs">{s.locCode}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">{Number(s.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.cash).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.rbl).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.bank).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.upi).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">{Number(s.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
                         <tr className="bg-[#e2e8f0] font-bold border-t-2 border-gray-300">
                           <td className="px-3 py-2.5 text-gray-800 uppercase tracking-wide text-xs font-bold" colSpan={2}>Total</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.cash).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.rbl).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.bank).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.upi).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.amount).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.cash).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.rbl).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.bank).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.upi).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -2393,8 +2393,8 @@ const Datewisedaybook = () => {
           </div>
         </div>
       </div>
-      </>
-    )
-  }
+    </>
+  )
+}
 
 export default Datewisedaybook;

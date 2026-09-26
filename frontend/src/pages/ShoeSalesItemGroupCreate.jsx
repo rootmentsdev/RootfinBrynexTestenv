@@ -3,6 +3,7 @@ import { useEnterToSave } from "../hooks/useEnterToSave";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Trash2, ArrowLeft, X, ChevronDown, Search, Settings, Check, ShoppingBag, ShoppingCart, Edit, MoreHorizontal } from "lucide-react";
 import Head from "../components/Head";
+import Header from "../components/Header";
 import ImageUpload from "../components/ImageUpload";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
@@ -13,7 +14,6 @@ const STORAGE_KEYS = {
 };
 
 const loadStoredList = (key) => {
-  const isSidebarOpen = useSidebar();
   if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(key);
@@ -47,6 +47,7 @@ const unitOptions = [
 ];
 
 const ShoeSalesItemGroupCreate = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditMode = !!id;
@@ -905,6 +906,8 @@ const ShoeSalesItemGroupCreate = () => {
   const selectedTaxRateValue = intraStateTaxRate || interStateTaxRate;
 
   return (
+    <>
+      <Header title={isEditMode ? "Edit Item Group" : "New Item Group"} />
     <div className={`transition-all duration-300 p-6 bg-[#f5f7fb] min-h-screen ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
       <Head
         title={isEditMode ? "Edit Item Group" : "New Item Group"}
@@ -1943,6 +1946,7 @@ const ShoeSalesItemGroupCreate = () => {
         />
       )}
     </div>
+    </>
   );
 };
 

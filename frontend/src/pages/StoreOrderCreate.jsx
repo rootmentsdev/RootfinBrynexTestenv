@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Search, X, Plus, Trash2 } from "lucide-react";
 import Head from "../components/Head";
+import Header from "../components/Header";
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
@@ -16,7 +17,6 @@ const Label = ({ children, required = false }) => (
 );
 
 const Input = ({ placeholder = "", className = "", ...props }) => {
-  const isSidebarOpen = useSidebar();
   const baseClasses = "w-full rounded-md border border-[#d7dcf5] bg-white text-sm text-[#1f2937] placeholder:text-[#9ca3af] focus:border-[#2563eb] focus:outline-none focus:ring-1 focus:ring-[#2563eb] transition-colors";
   const tableInputClasses = "h-[36px] px-[10px] py-[6px]";
   const defaultClasses = "px-3 py-2.5";
@@ -579,6 +579,7 @@ const ItemDropdown = ({ rowId, value, onChange, storeWarehouse, onStockFetched, 
 };
 
 const StoreOrderCreate = () => {
+  const isSidebarOpen = useSidebar();
   const { id } = useParams();
   const navigate = useNavigate();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
@@ -916,6 +917,8 @@ const StoreOrderCreate = () => {
   }
   
   return (
+    <>
+      <Header title={isEditMode ? "Edit Store Order" : "New Store Order"} />
     <div className="min-h-screen bg-[#f7f9ff]">
       <Head
         title={isEditMode ? "Edit Store Order" : "New Store Order"}
@@ -1110,6 +1113,7 @@ const StoreOrderCreate = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
