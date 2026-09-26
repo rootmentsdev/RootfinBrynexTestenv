@@ -8,7 +8,7 @@ const Head = ({ title, description, actions }) => {
       <div className="flex-1 min-w-0 flex items-start gap-3">
         <button 
             onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}
-            className="md:hidden mt-1 p-2 -ml-2 rounded-lg bg-white shadow-sm border border-[#e6ebfa] text-gray-700 shrink-0"
+            className="lg:hidden mt-1 p-2 -ml-2 rounded-lg bg-white shadow-sm border border-[#e6ebfa] text-gray-700 shrink-0"
         >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

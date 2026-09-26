@@ -351,7 +351,7 @@ const Nav = () => {
             {/* Mobile Backdrop overlay */}
             {isOpen && (
                 <div 
-                    className="fixed inset-0 bg-black/50 z-[99998] md:hidden"
+                    className="fixed inset-0 bg-black/50 z-[99998] lg:hidden"
                     onClick={() => setIsHovered(false)}
                 />
             )}
