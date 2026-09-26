@@ -159,6 +159,14 @@ const Nav = () => {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    useEffect(() => {
+        const handleToggleSidebar = () => {
+            setIsHovered(prev => !prev);
+        };
+        document.addEventListener("toggle-sidebar", handleToggleSidebar);
+        return () => document.removeEventListener("toggle-sidebar", handleToggleSidebar);
+    }, []);
+
     const handleChangeLocation = (e) => {
         const selectedCode = e.target.value;
         const selectedItem = allLocations.find(item => item.locCode === selectedCode);
@@ -332,12 +340,21 @@ const Nav = () => {
 
     return (
         <div className={`flex ${location.pathname === "/login" ? "hidden" : "block"}`}>
-            {/* Invisible hover strip on left edge to trigger sidebar on mouse hover */}
+            {/* Invisible hover strip on left edge to trigger sidebar on mouse hover or tap */}
             <div
                 onMouseEnter={() => setIsHovered(true)}
-                className="fixed top-0 left-0 w-6 h-full z-[99990] cursor-pointer no-print"
-                title="Hover to view menu"
+                onClick={() => setIsHovered(!isHovered)}
+                className="fixed top-0 left-0 w-8 md:w-6 h-full z-[99990] cursor-pointer no-print"
+                title="Tap or Hover to view menu"
             />
+
+            {/* Mobile Backdrop overlay */}
+            {isOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-[99998] md:hidden"
+                    onClick={() => setIsHovered(false)}
+                />
+            )}
 
             {/* Sidebar */}
             <div

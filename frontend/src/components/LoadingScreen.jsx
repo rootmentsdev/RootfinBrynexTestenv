@@ -2,12 +2,32 @@ import React from 'react';
 import rootfinRoundLogo from '../assets/rootfin-round-logo.png';
 import rootfinLogo from '../assets/rootfin-logo.png';
 
+// Change this to false if the boss prefers the old loading screen!
+const USE_VIDEO = true;
+
 const LoadingScreen = ({
   fullScreen = true,
   title = "ROOTFIN",
   subtitle = "BRYNEX FINANCIAL SOFTWARE",
   logoSrc = rootfinRoundLogo
 }) => {
+  if (USE_VIDEO) {
+    return (
+      <div className={`${fullScreen ? 'fixed inset-0 z-[9999]' : 'w-full h-full min-h-[400px]'} bg-black flex items-center justify-center overflow-hidden transition-opacity duration-300`}>
+        <video
+          src="/loading-video.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover brightness-125 contrast-110 transform-gpu will-change-transform"
+          style={{ WebkitTransform: "translateZ(0)" }}
+        />
+      </div>
+    );
+  }
+
+  // --- OLD CLASSIC LOADING SCREEN ---
   return (
     <div className={`${fullScreen ? 'fixed inset-0 z-[9999]' : 'w-full h-full min-h-[400px]'
       } bg-black flex flex-col items-center justify-center p-6 text-white font-sans select-none overflow-hidden transition-all duration-300`}>

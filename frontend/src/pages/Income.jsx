@@ -81,12 +81,22 @@ const Income = () => {
   };
 
   return (
-    <div className={`min-h-screen bg-[#f0f4ff] transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-      <div className="px-10 pt-8 pb-16">
+    <div className={`min-h-screen bg-[#f0f4ff] transition-all duration-300 ${isSidebarOpen ? 'md:ml-64 ml-0' : 'ml-0'}`}>
+      <div className="px-4 md:px-10 pt-8 pb-16">
         {/* Page title */}
-        <div className="mb-6">
-          <h1 className="text-lg font-bold text-[#101828] tracking-wide uppercase">Income</h1>
-          <p className="text-sm text-[#6c728a]">Record & Track your business transactions</p>
+        <div className="mb-6 flex items-start md:items-center gap-3">
+          <button 
+              onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}
+              className="md:hidden mt-1 p-2 rounded-lg bg-white shadow-sm border border-[#e6ebfa] text-gray-700 shrink-0"
+          >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+          </button>
+          <div>
+            <h1 className="text-lg font-bold text-[#101828] tracking-wide uppercase">Income</h1>
+            <p className="text-sm text-[#6c728a]">Record & Track your business transactions</p>
+          </div>
         </div>
 
         {/* Card */}
@@ -94,7 +104,7 @@ const Income = () => {
           <form onSubmit={handleSubmit}>
 
             {/* Row 1: Category + Amount */}
-            <div className="grid grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-widest text-[#9ca3af] mb-2">Category</label>
                 <div className="relative">
@@ -179,7 +189,7 @@ const Income = () => {
               </div>
 
               {splitPayment && (
-                <div className="grid grid-cols-3 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                   {[["Cash", cashAmount, setCashAmount], ["Bank", bankAmount, setBankAmount], ["UPI", upiAmount, setUpiAmount]].map(([lbl, val, setVal]) => (
                     <div key={lbl}>
                       <label className="block text-xs text-[#6b7280] mb-1">{lbl} Amount</label>
@@ -192,7 +202,7 @@ const Income = () => {
             </div>
 
             {/* Remarks + Attachment */}
-            <div className="grid grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-widest text-[#9ca3af] mb-2">Remarks</label>
                 <textarea

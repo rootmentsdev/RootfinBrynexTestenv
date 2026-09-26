@@ -210,6 +210,7 @@ const DayBookInc = () => {
     const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     // Edit functionality states
+    const [isSaved, setIsSaved] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedTransaction, setEditedTransaction] = useState({});
     const [isSyncing, setIsSyncing] = useState(false);
@@ -772,6 +773,7 @@ const DayBookInc = () => {
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
             alert("Data saved successfully");
+            setIsSaved(true);
             setLoading(false);
             takeCreateCashBank();
         } catch (error) {
@@ -1189,14 +1191,14 @@ const DayBookInc = () => {
 
                 <Headers title={"Day Book"} />
 
-                <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-                    <div className="p-6 md:p-8 bg-white min-h-screen">
+                <div className={`transition-all duration-300 ${isSidebarOpen ? 'md:ml-[240px] ml-0' : 'ml-0'} overflow-hidden`}>
+                    <div className="p-4 md:p-8 bg-white min-h-screen">
 
                         {/* Top Section: Page Header, Category Filters & Date */}
                         <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 no-print">
                             {/* Left Filters */}
-                            <div className="flex flex-wrap items-center gap-4">
-                                <div className="w-[220px] sm:w-[260px]">
+                            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-4 w-full md:w-auto">
+                                <div className="w-full sm:w-[260px]">
                                     <label className="block text-xs font-medium text-gray-500 mb-1.5">Category</label>
                                     <Select
                                         isMulti
@@ -1211,7 +1213,7 @@ const DayBookInc = () => {
                                         placeholder="All Categories"
                                     />
                                 </div>
-                                <div className="w-[240px] sm:w-[300px]">
+                                <div className="w-full sm:w-[300px]">
                                     <label className="block text-xs font-medium text-gray-500 mb-1.5">Sub Category</label>
                                     <Select
                                         isMulti
@@ -1505,7 +1507,8 @@ const DayBookInc = () => {
                                         <button
                                             type="button"
                                             onClick={handleDownloadReport}
-                                            className="flex-1 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg transition-colors text-center cursor-pointer border border-gray-200"
+                                            disabled={!isSaved && !preOpen1}
+                                            className={`flex-1 py-2.5 px-4 text-sm font-semibold rounded-lg transition-colors text-center border ${(!isSaved && !preOpen1) ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-60' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer border-gray-200'}`}
                                         >
                                             Download Report
                                         </button>

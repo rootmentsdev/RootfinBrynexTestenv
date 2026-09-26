@@ -133,10 +133,10 @@ const DayBook = () => {
             </Helmet>
             <div>
       <Headers title={'Rent out Report'} />
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'ml-[240px]' : 'ml-0'}`}>
-        <div className="p-6 bg-gray-100 min-h-screen">
+      <div className={`transition-all duration-300 ${isSidebarOpen ? 'md:ml-[240px] ml-0' : 'ml-0'}`}>
+        <div className="p-4 md:p-6 bg-gray-100 min-h-screen w-full overflow-hidden">
           {/* Date Inputs */}
-          <div className="flex gap-4 mb-6 w-[600px]">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 w-full md:max-w-[600px]">
             <div className='w-full flex flex-col '>
               <label htmlFor="from">From *</label>
               <input
@@ -159,7 +159,7 @@ const DayBook = () => {
             </div>
     
             <button
-              className='bg-blue-500 w-[400px] h-[40px] mt-[20px] rounded-md text-white flex items-center justify-center gap-2'
+              className='bg-blue-500 w-full md:w-[200px] shrink-0 h-[40px] mt-2 md:mt-[24px] rounded-md text-white flex items-center justify-center gap-2'
               onClick={handleFetch}
               disabled={isLoading}
               style={{ opacity: isLoading ? 0.7 : 1 }}
@@ -192,8 +192,8 @@ const DayBook = () => {
     
           {/* Table */}
           <div ref={printRef}>
-            <div className="bg-white p-4 shadow-md rounded-lg">
-              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+            <div className="bg-white p-4 shadow-md rounded-lg w-full overflow-hidden">
+              <div style={{ maxHeight: "400px", overflowY: "auto", overflowX: "auto" }} className="w-full">
                 <table className="w-full border-collapse border rounded-md border-gray-300">
                   <thead
                     className="rounded-md"

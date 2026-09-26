@@ -3117,18 +3117,28 @@ Customer Service Available`;
         </div>
       )}
 
-      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+      <div className={`invoice-page-wrapper transition-all duration-300 min-h-screen flex flex-col ${isSidebarOpen ? 'md:ml-64 ml-0' : 'ml-0'} overflow-x-hidden`}>
         {/* ── Top Header Bar ── */}
         <div className="px-6 pt-5 pb-3">
           {/* Heading and Action Buttons */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
-                {isEditMode ? "Edit Invoice" : "Create Invoice"}
-              </h1>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                {isEditMode ? "Update an existing invoice" : "Create a new sales invoice"}
-              </p>
+            <div className="flex items-start gap-3">
+              <button 
+                  onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}
+                  className="md:hidden mt-0.5 p-1.5 -ml-1 rounded-md bg-white shadow-sm border border-[#E5E7EB] text-gray-700 shrink-0"
+              >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+              </button>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-[#111827] uppercase">
+                  {isEditMode ? "Edit Invoice" : "Create Invoice"}
+                </h1>
+                <p className="text-xs text-[#6B7280] mt-0.5">
+                  {isEditMode ? "Update an existing invoice" : "Create a new sales invoice"}
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-2.5">
@@ -3152,13 +3162,13 @@ Customer Service Available`;
         </div>
 
         {/* ── Body: Left Main Card + Right Sidebar (Equal Height with items-stretch) ── */}
-        <div className="flex flex-1 min-h-0 px-6 pb-6 gap-4 items-stretch">
+        <div className="flex flex-col lg:flex-row flex-1 min-h-0 px-4 md:px-6 pb-6 gap-4 items-stretch">
           {/* ── LEFT / MAIN COLUMN ── */}
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="rounded-none border border-[#E5E7EB] bg-white p-6 shadow-sm w-full flex-1 flex flex-col justify-between">
               <div>
                 {/* BILL TO & INVOICE DETAILS */}
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* BILL TO */}
                   <div>
                     <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
@@ -3256,7 +3266,7 @@ Customer Service Available`;
                   <p className="mb-4 text-xs font-bold uppercase tracking-wider text-[#8B5CF6]">
                     CLASSIFICATION
                   </p>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-[#374151] mb-1.5">
                         Branch <span className="text-red-500">*</span>
@@ -3554,7 +3564,7 @@ Customer Service Available`;
           </div>
 
           {/* ── RIGHT SIDEBAR (320px) - Stretches to same height as left card ── */}
-          <div className="w-80 shrink-0 bg-white rounded-none border border-[#E5E7EB] shadow-sm p-5 flex flex-col justify-between">
+          <div className="w-full lg:w-80 shrink-0 bg-white rounded-none border border-[#E5E7EB] shadow-sm p-4 md:p-5 flex flex-col justify-between">
             {/* TOP SECTION: Payment methods, sub total, discount */}
             <div className="space-y-5">
               {/* PAYMENT METHOD */}
