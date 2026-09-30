@@ -100,9 +100,10 @@ export default function IncomeExpenseReport() {
   const isAdmin = (user.power || "").toLowerCase() === "admin" || (user.role || "").toLowerCase() === "admin";
   const isSuperAdmin = (user.role || "").toLowerCase() === "superadmin";
   const isClusterManager = (user.role || "").toLowerCase() === "cluster_manager";
+  const isFinancialHead = (user.role || "").toLowerCase() === "financial_head";
   const clusterAllowedLocCodes = user.allowedLocCodes || [];
-  const canSelectStore = isAdmin || isSuperAdmin || isClusterManager;
-  const userCanSeeAdminExpenses = isAdmin || isSuperAdmin || isClusterManager;
+  const canSelectStore = isAdmin || isSuperAdmin || isClusterManager || isFinancialHead;
+  const userCanSeeAdminExpenses = isAdmin || isSuperAdmin || isClusterManager || isFinancialHead;
 
   const [fromDate, setFromDate] = useState(firstOfMonth());
   const [toDate, setToDate] = useState(today());

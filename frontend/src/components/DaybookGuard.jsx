@@ -7,12 +7,13 @@ const DaybookGuard = ({ children }) => {
   const currentuser = JSON.parse(localStorage.getItem("rootfinuser"));
   const isAdminOrSuperAdmin = (currentuser?.power === "admin" || currentuser?.role === "superadmin");
   const isClusterManager = (currentuser?.role || "").toLowerCase() === "cluster_manager";
+  const isFinancialHead = (currentuser?.role || "").toLowerCase() === "financial_head";
 
-  const [loading, setLoading] = useState(!isAdminOrSuperAdmin && !isClusterManager);
+  const [loading, setLoading] = useState(!isAdminOrSuperAdmin && !isClusterManager && !isFinancialHead);
   const [isFrozen, setIsFrozen] = useState(false);
 
   useEffect(() => {
-    if (isAdminOrSuperAdmin || isClusterManager || !currentuser) {
+    if (isAdminOrSuperAdmin || isClusterManager || isFinancialHead || !currentuser) {
       setLoading(false);
       return;
     }

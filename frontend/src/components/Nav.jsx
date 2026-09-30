@@ -29,7 +29,9 @@ import {
     UserCog,
     KeyRound,
     Menu,
-    ChevronLeft
+    ChevronLeft,
+    ArrowDownRight,
+    ArrowUpRight
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import baseUrl from "../api/api.js";
@@ -85,6 +87,7 @@ const Nav = () => {
     const isSuperAdmin = (currentuser?.role || "").toLowerCase() === "superadmin";
     const isAdminOrSuperAdmin = isAdmin || isSuperAdmin;
     const isClusterManager = (currentuser?.role || "").toLowerCase() === "cluster_manager";
+    const isFinancialHead = (currentuser?.role || "").toLowerCase() === "financial_head";
     const isInAllowedList = salesInventoryAccessConfig.allowedEmails
         .map(email => email.toLowerCase())
         .includes(userEmail);
@@ -208,6 +211,9 @@ const Nav = () => {
         }
         if (isClusterManager) {
             return "Cluster Manager";
+        }
+        if (isFinancialHead) {
+            return "Financial Head";
         }
         const candidateName = currentUser?.name || currentUser?.username;
         const isStoreName = allLocations.some(
@@ -411,6 +417,63 @@ const Nav = () => {
                                     )}
                                 </div>
                             </>
+                        ) : isFinancialHead ? (
+                            <>
+                                {/* Day Book */}
+                                <Link to="/daybook" className={singleLinkClasses("/daybook")}>
+                                    <FileText size={18} className="shrink-0" />
+                                    <span>Day Book</span>
+                                </Link>
+
+                                {/* Financial Summary */}
+                                <Link to="/datewisedaybook" className={singleLinkClasses("/datewisedaybook")}>
+                                    <FileTextIcon size={18} className="shrink-0" />
+                                    <span>Financial Summary</span>
+                                </Link>
+
+                                {/* Direct Expense */}
+                                <Link to="/direct-expenses" className={singleLinkClasses("/direct-expenses")}>
+                                    <ArrowDownRight size={18} className="shrink-0" />
+                                    <span>Direct Expense</span>
+                                </Link>
+
+                                {/* Indirect Expense */}
+                                <Link to="/indirect-expenses" className={singleLinkClasses("/indirect-expenses")}>
+                                    <ArrowUpRight size={18} className="shrink-0" />
+                                    <span>Indirect Expense</span>
+                                </Link>
+
+                                {/* Reports */}
+                                <div>
+                                    <button
+                                        onClick={() => setOpenSection(isReportsOpen ? null : "reports")}
+                                        className={groupButtonClasses(isReportsOpen, isReportsActive)}
+                                    >
+                                        <div className="flex w-full items-center gap-3.5">
+                                            <LineChart size={18} className="shrink-0" />
+                                            <span className="flex-1 text-left whitespace-nowrap truncate">Reports</span>
+                                            <ChevronDown size={16} className={`shrink-0 transition-transform ${isReportsOpen ? "rotate-180 text-white" : "rotate-0 text-zinc-400"}`} />
+                                        </div>
+                                    </button>
+                                    {isReportsOpen && (
+                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
+                                            <Link to="/BookingReport" className={subLinkClasses('/BookingReport')}><span>Booking Report</span></Link>
+                                            <Link to="/RentOutReport" className={subLinkClasses('/RentOutReport')}><span>Rent Out Report</span></Link>
+                                            <Link to="/securityReport" className={subLinkClasses('/securityReport')}><span>Security Report</span></Link>
+                                            <Link to="/Revenuereport" className={subLinkClasses('/Revenuereport')}><span>Revenue Report</span></Link>
+                                            <Link to="/reports/sales-by-invoice" className={subLinkClasses('/reports/sales-by-invoice')}><span>Sales by Invoice</span></Link>
+                                            <Link to="/reports/sales" className={subLinkClasses('/reports/sales')}><span>Sales Report</span></Link>
+                                            <Link to="/reports/sales-by-group" className={subLinkClasses('/reports/sales-by-group')}><span>Sales by Group</span></Link>
+                                            <Link to="/reports/inventory" className={subLinkClasses('/reports/inventory')}><span>Inventory Report</span></Link>
+                                            <Link to="/reports/income-expense" className={subLinkClasses('/reports/income-expense')}><span>Income &amp; Expense</span></Link>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Income & Expenses */}
+                                <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={18} className="shrink-0" /><span>Income</span></Link>
+                                <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={18} className="shrink-0" /><span>Expenses</span></Link>
+                            </>
                         ) : (
                             <>
                                 {/* Dashboard - Only for Admin / Super Admin */}
@@ -523,7 +586,9 @@ const Nav = () => {
 
                                 {/* Income & Expenses */}
                                 <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={18} className="shrink-0" /><span>Income</span></Link>
-                                <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={18} className="shrink-0" /><span>Expenses</span></Link>
+                                <Link to="/direct-expenses" className={singleLinkClasses("/direct-expenses")}><ArrowDownRight size={18} className="shrink-0" /><span>Direct Expense</span></Link>
+                                <Link to="/indirect-expenses" className={singleLinkClasses("/indirect-expenses")}><ArrowUpRight size={18} className="shrink-0" /><span>Indirect Expense</span></Link>
+                                <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={18} className="shrink-0" /><span>All Expenses</span></Link>
 
                                 {/* Admin only */}
                                 {(currentuser.power === 'admin' || currentuser.locCode === '102') && (

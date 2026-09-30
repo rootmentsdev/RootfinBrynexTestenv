@@ -207,6 +207,7 @@ const Datewisedaybook = () => {
 
   const showAction = (currentusers.power || "").toLowerCase() === "admin";
   const isClusterManager = (currentusers.role || "").toLowerCase() === "cluster_manager";
+  const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
   const clusterAllowedLocCodes = currentusers.allowedLocCodes || [];
 
   // For cluster managers, filter AllLoation to only their allowed stores
@@ -1718,10 +1719,10 @@ const Datewisedaybook = () => {
                       placeholder="Select Store..."
                       options={[
                         { value: "current", label: `Current Store (${currentusers.locCode})` },
-                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager)
+                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager || isFinancialHead)
                           ? [{ value: "all", label: "All Stores" }]
                           : []),
-                        ...(((currentusers.power || '').toLowerCase() === 'admin')
+                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isFinancialHead)
                           ? [{ value: "multi", label: "Multiple Branches" }]
                           : []),
                       ]}
@@ -1782,7 +1783,7 @@ const Datewisedaybook = () => {
                     <Select
                       placeholder="Select Department"
                       options={[
-                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager)
+                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager || isFinancialHead)
                           ? [{ value: "all_departments", label: "All Departments" }]
                           : []),
                         { value: "759", label: "HEAD OFFICE01" },

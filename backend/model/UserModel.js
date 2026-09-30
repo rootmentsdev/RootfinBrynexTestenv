@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
     phone: { type: String, default: '' },
     gst: { type: String, default: '' },
     // Store-level access control fields (new, non-breaking)
-    role: { type: String, enum: ["admin", "superadmin", "store_manager", "store_user", "cluster_manager"], default: null },
+    role: { type: String, enum: ["admin", "superadmin", "store_manager", "store_user", "cluster_manager", "financial_head"], default: null },
     storeName: { type: String, default: null },
     storeId: { type: String, default: null },
     allowedLocCodes: { type: [String], default: [] },
