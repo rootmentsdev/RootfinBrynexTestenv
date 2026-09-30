@@ -1,6 +1,14 @@
+import dns from 'dns';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import fs from 'fs';
+
+// Configure reliable DNS servers for SRV record resolution (fixes querySrv ECONNREFUSED on certain ISPs/networks)
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (err) {
+  console.warn('⚠️ Could not set custom DNS servers:', err.message);
+}
 
 // 🔁 Load correct .env file based on env (only if not loaded already by server.js)
 const env = process.env.NODE_ENV || 'development';

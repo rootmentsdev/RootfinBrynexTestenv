@@ -30,7 +30,6 @@ const ManufacturerSchema = new mongoose.Schema(
 );
 
 // Index for faster lookups
-ManufacturerSchema.index({ name: 1 });
 ManufacturerSchema.index({ isActive: 1 });
 
 const Manufacturer = mongoose.model("Manufacturer", ManufacturerSchema);

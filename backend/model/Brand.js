@@ -30,7 +30,6 @@ const BrandSchema = new mongoose.Schema(
 );
 
 // Index for faster lookups
-BrandSchema.index({ name: 1 });
 BrandSchema.index({ isActive: 1 });
 
 const Brand = mongoose.model("Brand", BrandSchema);
