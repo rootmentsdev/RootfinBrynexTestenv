@@ -339,10 +339,7 @@ const SalesByInvoiceReport = () => {
                           <td className="px-4 py-3 whitespace-nowrap">
                             <span className="px-2.5 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">{inv.category}</span>
                           </td>
-                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                            <span className="text-xs text-gray-500 block leading-tight">Balance</span>
-                            <span className="text-xs text-gray-500 block leading-tight">Payable</span>
-                          </td>
+                          <td className="px-4 py-3 text-gray-700 whitespace-nowrap font-medium">{inv.itemCount}</td>
                           <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.totalAmount)}</td>
                           <td className="px-4 py-3 text-gray-700 whitespace-nowrap">₹{fmt(inv.discount)}</td>
                           <td className="px-4 py-3 font-semibold text-green-600 whitespace-nowrap">₹{fmt(inv.netAmount)}</td>

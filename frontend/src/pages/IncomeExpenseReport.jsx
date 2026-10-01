@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useEffect, useMemo } from "react";
 import { Helmet } from "react-helmet";
-import { RefreshCw, ChevronDown, ChevronRight, Download, Filter, TrendingUp, TrendingDown, ArrowUpDown, ShieldCheck, ShieldAlert, Landmark } from "lucide-react";
+import { RefreshCw, ChevronDown, ChevronRight, Filter, TrendingUp, TrendingDown, ArrowUpDown, ShieldCheck, ShieldAlert, Landmark } from "lucide-react";
 import { CSVLink } from "react-csv";
 import Headers from "../components/Header.jsx";
 import baseUrl from "../api/api";
@@ -94,6 +94,10 @@ const CATEGORY_LABEL_MAP = {
 const getCategoryLabel = (cat) =>
   CATEGORY_LABEL_MAP[(cat || "").toLowerCase().trim()] || cat;
 
+const getTxId = (t) => String(t?._id?.$oid || t?._id || t?.id || "");
+
+
+
 export default function IncomeExpenseReport() {
   const isSidebarOpen = useSidebar();
   const user = JSON.parse(localStorage.getItem("rootfinuser")) || {};
@@ -106,7 +110,8 @@ export default function IncomeExpenseReport() {
 
   const [fromDate, setFromDate] = useState(firstOfMonth());
   const [toDate, setToDate] = useState(today());
-  const [filterCategory, setFilterCategory] = useState("All Categories");
+  const [filterCategories, setFilterCategories] = useState([]);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedStore, setSelectedStore] = useState("all_stores");
   
   const [incomeRows, setIncomeRows] = useState([]);
@@ -119,6 +124,19 @@ export default function IncomeExpenseReport() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [expanded, setExpanded] = useState({});
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      const categoryDropdown = document.getElementById('category-dropdown-container');
+      if (categoryDropdown && !categoryDropdown.contains(event.target)) {
+        setShowCategoryDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const DEPT_LOC_CODES = ["759", "102", "101", "858", "103"];
   const ALL_LOC_CODES = isClusterManager
@@ -357,13 +375,14 @@ export default function IncomeExpenseReport() {
           bank: Number(t.bank || 0),
           upi:  Number(t.upi || 0),
           locCode: t.locCode || locCode,
+          _id: t._id,
         };
 
         if (isBankToCash) {
           mongoBankToCash.push(row);
         } else if (isCashToBank) {
           mongoCashToBank.push(row);
-        } else if (isReturnInvoice) {
+        } else if (isReturnInvoice || tp === "return" || isSalesReturn) {
           mongoExpense.push(row);
         } else if (tp === "income") {
           mongoIncome.push(row);
@@ -391,7 +410,8 @@ export default function IncomeExpenseReport() {
     rows.forEach(t => {
       const cat = t.category || "Uncategorized";
       const sub = t.subCategory || cat;
-      if (filterCategory !== "All Categories" && filterCategory !== cat) return;
+      // Filter: if categories are selected, only include if cat is in the selected array
+      if (filterCategories.length > 0 && !filterCategories.includes(cat)) return;
       if (!map[cat]) map[cat] = { subCategories: {}, cash: 0, rbl: 0, bank: 0, upi: 0 };
       if (!map[cat].subCategories[sub]) map[cat].subCategories[sub] = { transactions: [], cash: 0, rbl: 0, bank: 0, upi: 0 };
 
@@ -416,12 +436,12 @@ export default function IncomeExpenseReport() {
     return map;
   };
 
-  const incomeGrouped  = useMemo(() => buildGrouped(incomeRows), [incomeRows, filterCategory]);
-  const returnableIncomeGrouped = useMemo(() => buildGrouped(returnableIncomeRows), [returnableIncomeRows, filterCategory]);
-  const expenseGrouped = useMemo(() => buildGrouped(expenseRows), [expenseRows, filterCategory]);
-  const holdedSecRefundGrouped = useMemo(() => buildGrouped(holdedSecurityRefundRows), [holdedSecurityRefundRows, filterCategory]);
-  const cashToBankGrouped = useMemo(() => buildGrouped(cashToBankRows), [cashToBankRows, filterCategory]);
-  const bankToCashGrouped = useMemo(() => buildGrouped(bankToCashRows), [bankToCashRows, filterCategory]);
+  const incomeGrouped  = useMemo(() => buildGrouped(incomeRows), [incomeRows, filterCategories]);
+  const returnableIncomeGrouped = useMemo(() => buildGrouped(returnableIncomeRows), [returnableIncomeRows, filterCategories]);
+  const expenseGrouped = useMemo(() => buildGrouped(expenseRows), [expenseRows, filterCategories]);
+  const holdedSecRefundGrouped = useMemo(() => buildGrouped(holdedSecurityRefundRows), [holdedSecurityRefundRows, filterCategories]);
+  const cashToBankGrouped = useMemo(() => buildGrouped(cashToBankRows), [cashToBankRows, filterCategories]);
+  const bankToCashGrouped = useMemo(() => buildGrouped(bankToCashRows), [bankToCashRows, filterCategories]);
 
   const sumGroup = (grouped) =>
     Object.values(grouped).reduce(
@@ -482,7 +502,7 @@ export default function IncomeExpenseReport() {
   const netTotal  = grandTotalIncome + grandTotalExpense;
 
   const allCategories = useMemo(() => {
-    return [...new Set([
+    const fromRows = [...new Set([
       ...incomeRows,
       ...returnableIncomeRows,
       ...expenseRows,
@@ -490,6 +510,24 @@ export default function IncomeExpenseReport() {
       ...cashToBankRows,
       ...bankToCashRows
     ].map(t => t.category || "Uncategorized"))];
+    
+    // If no data fetched yet, use predefined categories
+    if (fromRows.length === 0) {
+      return [
+        "Booking",
+        "RentOut",
+        "Returnable Income",
+        "Security Refund",
+        "Cancel",
+        "Sales",
+        "Sales Return",
+        "Bank to Cash",
+        "Cash to Bank",
+        "Return Invoice"
+      ];
+    }
+    
+    return fromRows;
   }, [incomeRows, returnableIncomeRows, expenseRows, holdedSecurityRefundRows, cashToBankRows, bankToCashRows]);
 
   const toggleExpand  = (key) => setExpanded(p => ({ ...p, [key]: !p[key] }));
@@ -500,6 +538,7 @@ export default function IncomeExpenseReport() {
   };
 
   const showBranch = canSelectStore;
+  const colCount = showBranch ? 10 : 9;
 
   // CSV Export Data
   const csvData = useMemo(() => {
@@ -698,6 +737,7 @@ export default function IncomeExpenseReport() {
             <td className={`px-4 py-3 text-right text-sm font-bold ${totalTextColor}`}>
               {fmt(Math.abs(catTotal))}
             </td>
+            <td className="px-4 py-3"></td>
           </tr>
 
           {/* Direct Transaction Rows or Subcategories */}
@@ -727,6 +767,7 @@ export default function IncomeExpenseReport() {
                         <td className="px-4 py-2.5 text-right text-xs font-medium text-gray-600">{sg.bank !== 0 ? signStr(sg.bank) : "-"}</td>
                         <td className="px-4 py-2.5 text-right text-xs font-medium text-gray-600">{sg.upi !== 0 ? signStr(sg.upi) : "-"}</td>
                         <td className="px-4 py-2.5 text-right text-xs font-bold text-gray-700">{fmt(Math.abs(subTotal))}</td>
+                        <td className="px-4 py-2.5"></td>
                       </tr>
                       
                       {isSubExp && sg.transactions.map((t, i) => {
@@ -887,23 +928,41 @@ export default function IncomeExpenseReport() {
               />
             </div>
 
-            {/* Category Dropdown */}
-            <div className="flex-1 min-w-[180px]">
+            {/* Category Multi-Select */}
+            <div className="flex-1 min-w-[200px] relative" id="category-dropdown-container">
               <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-                Category
+                Categories
               </label>
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                className="w-full h-[38px] bg-white border-2 border-gray-600 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer text-left"
               >
-                <option value="All Categories">All Categories</option>
-                {allCategories.map((c) => (
-                  <option key={c} value={c}>
-                    {getCategoryLabel(c)}
-                  </option>
-                ))}
-              </select>
+                {filterCategories.length === 0 ? "All Categories" : `${filterCategories.length} selected`}
+              </button>
+
+              {/* Dropdown Menu */}
+              {showCategoryDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-[300px] overflow-y-auto">
+                  {allCategories.map((c) => (
+                    <label key={c} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                      <input
+                        type="checkbox"
+                        checked={filterCategories.includes(c)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFilterCategories([...filterCategories, c]);
+                          } else {
+                            setFilterCategories(filterCategories.filter(cat => cat !== c));
+                          }
+                        }}
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                      />
+                      <span className="text-xs text-gray-700">{getCategoryLabel(c)}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Store & Department Combined Dropdown */}
@@ -953,7 +1012,7 @@ export default function IncomeExpenseReport() {
                 onClick={() => {
                   setFromDate(firstOfMonth());
                   setToDate(today());
-                  setFilterCategory("All Categories");
+                  setFilterCategories([]);
                   setSelectedStore("all_stores");
                   setIncomeRows([]);
                   setReturnableIncomeRows([]);
@@ -1115,7 +1174,7 @@ export default function IncomeExpenseReport() {
             <table className="w-full text-sm border-collapse">
               <thead className="">
                 <tr className="bg-[#222]">
-                  <th colSpan={showBranch ? 10 : 9} className="h-2 p-0"></th>
+                  <th colSpan={colCount} className="h-2 p-0"></th>
                 </tr>
                 <tr className="bg-white border-b border-gray-100">
                   <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-wider text-gray-700 pl-8">DATE</th>
@@ -1134,7 +1193,7 @@ export default function IncomeExpenseReport() {
               {loading && (
                 <tbody>
                   <tr>
-                    <td colSpan={showBranch ? 10 : 9} className="px-4 py-16 text-center text-gray-500">
+                    <td colSpan={colCount} className="px-4 py-16 text-center text-gray-500">
                       <div className="flex flex-col items-center justify-center gap-3">
                         <RefreshCw size={28} className="animate-spin text-blue-600" />
                         <p className="font-medium text-gray-600">Loading Income &amp; Expense data...</p>
@@ -1147,7 +1206,7 @@ export default function IncomeExpenseReport() {
               {!loading && !hasData && !hasSearched && (
                 <tbody>
                   <tr>
-                    <td colSpan={showBranch ? 10 : 9} className="px-4 py-16 text-center text-gray-400">
+                    <td colSpan={colCount} className="px-4 py-16 text-center text-gray-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Filter size={32} className="text-gray-300" />
                         <p className="text-base font-medium text-gray-600">Apply a filter to load data.</p>
@@ -1161,7 +1220,7 @@ export default function IncomeExpenseReport() {
               {!loading && !hasData && hasSearched && (
                 <tbody>
                   <tr>
-                    <td colSpan={showBranch ? 10 : 9} className="px-4 py-16 text-center text-gray-400">
+                    <td colSpan={colCount} className="px-4 py-16 text-center text-gray-400">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <p className="text-base font-medium text-gray-600">No records match the selected filters.</p>
                         <p className="text-xs text-gray-400">Try choosing a wider date range or different category.</p>
@@ -1176,7 +1235,7 @@ export default function IncomeExpenseReport() {
                   {/* 1. INCOME SECTION */}
                   <tbody>
                     <tr className="bg-white border-b-0 border-y border-transparent">
-                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-green-700 uppercase tracking-wider relative">
+                      <td colSpan={colCount} className="px-4 py-3 text-sm font-black text-green-700 uppercase tracking-wider relative">
                         <div className="absolute left-0 top-1 bottom-1 w-1 bg-green-500 rounded-r-md"></div>
                         <div className="flex justify-between items-center pl-2">
                           <span className="inline-flex items-center gap-2">
@@ -1203,6 +1262,7 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.bank !== 0 ? fmt(Math.abs(incTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{incTotals.upi  !== 0 ? fmt(Math.abs(incTotals.upi))  : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(incTotal))}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                   </tbody>
 
@@ -1222,6 +1282,7 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{retAndBankCashTotals.bank !== 0 ? fmt(Math.abs(retAndBankCashTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{retAndBankCashTotals.upi  !== 0 ? fmt(Math.abs(retAndBankCashTotals.upi))  : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(retAndBankCashTotal))}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                     <tr className="bg-[#1c1c1c] border-t border-[#333]">
                       <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-white">
@@ -1232,13 +1293,14 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{grandTotalIncomeTotals.bank !== 0 ? fmt(Math.abs(grandTotalIncomeTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{grandTotalIncomeTotals.upi  !== 0 ? fmt(Math.abs(grandTotalIncomeTotals.upi))  : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(grandTotalIncome))}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                   </tbody>
 
                   {/* 4. EXPENSES SECTION */}
                   <tbody>
                     <tr className="bg-white border-b-0 border-y border-transparent mt-4">
-                      <td colSpan={showBranch ? 10 : 9} className="px-4 py-3 text-sm font-black text-rose-600 uppercase tracking-wider relative">
+                      <td colSpan={colCount} className="px-4 py-3 text-sm font-black text-rose-600 uppercase tracking-wider relative">
                         <div className="absolute left-0 top-1 bottom-1 w-1 bg-rose-500 rounded-r-md"></div>
                         <div className="flex justify-between items-center pl-2">
                           <span className="inline-flex items-center gap-2">
@@ -1265,6 +1327,7 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.bank !== 0 ? fmt(Math.abs(expTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{expTotals.upi  !== 0 ? fmt(Math.abs(expTotals.upi)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{expTotal !== 0 ? fmt(Math.abs(expTotal)) : "-"}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                   </tbody>
 
@@ -1284,6 +1347,7 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{holdedAndCashBankTotals.bank !== 0 ? fmt(Math.abs(holdedAndCashBankTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{holdedAndCashBankTotals.upi  !== 0 ? fmt(Math.abs(holdedAndCashBankTotals.upi))  : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(holdedAndCashBankTotal))}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                     <tr className="bg-[#1c1c1c] border-t border-[#333]">
                       <td colSpan={showBranch ? 5 : 4} className="px-4 py-3 text-right text-sm font-bold text-white">
@@ -1294,6 +1358,7 @@ export default function IncomeExpenseReport() {
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{grandTotalExpenseTotals.bank !== 0 ? fmt(Math.abs(grandTotalExpenseTotals.bank)) : "-"}</td>
                       <td className="px-4 py-3 text-right text-xs font-bold text-white font-mono">{grandTotalExpenseTotals.upi  !== 0 ? fmt(Math.abs(grandTotalExpenseTotals.upi))  : "-"}</td>
                       <td className="px-4 py-3 text-right text-sm font-bold text-white font-mono">{fmt(Math.abs(grandTotalExpense))}</td>
+                      <td className="px-4 py-3"></td>
                     </tr>
                   </tbody>
 
@@ -1310,6 +1375,7 @@ export default function IncomeExpenseReport() {
                       <td className={`px-4 py-3.5 text-right text-base font-black font-mono ${netTotal >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
                         {netTotal >= 0 ? fmt(netTotal) : `-${fmt(Math.abs(netTotal))}`}
                       </td>
+                      <td className="px-4 py-3.5"></td>
                     </tr>
                   </tbody>
                 </>

@@ -112,7 +112,7 @@ const Revenuereport = () => {
 
     const handleExportCSV = () => {
         if (filteredTransactions.length === 0) return;
-        const csvRows = [['Date', 'Invoice No.', 'Customer Name', 'Category', 'Subcategory', 'Difference']];
+        const csvRows = [['Date', 'Invoice No.', 'Customer Name', 'Category', 'Subcategory', 'Income']];
         filteredTransactions.forEach(item => {
             csvRows.push([formatDateCSV(item.date), item.invoiceNo || "-", item.customerName || "-", item.Category, item.SubCategory, item.amount || 0]);
         });
@@ -236,7 +236,7 @@ const Revenuereport = () => {
                                     <th className="px-5 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase">Customer Name</th>
                                     <th className="px-5 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase">Category</th>
                                     <th className="px-5 py-3 text-left text-[11px] font-semibold tracking-widest text-white uppercase">Subcategory</th>
-                                    <th className="px-5 py-3 text-right text-[11px] font-semibold tracking-widest text-white uppercase">Difference</th>
+                                    <th className="px-5 py-3 text-right text-[11px] font-semibold tracking-widest text-white uppercase">Income</th>
                                 </tr>
                             </thead>
                             <tbody>

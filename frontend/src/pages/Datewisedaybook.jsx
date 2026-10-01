@@ -40,6 +40,57 @@ const categories = [
 
 const DEPT_LOC_CODES = ["759", "102", "101", "858", "103"];
 
+const getTxId = (t) => String(t?._id?.$oid || t?._id || t?.id || "");
+
+const getAttachmentUrl = (t) => {
+  if (!t) return "";
+  const id = getTxId(t);
+  const direct = t.attachment || t.file || t.documentUrl || t.image;
+  if (typeof direct === "string" && direct && !["Yes", "No"].includes(direct)) return direct;
+  const hasFile = t.hasAttachment || (direct && typeof direct === "object");
+  if (hasFile && id) return `${baseUrl.baseUrl}user/transaction/${id}/attachment`;
+  return "";
+};
+
+const downloadTxAttachment = async (t) => {
+  const url = getAttachmentUrl(t);
+  if (!url) return;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("download failed");
+    const blob = await res.blob();
+    const cd = res.headers.get("Content-Disposition") || "";
+    const match = cd.match(/filename\*?=(?:UTF-8''|"?)([^";]+)/i);
+    const filename = match ? decodeURIComponent(match[1].replace(/"/g, "").trim()) : "attachment";
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+};
+
+const AttachmentDownloadCell = ({ t }) => {
+  if (!getAttachmentUrl(t)) return "-";
+  return (
+    <button
+      type="button"
+      title="Download attachment"
+      onClick={() => downloadTxAttachment(t)}
+      className="inline-flex items-center justify-center text-green-600 hover:text-green-800"
+    >
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg>
+    </button>
+  );
+};
+
 
 const headers = [
   { label: "Date", key: "date" },
@@ -446,11 +497,12 @@ const Datewisedaybook = () => {
       });
 
       const mongoList = (mongoData?.data || []).map(tx => {
-        const cash = Number(tx.cash || 0);
-        const rbl = Number(tx.rbl || tx.rblRazorPay || 0); // ✅ Added RBL mapping
-        const bank = Number(tx.bank || 0);
-        const upi = Number(tx.upi || 0);
-        const isReturn = (tx.type || "").toLowerCase() === "return";
+        const isReturn = (tx.type || "").toLowerCase() === "return" || (tx.subCategory || "").toLowerCase().includes("return") || (tx.category || "").toLowerCase().includes("return") || (tx.invoiceNo || "").toUpperCase().startsWith("RTN-") || (tx.invoiceNo || "").toUpperCase().startsWith("RET-");
+        const sign = isReturn ? -1 : 1;
+        const cash = Number(tx.cash || 0) * sign;
+        const rbl = Number(tx.rbl || tx.rblRazorPay || 0) * sign; // ✅ Added RBL mapping
+        const bank = Number(tx.bank || 0) * sign;
+        const upi = Number(tx.upi || 0) * sign;
         const rawSubCat = tx.subCategory || tx.category || "";
         const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
           ? `${rawSubCat} Return`
@@ -464,14 +516,16 @@ const Datewisedaybook = () => {
           SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
           customerName: tx.customerName || "",
           remark: (() => { const r = tx.remark || tx.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
-          billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)),
-          cash: Number(tx.cash),
+          billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) * sign,
+          cash: cash,
           rbl: rbl, // ✅ Added RBL
-          bank: Number(tx.bank),
-          upi: Number(tx.upi),
-          amount: Number(tx.totalTransaction ?? tx.amount ?? (Number(tx.cash) + rbl + Number(tx.bank) + Number(tx.upi))),
-          totalTransaction: Number(tx.totalTransaction ?? tx.amount ?? (Number(tx.cash) + rbl + Number(tx.bank) + Number(tx.upi))),
-          source: "mongo"
+          bank: bank,
+          upi: upi,
+          amount: Number(tx.totalTransaction ?? tx.amount ?? (Math.abs(Number(tx.cash)) + Math.abs(rbl) + Math.abs(Number(tx.bank)) + Math.abs(Number(tx.upi)))) * sign,
+          totalTransaction: Number(tx.totalTransaction ?? tx.amount ?? (Math.abs(Number(tx.cash)) + Math.abs(rbl) + Math.abs(Number(tx.bank)) + Math.abs(Number(tx.upi)))) * sign,
+          source: "mongo",
+          _id: tx._id,
+          hasAttachment: !!(tx.hasAttachment || tx.attachment?.filename || tx.attachment?.data || (typeof tx.attachment === "string" && tx.attachment)),
         };
       });
 
@@ -535,12 +589,12 @@ const Datewisedaybook = () => {
       const allTransactions = [...finalTws, ...mongoList];
       const deduped = Array.from(
         new Map(
-          allTransactions.map((tx) => {
+          allTransactions.map((tx, index) => {
             const dateKey = (tx.date ? new Date(tx.date).toISOString().split("T")[0] : "");
-            // Use _id as primary key if available (for mongo transactions), otherwise use invoiceNo + category + date + source
+            // Use _id as primary key if available (for mongo transactions), otherwise use invoiceNo + category + date + source + index to prevent partial returns from overwriting
             const key = tx._id
               ? tx._id
-              : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}`;
+              : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}-${index}`;
             return [key, tx];
           })
         ).values()
@@ -579,34 +633,9 @@ const Datewisedaybook = () => {
       locCodesToFetch = [currentusers.locCode];
     }
 
-    if (selectedStore === "all" || selectedStore === "all_departments") {
-      const filteredLocations = visibleLocations.filter(loc => locCodesToFetch.includes(loc.locCode));
-      
-      const results = await Promise.all(
-        filteredLocations.map(async ({ locCode, locName }) => {
-          const summary = await getStoreFooterTotals(locCode, fromDate, toDate);
-          return { store: locName, locCode, ...summary };
-        })
-      );
-      const totals = results.reduce(
-        (acc, s) => ({
-          cash: acc.cash + s.cash,
-          rbl: acc.rbl + s.rbl,
-          bank: acc.bank + s.bank,
-          upi: acc.upi + s.upi,
-          amount: acc.amount + s.amount,
-        }),
-        { cash: 0, rbl: 0, bank: 0, upi: 0, amount: 0 }
-      );
-      setAllStoresSummary(results);
-      setAllStoresTotals(totals);
-      setIsFetching(false);
-      return;
-    }
-
-    if (selectedStore === "multi") {
+    if (selectedStore === "multi" || selectedStore === "all" || selectedStore === "all_departments") {
       setMultiBranchFetching(true);
-      const storesToFetch = visibleLocations.filter(loc => selectedStores.includes(loc.locCode));
+      const storesToFetch = visibleLocations.filter(loc => locCodesToFetch.includes(loc.locCode));
       const allResults = await Promise.all(
         storesToFetch.map(async ({ locCode, locName }) => {
           const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
@@ -743,12 +772,13 @@ const Datewisedaybook = () => {
           });
 
           const mList = (mongoData?.data || []).map(tx => {
-            const cash = Number(tx.cash || 0);
-            const rbl = Number(tx.rbl || tx.rblRazorPay || 0);
-            const bank = Number(tx.bank || 0);
-            const upi = Number(tx.upi || 0);
+            const isReturn = (tx.type || "").toLowerCase() === "return" || (tx.subCategory || "").toLowerCase().includes("return") || (tx.category || "").toLowerCase().includes("return") || (tx.invoiceNo || "").toUpperCase().startsWith("RTN-") || (tx.invoiceNo || "").toUpperCase().startsWith("RET-");
+            const sign = isReturn ? -1 : 1;
+            const cash = Number(tx.cash || 0) * sign;
+            const rbl = Number(tx.rbl || tx.rblRazorPay || 0) * sign;
+            const bank = Number(tx.bank || 0) * sign;
+            const upi = Number(tx.upi || 0) * sign;
             const total = cash + rbl + bank + upi;
-            const isReturn = (tx.type || "").toLowerCase() === "return";
             const rawSubCat = tx.subCategory || tx.category || "";
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
               ? `${rawSubCat} Return`
@@ -763,12 +793,14 @@ const Datewisedaybook = () => {
               customerName: tx.customerName || "",
               remark: (() => { const r = tx.remark || tx.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
               discountAmount: Number(tx.discountAmount || 0),
-              billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)),
+              billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) * sign,
               cash, rbl, bank, upi,
               amount: total,
               totalTransaction: total,
               source: "mongo",
               branch: locName,
+              _id: tx._id,
+              hasAttachment: !!(tx.hasAttachment || tx.attachment?.filename || tx.attachment?.data || (typeof tx.attachment === "string" && tx.attachment)),
             };
           });
 
@@ -828,11 +860,11 @@ const Datewisedaybook = () => {
           const allTransactionsMulti = [...finalTwsMulti, ...mList];
           const dedupedMulti = Array.from(
             new Map(
-              allTransactionsMulti.map((tx) => {
+              allTransactionsMulti.map((tx, index) => {
                 const dateKey = (tx.date ? new Date(tx.date).toISOString().split("T")[0] : "");
                 const key = tx._id
                   ? `${tx._id}-${locCode}`
-                  : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}-${locCode}`;
+                  : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}-${locCode}-${index}`;
                 return [key, tx];
               })
             ).values()
@@ -1001,7 +1033,9 @@ const Datewisedaybook = () => {
           upi: Number(tx.upi),
           amount: total, // ✅ Added rbl
           totalTransaction: total, // ✅ Added rbl
-          source: "mongo"
+          source: "mongo",
+          _id: tx._id,
+          hasAttachment: !!(tx.hasAttachment || tx.attachment?.filename || tx.attachment?.data || (typeof tx.attachment === "string" && tx.attachment)),
         };
       });
 
@@ -1337,6 +1371,29 @@ const Datewisedaybook = () => {
           attachment: t.hasAttachment ? "Yes" : "No",
         };
       }),
+    
+    // Add Total Row
+    {
+      date: "TOTAL",
+      invoiceNo: "",
+      customerName: "",
+      quantity: "",
+      Category: "",
+      SubCategory: "",
+      SubCategory1: "",
+      amount: totals.amount,
+      totalTransaction: totals.totalTransaction,
+      securityAmount: "",
+      Balance: "",
+      remark: "",
+      discountAmount: totals.discountAmount,
+      billValue: "",
+      cash: totalCash,
+      rbl: totalRblAmount,
+      bank: totalBankAmount,
+      upi: totalUpiAmount,
+      attachment: "",
+    }
   ];
 
   const [editingIndex, setEditingIndex] = useState(null);
@@ -1594,6 +1651,54 @@ const Datewisedaybook = () => {
       handleSave();
     }
   }, editingIndex === null);
+
+  const multiExportData = [
+    ...multiBranchData.filter(filterTransaction).map(t => {
+      const isReturn = (t.Category || t.type || "").toLowerCase() === "return";
+      const isCancel = (t.Category || t.type || "").toLowerCase() === "cancel";
+      
+      let cash = Number(t.cash || 0);
+      let rbl = Number(t.rbl || 0);
+      let bank = Number(t.bank || 0);
+      let upi = Number(t.upi || 0);
+      
+      return {
+        ...t,
+        SubCategory: [t.SubCategory || t.category || ""]
+            .concat((t.Category || "").toLowerCase() === "rentout" ? [t.SubCategory1 || t.subCategory1 || ""] : [])
+            .filter(Boolean)
+            .map(getCatLabel)
+            .join(" + ") || "-", 
+        cash: isReturn || isCancel ? -Math.abs(cash) : cash,
+        rbl: isReturn || isCancel ? -Math.abs(rbl) : rbl,
+        bank: isReturn || isCancel ? -Math.abs(bank) : bank,
+        upi: isReturn || isCancel ? -Math.abs(upi) : upi,
+        attachment: t.hasAttachment ? "Yes" : "No"
+      };
+    }),
+    {
+      date: "TOTAL",
+      invoiceNo: "",
+      customerName: "",
+      quantity: "",
+      Category: "",
+      SubCategory: "",
+      SubCategory1: "",
+      amount: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.amount || 0)), 0),
+      totalTransaction: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.totalTransaction || 0)), 0),
+      securityAmount: "",
+      Balance: "",
+      remark: "",
+      discountAmount: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.discountAmount || 0)), 0),
+      billValue: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.billValue || 0)), 0),
+      cash: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.cash || 0)), 0),
+      rbl: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.rbl || 0)), 0),
+      bank: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.bank || 0)), 0),
+      upi: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.upi || 0)), 0),
+      branch: "",
+      attachment: "",
+    }
+  ];
 
   return (
     <>
@@ -1942,8 +2047,8 @@ const Datewisedaybook = () => {
                   {/* Action Buttons Right Side */}
                   <div className="flex items-center gap-3">
                     <CSVLink
-                      data={(selectedStore === "all" || selectedStore === "all_departments") ? allStoresSummary : selectedStore === "multi" ? multiBranchData.map(t => ({ ...t, attachment: t.hasAttachment ? "Yes" : "No" })) : exportData}
-                      headers={(selectedStore === "all" || selectedStore === "all_departments") ? allStoresCsvHeaders : selectedStore === "multi" ? multiBranchCsvHeaders : headers}
+                      data={(selectedStore === "all" || selectedStore === "all_departments") ? multiExportData : selectedStore === "multi" ? multiExportData : exportData}
+                      headers={(selectedStore === "all" || selectedStore === "all_departments") ? multiBranchCsvHeaders : selectedStore === "multi" ? multiBranchCsvHeaders : headers}
                       filename={`financial_summary_${selectedStore === "all" ? "All_Branches" : selectedStore === "all_departments" ? "All_Departments" : selectedStore === "multi" ? "Multiple_Branches" : (AllLoation.find(loc => loc.locCode === currentusers.locCode)?.locName || currentusers.locCode || "Store").replace(/[^a-zA-Z0-9]/g, "_")}_${fromDate === toDate ? fromDate : fromDate + "_to_" + toDate}.csv`}
                     >
                       <button
@@ -1972,51 +2077,10 @@ const Datewisedaybook = () => {
             <div ref={printRef}>
               {/* Loading Screen */}
 
-              {(selectedStore === "all" || selectedStore === "all_departments") ? (
-                <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
-                  <div style={{ maxHeight: "500px", overflowY: "auto" }}>
-                    <table className="w-full border-collapse min-w-full text-sm">
-                      <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                        <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide">
-                          <th className="px-3 py-3 text-left font-bold border-r border-[#333333] text-xs">Store</th>
-                          <th className="px-3 py-3 text-left font-bold border-r border-[#333333] text-xs">LocCode</th>
-                          <th className="px-3 py-3 text-right font-bold border-r border-[#333333] text-xs">Cash</th>
-                          <th className="px-3 py-3 text-right font-bold border-r border-[#333333] text-xs">Razorpay</th>
-                          <th className="px-3 py-3 text-right font-bold border-r border-[#333333] text-xs">Card/Bank</th>
-                          <th className="px-3 py-3 text-right font-bold border-r border-[#333333] text-xs">UPI</th>
-                          <th className="px-3 py-3 text-right font-bold border-r border-[#333333] text-xs">Total Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {allStoresSummary.map((s, idx) => (
-                          <tr key={s.locCode} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
-                            <td className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs font-medium">{s.store}</td>
-                            <td className="px-3 py-2 text-gray-500 border-r border-gray-100 text-xs">{s.locCode}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.cash).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.rbl).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.bank).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Number(s.upi).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-gray-900 text-xs">{Number(s.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="bg-[#e2e8f0] font-bold border-t-2 border-gray-300">
-                          <td className="px-3 py-2.5 text-gray-800 uppercase tracking-wide text-xs font-bold" colSpan={2}>Total</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.cash).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.rbl).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.bank).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.upi).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Number(allStoresTotals.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                </div>
-              ) : selectedStore === "multi" ? (
+              {(selectedStore === "multi" || selectedStore === "all" || selectedStore === "all_departments") ? (
                 <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
                   <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
-                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1300px' }}>
+                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1700px' }}>
                       <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                         <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
                           <th className="px-3 py-3 text-left font-bold whitespace-nowrap border-r border-[#333333] text-xs min-w-[110px]">Date</th>
@@ -2028,7 +2092,13 @@ const Datewisedaybook = () => {
                           <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Amount</th>
                           <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Total Txn</th>
                           <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Discount</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Bill Value</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Cash</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Razorpay</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">Card/Bank</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">UPI</th>
                           <th className="px-3 py-3 text-left font-bold whitespace-nowrap border-r border-[#333333] text-xs">Branch</th>
+                          <th className="px-3 py-3 text-center font-bold whitespace-nowrap border-r border-[#333333] text-xs">Attachment</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2048,7 +2118,15 @@ const Datewisedaybook = () => {
                                     <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.securityAmount}</td>
                                     <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.totalTransaction}</td>
                                     <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.discountAmount || 0}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.billValue ? Math.round(Number(t.billValue)).toLocaleString() : "-"}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.cash ? Math.round(Number(t.cash)).toLocaleString() : "-"}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.rbl ? Math.round(Number(t.rbl)).toLocaleString() : "-"}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.bank ? Math.round(Number(t.bank)).toLocaleString() : "-"}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.upi ? Math.round(Number(t.upi)).toLocaleString() : "-"}</td>
                                     <td rowSpan="2" className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs font-medium">{t.branch}</td>
+                                    <td rowSpan="2" className="px-3 py-2 text-center border-r border-gray-100 text-xs">
+                                      <AttachmentDownloadCell t={t} />
+                                    </td>
                                   </tr>
                                   <tr key={`mb-${index}-bal`} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
                                     <td className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs"><div>{t.date}</div>{t.time && <div className="text-[10px] text-gray-500 mt-0.5">{t.time}</div>}</td>
@@ -2074,13 +2152,21 @@ const Datewisedaybook = () => {
                                 <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(t.amount)).toLocaleString()}</td>
                                 <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(t.totalTransaction)).toLocaleString()}</td>
                                 <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(t.discountAmount || 0)).toLocaleString()}</td>
+                                <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.billValue ? Math.round(Number(t.billValue)).toLocaleString() : "-"}</td>
+                                <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.cash ? Math.round(Number(t.cash)).toLocaleString() : "-"}</td>
+                                <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.rbl ? Math.round(Number(t.rbl)).toLocaleString() : "-"}</td>
+                                <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.bank ? Math.round(Number(t.bank)).toLocaleString() : "-"}</td>
+                                <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{t.upi ? Math.round(Number(t.upi)).toLocaleString() : "-"}</td>
                                 <td className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs font-medium">{t.branch}</td>
+                                <td className="px-3 py-2 text-center border-r border-gray-100 text-xs">
+                                  <AttachmentDownloadCell t={t} />
+                                </td>
                               </tr>
                             );
                           })}
                         {multiBranchData.length === 0 && (
                           <tr>
-                            <td colSpan={10} className="text-center py-8 text-gray-400 text-sm">
+                            <td colSpan={17} className="text-center py-8 text-gray-400 text-sm">
                               {selectedStores.length === 0 ? "Select branches above and click Fetch Data" : "No transactions found"}
                             </td>
                           </tr>
@@ -2088,7 +2174,16 @@ const Datewisedaybook = () => {
                       </tbody>
                       <tfoot>
                         <tr className="bg-[#e2e8f0] font-bold border-t-2 border-gray-300" style={{ position: "sticky", bottom: 0, zIndex: 2 }}>
-                          <td colSpan="10" className="px-3 py-2.5 text-left text-gray-800 text-xs font-bold uppercase tracking-wide">TOTAL</td>
+                          <td colSpan="6" className="px-3 py-2.5 text-left text-gray-800 text-xs font-bold uppercase tracking-wide">TOTAL</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.amount || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.totalTransaction || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.discountAmount || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.billValue || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.cash || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.rbl || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.bank || 0)), 0).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.upi || 0)), 0).toLocaleString()}</td>
+                          <td colSpan="2" className="px-3 py-2.5 text-gray-800 text-xs font-bold"></td>
                         </tr>
                       </tfoot>
                     </table>
@@ -2097,7 +2192,7 @@ const Datewisedaybook = () => {
               ) : (
                 <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
                   <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
-                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1200px' }}>
+                    <table className="w-full border-collapse text-xs" style={{ minWidth: '1700px' }}>
                       <thead
                         style={{
                           position: "sticky",
@@ -2202,11 +2297,7 @@ const Datewisedaybook = () => {
                                     <td rowSpan="2" className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{renderPaymentCell("upi")}</td>
 
                                     <td rowSpan="2" className="px-3 py-2 text-center border-r border-gray-100 text-xs">
-                                      {(t.attachment || t.file || t.documentUrl || t.image) ? (
-                                        <a href={t.attachment || t.file || t.documentUrl || t.image} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
-                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                        </a>
-                                      ) : "-"}
+                                      <AttachmentDownloadCell t={t} />
                                     </td>
 
                                     {showAction && (
@@ -2291,11 +2382,7 @@ const Datewisedaybook = () => {
                                 <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{renderPaymentCell("bank")}</td>
                                 <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{renderPaymentCell("upi")}</td>
                                 <td className="px-3 py-2 text-center border-r border-gray-100 text-xs">
-                                  {(t.attachment || t.file || t.documentUrl || t.image) ? (
-                                    <a href={t.attachment || t.file || t.documentUrl || t.image} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline inline-flex items-center gap-1">
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
-                                    </a>
-                                  ) : "-"}
+                                  <AttachmentDownloadCell t={t} />
                                 </td>
                                 {showAction && (
                                   <td className="px-3 py-2 text-center border-r border-gray-100 text-xs">

@@ -26,6 +26,7 @@ const formatDate = (date) => {
 const PurchaseOrderDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isSidebarOpen = useSidebar();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
   const [order, setOrder] = useState(null);

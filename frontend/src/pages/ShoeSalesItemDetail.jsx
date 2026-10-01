@@ -136,7 +136,6 @@ const ALLOWED_WAREHOUSES_DISPLAY = [
 
 // Helper function to normalize warehouse name to display name
 const normalizeWarehouseName = (warehouseName) => {
-  const isSidebarOpen = useSidebar();
   if (!warehouseName) return null;
   // Check exact match first
   if (WAREHOUSE_NAME_MAPPING[warehouseName]) {
@@ -170,6 +169,7 @@ const formatCurrency = (value) => {
 const ShoeSalesItemDetail = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
+  const isSidebarOpen = useSidebar();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [item, setItem] = useState(null);

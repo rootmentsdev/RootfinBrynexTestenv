@@ -252,7 +252,17 @@ export const GetPayment = async (req, res) => {
         // Query transactions based on LocCode and Date Range — exclude binary attachment but include hasAttachment flag
         const transactions = await Transaction.aggregate([
           { $match: query },
-          { $addFields: { hasAttachment: { $cond: [{ $gt: [{ $ifNull: ["$attachment.data", null] }, null] }, true, false] } } },
+          {
+            $addFields: {
+              hasAttachment: {
+                $or: [
+                  { $in: [{ $type: "$attachment.data" }, ["binData", "string"]] },
+                  { $gt: [{ $strLenCP: { $ifNull: ["$attachment.filename", ""] } }, 0] },
+                  { $eq: [{ $type: "$attachment" }, "string"] },
+                ],
+              },
+            },
+          },
           { $project: { attachment: 0 } },
           { $sort: { date: -1 } }
         ]).option({ allowDiskUse: true });

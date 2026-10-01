@@ -1668,10 +1668,10 @@ const DayBookInc = () => {
                                             <button
                                                 type="button"
                                                 onClick={CreateCashBank}
-                                                disabled={!isSaveEnabled || isSyncing}
-                                                className={`flex-1 py-2.5 px-4 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center ${(!isSaveEnabled || isSyncing) ? 'bg-[#a855f7] opacity-60 cursor-not-allowed' : 'bg-[#a855f7] hover:bg-[#9333ea] cursor-pointer'}`}
+                                                disabled={!isSaveEnabled || isSyncing || isSaved || !!preOpen1}
+                                                className={`flex-1 py-2.5 px-4 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors text-center ${(!isSaveEnabled || isSyncing || isSaved || !!preOpen1) ? 'bg-[#a855f7] opacity-60 cursor-not-allowed' : 'bg-[#a855f7] hover:bg-[#9333ea] cursor-pointer'}`}
                                             >
-                                                {!isSaveEnabled ? "Stabilizing..." : "Save & Finish Day"}
+                                                {!isSaveEnabled ? "Stabilizing..." : (isSaved || !!preOpen1) ? "Saved & Finished" : "Save & Finish Day"}
                                             </button>
                                         )}
                                     </div>

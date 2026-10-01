@@ -6,7 +6,6 @@ import AttachmentDisplay from "../components/AttachmentDisplay";
 import useSidebar from "../hooks/useSidebar";
 
 const formatCurrency = (value) => {
-  const isSidebarOpen = useSidebar();
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
@@ -32,6 +31,7 @@ const daysBetween = (date1, date2) => {
 const BillDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const isSidebarOpen = useSidebar();
   const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
   const printRef = useRef(null);
 
