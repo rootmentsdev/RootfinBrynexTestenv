@@ -8,6 +8,7 @@ import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import ImageUpload from "../components/ImageUpload";
 import useSidebar from "../hooks/useSidebar";
+import Header from "../components/Header";
 
 const Label = ({ children, required = false }) => (
   <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${required ? "text-[#ef4444]" : "text-[#64748b]"}`}>
@@ -3668,8 +3669,10 @@ const Bills = () => {
   }
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f0f4ff] ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
-      <div className="px-4 md:px-8 pt-6 pb-16">
+    <>
+      <Header title="Bills" />
+      <div className={`transition-all duration-300 min-h-screen bg-[#f0f4ff] ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
+        <div className="px-4 md:px-8 pt-6 pb-16">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-5">
@@ -4167,8 +4170,9 @@ const Bills = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
-    </div>
+    </>
   );
 };
 

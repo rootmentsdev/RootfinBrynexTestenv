@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import Head from "../components/Head";
+import Header from "../components/Header";
 import { Link, useLocation } from "react-router-dom";
 import { SlidersHorizontal } from "lucide-react";
 import baseUrl from "../api/api";
@@ -154,76 +154,76 @@ const PurchaseVendors = () => {
   };
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
-      <Head
-        title="All Vendors"
-        description=""
-        actions={
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (filteredVendors.length === 0) return alert("No vendors to export");
+    <>
+      <Header title="All Vendors" />
+      <div className={`transition-all duration-300 min-h-screen bg-[#fcfcfc] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-gray-900">All Vendors</h1>
+        <div className="flex gap-3">
+          <button
+            onClick={() => {
+              if (filteredVendors.length === 0) return alert("No vendors to export");
 
-                const headers = ["Name", "Company Name", "Email", "Work Phone", "GST Treatment", "Payables", "Unused Credits"];
-                const rows = filteredVendors.map(v => [
-                  v.displayName || `${v.firstName || ""} ${v.lastName || ""}`.trim(),
-                  v.companyName || "-",
-                  v.email || "-",
-                  v.phone || v.mobile || "-",
-                  v.gstTreatment || "-",
-                  v.payables || 0,
-                  v.credits || 0
-                ]);
+              const headers = ["Name", "Company Name", "Email", "Work Phone", "GST Treatment", "Payables", "Unused Credits"];
+              const rows = filteredVendors.map(v => [
+                v.displayName || `${v.firstName || ""} ${v.lastName || ""}`.trim(),
+                v.companyName || "-",
+                v.email || "-",
+                v.phone || v.mobile || "-",
+                v.gstTreatment || "-",
+                v.payables || 0,
+                v.credits || 0
+              ]);
 
-                const csvContent = [
-                  headers.map(h => `"${h}"`).join(","),
-                  ...rows.map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(","))
-                ].join("\n");
+              const csvContent = [
+                headers.map(h => `"${h}"`).join(","),
+                ...rows.map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(","))
+              ].join("\n");
 
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement("a");
-                link.setAttribute("href", URL.createObjectURL(blob));
-                link.setAttribute("download", `all_vendors_${new Date().toISOString().split('T')[0]}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-              className="inline-flex items-center rounded-md border border-[#facc15]/30 bg-[#fff7ed] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-[#b45309] shadow-sm hover:bg-[#ffedd5]"
-            >
-              Export All
-            </button>
-            <Link
-              to="/purchase/vendors/new"
-              className="rounded-md bg-[#3762f9] px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-[#2748c9]"
-            >
-              New
-            </Link>
+              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+              const link = document.createElement("a");
+              link.setAttribute("href", URL.createObjectURL(blob));
+              link.setAttribute("download", `all_vendors_${new Date().toISOString().split('T')[0]}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            className="flex items-center gap-2 rounded-lg bg-[#f0f0f0] px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+          >
+            Export CSV
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <Link
+            to="/purchase/vendors/new"
+            className="flex items-center gap-2 rounded-lg bg-[#9f54e5] hover:bg-[#8e45cd] px-4 py-2 text-sm font-medium text-white transition-colors shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            New Vendor
+          </Link>
+        </div>
+      </div>
+
+      <div className="mb-4">
+        <div className="relative w-full sm:w-[400px]">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
           </div>
-        }
-      />
+          <input
+            type="text"
+            placeholder="Search vendors"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full rounded-lg border border-gray-200 bg-white py-2 pl-10 pr-3 text-sm placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm"
+          />
+        </div>
+      </div>
 
       <div className="bg-white border border-gray-200 overflow-hidden shadow-sm">
-        {/* Controls */}
-        <div className="flex items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
-          <button className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100">
-            <SlidersHorizontal size={16} />
-          </button>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              placeholder="Search vendors"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-9 w-60 rounded-md border border-gray-300 px-3 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#1c1c1c] text-white">
-                <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider text-center w-10">
+              <tr className="bg-[#232323] text-white">
+                <th className="py-3.5 px-4 text-[10px] font-bold uppercase tracking-wider text-center w-10">
                   #
                 </th>
                 <th className="py-3.5 px-4 text-[11px] font-bold uppercase tracking-wider">Name</th>
@@ -270,6 +270,7 @@ const PurchaseVendors = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

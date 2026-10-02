@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useEnterToSave } from "../hooks/useEnterToSave";
 import { createPortal } from "react-dom";
-import Head from "../components/Head";
+import Header from "../components/Header";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Search, ChevronDown, X, Info } from "lucide-react";
 import ImageUpload from "../components/ImageUpload";
@@ -2084,28 +2084,24 @@ const PurchaseVendorCreate = () => {
   }
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
-      <Head
-        title={isEditMode ? "Edit Vendor" : "New Vendor"}
-        description=""
-        actions={
-          <div className="flex items-center gap-2">
-            <Link
-              to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
-              className="rounded-md border border-[#d7dcf5] px-5 py-2 text-base font-medium text-[#475569] transition hover:bg-white"
-            >
-              Back
-            </Link>
-          </div>
-        }
-      />
+    <>
+      <Header title={isEditMode ? "Edit Vendor" : "New Vendor"} />
+      <div className={`transition-all duration-300 min-h-screen bg-[#fafafa] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
+        <div className="mb-6 flex items-center gap-2 text-sm text-gray-500">
+          <span className="hover:text-purple-600 cursor-pointer">Purchase</span>
+          <span>/</span>
+          <Link to="/purchase/vendors" className="hover:text-purple-600">Vendors</Link>
+          <span>/</span>
+          <span className="text-gray-900 font-medium">{isEditMode ? "Edit Vendor" : "Add New Vendors"}</span>
+        </div>
 
       <form onSubmit={save} className="space-y-6">
-        <div className="rounded-3xl border border-[#e1e5f5] bg-white shadow-[0_30px_90px_-40px_rgba(15,23,42,0.25)]">
-          <div className="px-8 py-8">
-            {/* Primary details */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Select label="Primary Contact" value={salutation} onChange={(e) => setSalutation(e.target.value)}>
+        {/* Top Card */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="px-6 py-6 space-y-6">
+            <h3 className="text-base font-semibold text-gray-800 mb-4">Primary Contact</h3>
+            <div className="grid gap-4 md:grid-cols-[1fr_2fr_2fr]">
+              <Select label="Salutation" value={salutation} onChange={(e) => setSalutation(e.target.value)}>
                 <option value="">Salutation</option>
                 <option value="Mr">Mr</option>
                 <option value="Ms">Ms</option>
@@ -2116,17 +2112,15 @@ const PurchaseVendorCreate = () => {
               <Input label="Last Name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 md:grid-cols-3 mt-4">
               <Input label="Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
               <Input label="Display Name" placeholder="Select or type to add" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+              <Input label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
 
-            <div className="mt-4 grid gap-4 md:grid-cols-3">
-              <Input label="Email Address" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <div className="grid gap-4 md:grid-cols-2">
-                <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
-                <Input label="Mobile" value={mobile} onChange={(e) => setMobile(e.target.value)} />
-              </div>
+            <div className="grid gap-4 md:grid-cols-3 mt-4">
+              <Input label="Phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input label="Mobile" value={mobile} onChange={(e) => setMobile(e.target.value)} />
               <Select label="Vendor Language" value={vendorLanguage} onChange={(e) => setVendorLanguage(e.target.value)}>
                 <option value="">Select</option>
                 <option value="English">English</option>
@@ -2134,18 +2128,23 @@ const PurchaseVendorCreate = () => {
                 <option value="Malayalam">Malayalam</option>
               </Select>
             </div>
+          </div>
+        </div>
 
+        {/* Bottom Card */}
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+          <div className="px-6 py-6">
             {/* Tabs */}
-            <div className="mt-6 border-b border-[#e7ebf8]">
-              <div className="flex flex-wrap gap-6 text-base">
+            <div className="border-b border-gray-200">
+              <div className="flex flex-wrap gap-8 text-sm">
                 {TABS.map((tab) => (
                   <span
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`cursor-pointer select-none px-1 pb-2 transition ${
+                    className={`cursor-pointer select-none pb-3 transition-colors ${
                       activeTab === tab
-                        ? "border-b-2 border-[#2563eb] font-medium text-[#2563eb]"
-                        : "text-[#64748b] hover:text-[#1f2937]"
+                        ? "border-b-2 border-purple-600 font-medium text-purple-600"
+                        : "text-gray-500 hover:text-gray-900"
                     }`}
                   >
                     {tab}
@@ -2520,17 +2519,17 @@ const PurchaseVendorCreate = () => {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-[#e7ebf8] px-8 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 bg-gray-50 mt-8">
             <Link
               to={isEditMode ? `/purchase/vendors/${id}` : "/purchase/vendors"}
-              className="rounded-md border border-[#d7dcf5] px-5 py-2 text-base font-medium text-[#475569] transition hover:bg-white"
+              className="rounded-lg border border-gray-300 bg-white px-5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 shadow-sm"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={saving}
-              className="rounded-md bg-[#3762f9] px-5 py-2 text-base font-semibold text-white transition hover:bg-[#2748c9] disabled:opacity-60"
+              className="rounded-lg bg-[#a855f7] hover:bg-[#9333ea] px-5 py-2 text-sm font-medium text-white transition-colors disabled:opacity-60 shadow-sm"
             >
               {saving ? (isEditMode ? "Updating..." : "Saving...") : (isEditMode ? "Update" : "Save")}
             </button>
@@ -2538,6 +2537,7 @@ const PurchaseVendorCreate = () => {
         </div>
       </form>
     </div>
+    </>
   );
 };
 

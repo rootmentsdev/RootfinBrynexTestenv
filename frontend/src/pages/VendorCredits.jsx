@@ -6,6 +6,7 @@ import { ChevronDown, List, Grid, Camera, MoreHorizontal, ArrowUp, Search, Filte
 import baseUrl from "../api/api";
 import { mapLocNameToWarehouse as mapWarehouse } from "../utils/warehouseMapping";
 import useSidebar from "../hooks/useSidebar";
+import Header from "../components/Header";
 
 // Vendor Credit Number Preferences Modal Component
 const CreditNumberPreferencesModal = ({ isOpen, onClose, onSave, currentPrefix, currentNextNumber, autoGenerate, restartYearly }) => {
@@ -2513,8 +2514,10 @@ const VendorCredits = () => {
   };
 
   return (
-    <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
-      {/* Header */}
+    <>
+      <Header title="All Vendor Credits" />
+      <div className={`transition-all duration-300 min-h-screen bg-[#f5f7fb] p-3 sm:p-6 ${isSidebarOpen ? 'lg:ml-64 ml-0' : 'ml-0'}`}>
+        {/* Header */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-semibold text-[#1f2937] leading-tight">
@@ -2668,6 +2671,7 @@ const VendorCredits = () => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
