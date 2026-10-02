@@ -303,6 +303,7 @@ export default function IncomeExpenseReport() {
       const mongoExpense = [];
       const mongoCashToBank = [];
       const mongoBankToCash = [];
+      const mongoHoldedSecurity = [];
 
       mongoTxns.forEach(t => {
         const tp  = (t.type || "").toLowerCase();
@@ -382,6 +383,10 @@ export default function IncomeExpenseReport() {
           mongoBankToCash.push(row);
         } else if (isCashToBank) {
           mongoCashToBank.push(row);
+        } else if (cat.includes("security refund") || sub.includes("security refund") || (tp === "return" && !isSalesReturn && !isReturnInvoice)) {
+          row.category = "Security Refund";
+          row.subCategory = "Security Refund";
+          mongoHoldedSecurity.push(row);
         } else if (isReturnInvoice || tp === "return" || isSalesReturn) {
           mongoExpense.push(row);
         } else if (tp === "income") {
@@ -394,7 +399,7 @@ export default function IncomeExpenseReport() {
       setIncomeRows([...bookingList, ...rentoutIncomeList, ...mongoIncome]);
       setReturnableIncomeRows(returnableList);
       setExpenseRows([...cancelList, ...mongoExpense]);
-      setHoldedSecurityRefundRows(returnList);
+      setHoldedSecurityRefundRows([...returnList, ...mongoHoldedSecurity]);
       setCashToBankRows(mongoCashToBank);
       setBankToCashRows(mongoBankToCash);
     } catch (e) {
