@@ -223,7 +223,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
       // Efficient deduplication
       const deduplicatedTransactions = deduplicateEfficiently(
         finalTransactions,
-        (tx) => tx._id || `${tx.invoiceNo}-${tx.date}-${tx.Category}-${tx.source}`
+        (tx, index) => tx._id || `${tx.invoiceNo}-${tx.date}-${tx.Category}-${tx.source}-${index}`
       );
 
       // Calculate totals

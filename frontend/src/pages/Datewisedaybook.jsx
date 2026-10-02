@@ -1114,11 +1114,11 @@ const Datewisedaybook = () => {
 
       const deduped = Array.from(
         new Map(
-          allTransactions.map((tx) => {
+          allTransactions.map((tx, index) => {
             const dateKey = (tx.date ? new Date(tx.date).toISOString().split("T")[0] : "");
             const key = tx._id
               ? tx._id
-              : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}`;
+              : `${tx.invoiceNo || tx.locCode}-${dateKey}-${tx.Category || tx.type || ""}-${tx.source || ""}-${index}`;
             return [key, tx];
           })
         ).values()

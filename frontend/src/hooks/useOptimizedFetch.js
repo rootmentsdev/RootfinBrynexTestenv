@@ -122,8 +122,8 @@ export const useOptimizedDataProcessing = () => {
 
   const deduplicateEfficiently = useCallback((data, keyExtractor) => {
     const seen = new Set();
-    return data.filter(item => {
-      const key = keyExtractor(item);
+    return data.filter((item, index) => {
+      const key = keyExtractor(item, index);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;

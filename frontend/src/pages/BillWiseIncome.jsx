@@ -616,11 +616,11 @@ const DayBookInc = () => {
     const dedupedTransactions = useMemo(() => {
         return Array.from(
             new Map(
-                allTransactions.map((tx) => {
+                allTransactions.map((tx, index) => {
                     const dateKey = tx.date ? new Date(tx.date).toISOString().split("T")[0] : "";
                     const invoiceKey = tx.invoiceNo || tx._id || tx.locCode || "";
                     const categoryKey = tx.Category || tx.category || "";
-                    const key = `${invoiceKey}-${dateKey}-${categoryKey}`;
+                    const key = tx._id ? tx._id : `${invoiceKey}-${dateKey}-${categoryKey}-${index}`;
                     return [key, tx];
                 })
             ).values()
@@ -786,10 +786,6 @@ const DayBookInc = () => {
             const data = await response.json();
             localStorage.setItem(`denominations_${currentDate}_${locCode}`, JSON.stringify(quantities));
 
-            customAlert("Data saved successfully", "success");
-            setIsSaved(true);
-            setLoading(false);
-            
             // Auto download PDF only for late daybook closures (yesterday's daybook flow)
             if (!isToday && printRef.current) {
                 try {
@@ -809,7 +805,16 @@ const DayBookInc = () => {
                 }
             }
 
+            customAlert("Data saved successfully", "success");
+            setIsSaved(true);
+            setLoading(false);
+            
             takeCreateCashBank();
+            
+            if (!isToday) {
+                // Return to today's date so the system freezes today's day book as pending approval
+                setCurrentDate(new Date().toISOString().split("T")[0]);
+            }
         } catch (error) {
             console.error("Error saving data:", error);
             customAlert("An unexpected error occurred.", "error");
