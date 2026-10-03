@@ -80,6 +80,7 @@ import Income from "./pages/Income.jsx";
 import Expenses from "./pages/Expenses.jsx";
 import IncomeExpenseReport from "./pages/IncomeExpenseReport.jsx";
 import DirectIndirectExpenses from "./pages/DirectIndirectExpenses.jsx";
+import RecordExpenses from "./pages/RecordExpenses.jsx";
 
 const App = () => {
   const location = useLocation();
@@ -110,6 +111,9 @@ const App = () => {
     "/datewisedaybook",
     "/income",
     "/expenses",
+    "/record-expense",
+    "/record-expenses",
+    "/record-expense/new",
     "/direct-expenses",
     "/indirect-expenses",
     "/Income&Expenses",
@@ -223,7 +227,10 @@ const App = () => {
           <Route path="/RentOutReport" element={currentuser ? <DaybookGuard><DayBook /></DaybookGuard> : <Navigate to="/login" />} />
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityReturn /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><DaybookGuard><Income /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><Expenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/direct-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/indirect-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="indirect" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityPending /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />

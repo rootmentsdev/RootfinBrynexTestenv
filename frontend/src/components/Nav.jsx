@@ -31,7 +31,8 @@ import {
     Menu,
     ChevronLeft,
     ArrowDownRight,
-    ArrowUpRight
+    ArrowUpRight,
+    Wallet
 } from "lucide-react";
 import salesInventoryAccessConfig from "../config/salesInventoryAccess.json";
 import baseUrl from "../api/api.js";
@@ -335,11 +336,14 @@ const Nav = () => {
             : "text-zinc-400 font-medium hover:text-white hover:bg-[#27272a]/40"
         }`;
 
-    const singleLinkClasses = (path) =>
-        `flex items-center gap-3.5 px-5 py-3 text-[14px] font-medium whitespace-nowrap truncate transition-all rounded-full ${activePath === path
+    const singleLinkClasses = (path) => {
+        const isActive = activePath === path || 
+            (path === "/record-expense" && (activePath === "/record-expense" || activePath === "/direct-expenses" || activePath === "/indirect-expenses"));
+        return `flex items-center gap-3.5 px-5 py-3 text-[14px] font-medium whitespace-nowrap truncate transition-all rounded-full ${isActive
             ? "bg-[#a855f7] text-white font-semibold shadow-sm"
             : "text-zinc-400 hover:text-white hover:bg-[#27272a]/60"
         }`;
+    };
 
     // alert(location.pathname)
     const isInvoiceCreatePage = activePath === "/sales/invoices/new" || activePath.startsWith("/sales/invoices/edit");
@@ -431,16 +435,10 @@ const Nav = () => {
                                     <span>Financial Summary</span>
                                 </Link>
 
-                                {/* Direct Expense */}
-                                <Link to="/direct-expenses" className={singleLinkClasses("/direct-expenses")}>
-                                    <ArrowDownRight size={18} className="shrink-0" />
-                                    <span>Direct Expense</span>
-                                </Link>
-
-                                {/* Indirect Expense */}
-                                <Link to="/indirect-expenses" className={singleLinkClasses("/indirect-expenses")}>
-                                    <ArrowUpRight size={18} className="shrink-0" />
-                                    <span>Indirect Expense</span>
+                                {/* Record Expense */}
+                                <Link to="/record-expense" className={singleLinkClasses("/record-expense")}>
+                                    <Wallet size={18} className="shrink-0" />
+                                    <span>Record Expense</span>
                                 </Link>
 
                                 {/* Reports */}
@@ -586,8 +584,7 @@ const Nav = () => {
 
                                 {/* Income & Expenses */}
                                 <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={18} className="shrink-0" /><span>Income</span></Link>
-                                <Link to="/direct-expenses" className={singleLinkClasses("/direct-expenses")}><ArrowDownRight size={18} className="shrink-0" /><span>Direct Expense</span></Link>
-                                <Link to="/indirect-expenses" className={singleLinkClasses("/indirect-expenses")}><ArrowUpRight size={18} className="shrink-0" /><span>Indirect Expense</span></Link>
+                                <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><Wallet size={18} className="shrink-0" /><span>Record Expense</span></Link>
                                 <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={18} className="shrink-0" /><span>All Expenses</span></Link>
 
                                 {/* Admin only */}
