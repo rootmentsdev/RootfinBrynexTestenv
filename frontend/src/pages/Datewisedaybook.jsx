@@ -96,18 +96,21 @@ const headers = [
   { label: "Date", key: "date" },
   { label: "Invoice No", key: "invoiceNo" },
   { label: "Customer Name", key: "customerName" },
-  { label: "QTY", key: "quantity" },
+  { label: "Quantity", key: "quantity" },
   { label: "Category", key: "Category" },
-  { label: "Sub Category", key: "SubCategory" },
-  { label: "Remarks", key: "remark" },
+  { label: "Balance Payable", key: "SubCategory1" },
   { label: "Amount", key: "amount" },
-  { label: "Total Txn", key: "totalTransaction" },
+  { label: "Total Transaction", key: "totalTransaction" },
+  { label: "security", key: "securityAmount" },
+  { label: "Balance Payable", key: "Balance" },
+  { label: "Remark", key: "remark" },
   { label: "Discount", key: "discountAmount" },
   { label: "Bill Value", key: "billValue" },
   { label: "Cash", key: "cash" },
   { label: "Razorpay", key: "rbl" },
   { label: "Card/Bank", key: "bank" },
   { label: "UPI", key: "upi" },
+  { label: "Branch", key: "branch" },
   { label: "Attachment", key: "attachment" },
 ];
 
@@ -241,25 +244,7 @@ const allStoresCsvHeaders = [
   { label: "Total Amount", key: "amount" },
 ];
 
-const multiBranchCsvHeaders = [
-  { label: "Date", key: "date" },
-  { label: "Invoice No", key: "invoiceNo" },
-  { label: "Customer Name", key: "customerName" },
-  { label: "QTY", key: "quantity" },
-  { label: "Category", key: "Category" },
-  { label: "Sub Category", key: "SubCategory" },
-  { label: "Remarks", key: "remark" },
-  { label: "Amount", key: "amount" },
-  { label: "Total Txn", key: "totalTransaction" },
-  { label: "Discount", key: "discountAmount" },
-  { label: "Bill Value", key: "billValue" },
-  { label: "Cash", key: "cash" },
-  { label: "Razorpay", key: "rbl" },
-  { label: "Card/Bank", key: "bank" },
-  { label: "UPI", key: "upi" },
-  { label: "Branch", key: "branch" },
-  { label: "Attachment", key: "attachment" },
-];
+const multiBranchCsvHeaders = headers;
 
 const Datewisedaybook = () => {
   const todayStr = new Date().toISOString().split('T')[0];
@@ -455,6 +440,7 @@ const Datewisedaybook = () => {
           invoiceNo: item.invoiceNo,
           Category: "Return",
           SubCategory: "Security Refund",
+          securityAmount: Math.abs(returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount),
           billValue: Number(item.invoiceAmount || 0),
           cash: returnCashAmount,
           rbl: returnRblAmount,
@@ -730,6 +716,7 @@ const Datewisedaybook = () => {
               invoiceNo: item.invoiceNo,
               Category: "Return",
               SubCategory: "Security Refund",
+              securityAmount: Math.abs(returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount),
               discountAmount: Number(item.discountAmount || 0),
               billValue: Number(item.invoiceAmount || 0),
               cash: returnCashAmount,

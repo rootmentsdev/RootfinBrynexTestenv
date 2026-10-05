@@ -528,6 +528,11 @@ const DayBookInc = () => {
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
                 ? `${rawSubCat} Return`
                 : rawSubCat;
+            const cash = transaction.cash !== undefined ? transaction.cash : transaction.cash1;
+            const bank = transaction.bank !== undefined ? transaction.bank : transaction.bank1;
+            const upi = transaction.upi !== undefined ? transaction.upi : transaction.Tupi;
+            const rbl = transaction.rbl || transaction.rblRazorPay || 0;
+            const total = (parseInt(cash || 0, 10) + parseInt(bank || 0, 10) + parseInt(upi || 0, 10) + parseInt(rbl || 0, 10));
             return {
                 ...transaction,
                 locCode: currentusers?.locCode,
@@ -539,15 +544,15 @@ const DayBookInc = () => {
                 customerName: transaction.customerName || transaction.customer || transaction.custName || "-",
                 cash1: transaction.cash,
                 bank1: transaction.bank,
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: transaction.billValue || transaction.invoiceAmount || transaction.amount || 0,
+                discountAmount: parseInt(transaction.discountAmount || 0, 10),
+                billValue: Number(transaction.billValue || transaction.subTotal || transaction.invoiceAmount || Math.abs(Number(transaction.amount) || 0)),
                 Tupi: transaction.upi,
-                rbl: transaction.rbl || transaction.rblRazorPay || 0,
-                cash: transaction.cash !== undefined ? transaction.cash : transaction.cash1,
-                bank: transaction.bank !== undefined ? transaction.bank : transaction.bank1,
-                upi: transaction.upi !== undefined ? transaction.upi : transaction.Tupi,
-                amount: transaction.amount || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
-                totalTransaction: transaction.totalTransaction || (parseInt(transaction.cash || 0) + parseInt(transaction.bank || 0) + parseInt(transaction.upi || 0) + parseInt(transaction.rbl || transaction.rblRazorPay || 0)),
+                rbl: rbl,
+                cash: cash,
+                bank: bank,
+                upi: upi,
+                amount: transaction.amount !== undefined ? transaction.amount : total,
+                totalTransaction: transaction.totalTransaction !== undefined ? transaction.totalTransaction : total,
                 remark: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
                 remarks: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "-" : (r || "-"); })()
             };

@@ -3,6 +3,48 @@ import useSidebar from "../hooks/useSidebar";
 import Header from "../components/Header";
 import baseUrl from "../api/api";
 
+// Function to format location names with proper spacing
+const formatLocationName = (name) => {
+    if (!name) return name;
+    let formatted = name.trim();
+    formatted = formatted.replace(/^([A-Z])([A-Z][a-z])/g, '$1 $2');
+    formatted = formatted.replace(/^([A-Z])([a-z])/g, '$1 $2');
+    return formatted;
+};
+
+// Fallback locations map
+const fallbackLocations = [
+    { value: "Production", locCode: "101" },
+    { value: "Office", locCode: "102" },
+    { value: "WAREHOUSE", locCode: "103" },
+    { value: "Z-Edapally1", locCode: "144" },
+    { value: "G-Edappally", locCode: "702" },
+    { value: "SG-Trivandrum", locCode: "700" },
+    { value: "Z- Edappal", locCode: "100" },
+    { value: "Z.Perinthalmanna", locCode: "133" },
+    { value: "Z.Kottakkal", locCode: "122" },
+    { value: "G.Kottayam", locCode: "701" },
+    { value: "G.Perumbavoor", locCode: "703" },
+    { value: "G.Thrissur", locCode: "704" },
+    { value: "G.Chavakkad", locCode: "706" },
+    { value: "G.Calicut ", locCode: "712" },
+    { value: "G.Vadakara", locCode: "708" },
+    { value: "G.Edappal", locCode: "707" },
+    { value: "G.Perinthalmanna", locCode: "709" },
+    { value: "G.Kottakkal", locCode: "711" },
+    { value: "G.Manjeri", locCode: "710" },
+    { value: "G.Palakkad ", locCode: "705" },
+    { value: "G.Kalpetta", locCode: "717" },
+    { value: "G.Kannur", locCode: "716" },
+    { value: "G.MG Road", locCode: "718" },
+    { value: "Dappr Squad", locCode: "555" }
+];
+
+const getStoreName = (locCode) => {
+    const loc = fallbackLocations.find(l => l.locCode === String(locCode));
+    return loc ? formatLocationName(loc.value) : locCode;
+};
+
 const PendingDaybookClosures = () => {
   const isSidebarOpen = useSidebar();
   const [closures, setClosures] = useState([]);
@@ -47,42 +89,56 @@ const PendingDaybookClosures = () => {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {closures.map(c => (
-              <div key={c._id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col gap-3">
-                <div className="flex justify-between items-start border-b pb-3 border-gray-50">
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Date</p>
-                    <p className="font-bold text-gray-800">{new Date(c.date).toLocaleDateString()}</p>
+            {closures.map(c => {
+              const storeName = getStoreName(c.locCode);
+              return (
+              <div key={c._id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-base leading-tight">{storeName}</h3>
+                      <p className="text-sm text-gray-500">Code: {c.locCode}</p>
+                    </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Location</p>
-                    <p className="font-bold text-blue-600">{c.locCode}</p>
+                    <p className="text-sm font-bold text-gray-700">
+                      {new Date(c.date).toLocaleDateString('en-GB')}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {new Date(c.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                    </p>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 my-2">
+                <hr className="border-gray-100 my-2" />
+                
+                <div className="grid grid-cols-3 gap-2 mt-2 mb-5">
                   <div>
-                    <p className="text-xs text-gray-500">System Cash</p>
-                    <p className="font-mono text-gray-900">₹{c.cash}</p>
+                    <p className="text-[11px] font-semibold text-gray-500 mb-1">System Cash</p>
+                    <p className="font-bold text-gray-900 text-sm">{Number(c.cash || 0).toLocaleString('en-IN')}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Physical Cash</p>
-                    <p className="font-mono text-gray-900">₹{c.Closecash}</p>
+                    <p className="text-[11px] font-semibold text-gray-500 mb-1">Physical Cash</p>
+                    <p className="font-bold text-gray-900 text-sm">{Number(c.Closecash || 0).toLocaleString('en-IN')}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Bank</p>
-                    <p className="font-mono text-gray-900">₹{c.bank}</p>
+                    <p className="text-[11px] font-semibold text-gray-500 mb-1">Bank</p>
+                    <p className="font-bold text-gray-900 text-sm">{Number(c.bank || 0).toLocaleString('en-IN')}</p>
                   </div>
                 </div>
                 
                 <button
                   onClick={() => handleApprove(c._id)}
-                  className="mt-2 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors"
+                  className="w-full py-2 bg-[#9f54e5] hover:bg-[#8b45cd] text-white rounded-lg font-medium transition-colors mt-auto text-sm"
                 >
                   Approve Closure
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
