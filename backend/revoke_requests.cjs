@@ -6,7 +6,7 @@ mongoose.connect(MONGODB_URI)
   .then(async () => {
     const db = mongoose.connection.db;
     
-    const collection = db.collection('closetransactions');
+    const collection = db.collection('closes');
     
     // Let's find all pending_approval records
     const records = await collection.find({ status: "pending_approval" }).toArray();
