@@ -1,10 +1,10 @@
 <html><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head><body>
-<h1>RootFin (Brynex Test Environment) — Project Documentation</h1>
+<h1>RootFin — Project Documentation</h1>
 <p>RootFin is a retail ERP / finance platform built by <strong>Rootments</strong> for a chain of
 stores (shoe / suit / wedding-wear retail). It covers daily cash &amp; bank
 accounting (Day Book, closures, security deposits), purchasing, sales,
 inventory (items, groups, adjustments, transfers, store orders) and reporting.</p>
-<p>This repository (<code>RootfinBrynexTestenv</code>) is the <strong>test environment</strong> of the
+<p>This repository (<code>RootFin</code>) contains the
 project: a React SPA (<code>frontend/</code>) and a Node/Express API (<code>backend/</code>) that can
 talk to MongoDB, PostgreSQL, or both.</p>
 <hr>
@@ -49,7 +49,7 @@ PostgreSQL migration (see <a href="#64-data-layer">§6.4</a>).</li>
 </ul>
 <hr>
 <h2>2. Repository Layout</h2>
-<pre><code>RootfinBrynexTestenv/
+<pre><code>RootFin/
 ├── README.md                    ← this document
 ├── package.json                 root-level deps (cookie-parser, cors, express, mongoose, nodemailer, react-*, vite)
 ├── .github/workflows/
@@ -198,7 +198,7 @@ runtime manifest for either app; install inside <code>backend/</code> and <code>
 <hr>
 <h2>4. Getting Started</h2>
 <p><strong>Prerequisites:</strong> Node 18+, a MongoDB URI, (optional) PostgreSQL 13+.</p>
-<pre><code class="language-bash">git clone &lt;repo-url&gt; &amp;&amp; cd RootfinBrynexTestenv
+<pre><code class="language-bash">git clone &lt;repo-url&gt; &amp;&amp; cd RootFin
 
 # Backend
 cd backend
@@ -833,7 +833,7 @@ stock-management pages, Purchase section.</li>
 <hr>
 <h2>13. Git Workflow</h2>
 <ul>
-<li>Default deploy branch: <code>master</code>; test environment branch carries local
+<li>Default deploy branch: <code>master</code>; feature branch carries local
 features merged with production fixes (see <code>production_changes.patch</code>).</li>
 <li>Use Conventional Commits (<code>feat:</code>, <code>fix:</code>, <code>docs:</code> …) — audited daily by
 the commit-report workflow.</li>

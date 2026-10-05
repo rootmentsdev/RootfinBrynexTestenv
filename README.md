@@ -1,11 +1,11 @@
-# RootFin (Brynex Test Environment) — Project Documentation
+# RootFin — Project Documentation
 
 RootFin is a retail ERP / finance platform built by **Rootments** for a chain of
 stores (shoe / suit / wedding-wear retail). It covers daily cash & bank
 accounting (Day Book, closures, security deposits), purchasing, sales,
 inventory (items, groups, adjustments, transfers, store orders) and reporting.
 
-This repository (`RootfinBrynexTestenv`) is the **test environment** of the
+This repository (`RootFin`) contains the
 project: a React SPA (`frontend/`) and a Node/Express API (`backend/`) that can
 talk to MongoDB, PostgreSQL, or both.
 
@@ -58,7 +58,7 @@ talk to MongoDB, PostgreSQL, or both.
 ## 2. Repository Layout
 
 ```
-RootfinBrynexTestenv/
+RootFin/
 ├── README.md                    ← this document
 ├── package.json                 root-level deps (cookie-parser, cors, express, mongoose, nodemailer, react-*, vite)
 ├── .github/workflows/
@@ -146,7 +146,7 @@ runtime manifest for either app; install inside `backend/` and `frontend/`.
 **Prerequisites:** Node 18+, a MongoDB URI, (optional) PostgreSQL 13+.
 
 ```bash
-git clone <repo-url> && cd RootfinBrynexTestenv
+git clone <repo-url> && cd RootFin
 
 # Backend
 cd backend
@@ -450,7 +450,7 @@ Also in `backend/`: `query_closures.js`, `query_targets.js`,
 
 ## 13. Git Workflow
 
-* Default deploy branch: `master`; test environment branch carries local
+* Default deploy branch: `master`; feature branch carries local
   features merged with production fixes (see `production_changes.patch`).
 * Use Conventional Commits (`feat:`, `fix:`, `docs:` …) — audited daily by
   the commit-report workflow.
