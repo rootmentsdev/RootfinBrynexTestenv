@@ -1,0 +1,843 @@
+<html><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head><body>
+<h1>RootFin (Brynex Test Environment) — Project Documentation</h1>
+<p>RootFin is a retail ERP / finance platform built by <strong>Rootments</strong> for a chain of
+stores (shoe / suit / wedding-wear retail). It covers daily cash &amp; bank
+accounting (Day Book, closures, security deposits), purchasing, sales,
+inventory (items, groups, adjustments, transfers, store orders) and reporting.</p>
+<p>This repository (<code>RootfinBrynexTestenv</code>) is the <strong>test environment</strong> of the
+project: a React SPA (<code>frontend/</code>) and a Node/Express API (<code>backend/</code>) that can
+talk to MongoDB, PostgreSQL, or both.</p>
+<hr>
+<h2>Table of Contents</h2>
+<ol>
+<li><a href="#1-architecture">Architecture</a></li>
+<li><a href="#2-repository-layout">Repository Layout</a></li>
+<li><a href="#3-tech-stack--dependencies">Tech Stack &amp; Dependencies</a></li>
+<li><a href="#4-getting-started">Getting Started</a></li>
+<li><a href="#5-configuration">Configuration</a></li>
+<li><a href="#6-backend-in-detail">Backend in Detail</a></li>
+<li><a href="#7-frontend-in-detail">Frontend in Detail</a></li>
+<li><a href="#8-domain-modules">Domain Modules</a></li>
+<li><a href="#9-roles-access-control--guards">Roles, Access Control &amp; Guards</a></li>
+<li><a href="#10-cicd--deployment">CI/CD &amp; Deployment</a></li>
+<li><a href="#11-maintenance-scripts">Maintenance Scripts</a></li>
+<li><a href="#12-housekeeping-files--known-issues">Housekeeping Files &amp; Known Issues</a></li>
+<li><a href="#13-git-workflow">Git Workflow</a></li>
+</ol>
+<hr>
+<h2>1. Architecture</h2>
+<pre><code>┌──────────────────────┐   HTTPS / JSON    ┌───────────────────────────┐
+│ React 19 SPA (Vite)  │ ────────────────► │ Express API (ESM, Node)   │
+│ Tailwind 4 + DaisyUI │  baseUrl in       │ routes → controllers →    │
+│ Vercel hosting       │  src/api/api.js   │ models / utils            │
+└──────────────────────┘                   └──────┬───────────┬────────┘
+                                                  │           │
+                                       Mongoose   │           │  Sequelize
+                                                  ▼           ▼
+                                           MongoDB Atlas   PostgreSQL
+                                           (primary data)  (migration target)
+</code></pre>
+<ul>
+<li><strong>Frontend</strong> is a client-routed SPA; session user is kept client-side
+(<code>currentuser</code>) and each route is guarded by role/store checks.</li>
+<li><strong>Backend</strong> is a layered Express app. A <code>DB_TYPE</code> switch (<code>mongodb</code> |
+<code>postgresql</code> | <code>both</code>) selects which databases are connected at startup.</li>
+<li><strong>Mongoose models</strong> (<code>backend/model/</code>) are the primary data layer;
+<strong>Sequelize models</strong> (<code>backend/models/sequelize/</code>) mirror a subset for the
+PostgreSQL migration (see <a href="#64-data-layer">§6.4</a>).</li>
+<li>In-memory caching (<code>node-cache</code>) is used for heavy report endpoints.</li>
+</ul>
+<hr>
+<h2>2. Repository Layout</h2>
+<pre><code>RootfinBrynexTestenv/
+├── README.md                    ← this document
+├── package.json                 root-level deps (cookie-parser, cors, express, mongoose, nodemailer, react-*, vite)
+├── .github/workflows/
+│   ├── deploy.yml               rsync + PM2 deploy to EC2 on push to master
+│   └── daily-commit-report.yml  daily Conventional-Commits audit
+├── .vscode/settings.json        editor settings
+├── backend/
+│   ├── server.js                app entry point
+│   ├── swagger.js               Swagger UI at /api-docs
+│   ├── .env                     environment variables (not committed to docs)
+│   ├── db/                      database.js (Mongo), postgresql.js (Sequelize)
+│   ├── route/                   Express routers (24 files)
+│   ├── controllers/             request handlers (≈30 files)
+│   ├── model/                   Mongoose schemas (≈25 files)
+│   ├── models/sequelize/        Sequelize models (11 files + index.js)
+│   ├── utils/                   stock engines, numbering, cache, e-mail
+│   ├── utlis/                   legacy helpers (parseBase64, nextInvoice) — note typo in folder name
+│   └── scripts/                 one-off DB maintenance / migration scripts
+├── frontend/
+│   ├── index.html, vite.config.js, vercel.json, eslint.config.js
+│   ├── public/                  static assets
+│   └── src/
+│       ├── main.jsx, App.jsx    bootstrap + all routes
+│       ├── api/api.js           API base URL
+│       ├── components/          shared UI (Nav, Header, guards, uploads…)
+│       ├── pages/               ≈100 page components
+│       ├── hooks/               data-fetching &amp; UX hooks
+│       ├── utils/               cache, alerts, warehouse mapping, image upload
+│       ├── config/              salesInventoryAccess.json (feature gating)
+│       └── data/                openingBalance.json
+├── production_changes.patch     patch captured when syncing production → test
+└── fix_home.cjs / fix_report.cjs / scratch.jsx   ad-hoc dev helpers
+</code></pre>
+<hr>
+<h2>3. Tech Stack &amp; Dependencies</h2>
+<h3>Backend (<code>backend/package.json</code>, ES modules)</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>express 4</td>
+<td>HTTP server</td>
+</tr>
+<tr>
+<td>mongoose 8</td>
+<td>MongoDB ODM</td>
+</tr>
+<tr>
+<td>sequelize 6 + pg</td>
+<td>PostgreSQL ORM / driver</td>
+</tr>
+<tr>
+<td>bcrypt</td>
+<td>password hashing</td>
+</tr>
+<tr>
+<td>cookie-parser, cors, body-parser</td>
+<td>HTTP middleware</td>
+</tr>
+<tr>
+<td>dotenv, cross-env</td>
+<td>env loading / cross-platform <code>NODE_ENV</code></td>
+</tr>
+<tr>
+<td>node-cache</td>
+<td>in-memory report cache</td>
+</tr>
+<tr>
+<td>nodemailer</td>
+<td>reorder-alert &amp; PO e-mails</td>
+</tr>
+<tr>
+<td>node-fetch</td>
+<td>outbound HTTP</td>
+</tr>
+<tr>
+<td>swagger-jsdoc, swagger-ui-express</td>
+<td>API docs</td>
+</tr>
+<tr>
+<td>nodemon</td>
+<td>dev auto-reload</td>
+</tr>
+</tbody></table>
+<p><strong>Scripts:</strong> <code>npm start</code> (production, 2 GB heap), <code>npm run dev</code> (nodemon,
+development), <code>check-transfers</code>, <code>optimize:quick</code>, <code>optimize:full</code> (index
+creation), <code>test:stock</code>.</p>
+<h3>Frontend (<code>frontend/package.json</code>, Vite)</h3>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>react 19, react-dom, react-router-dom 7</td>
+<td>UI + routing</td>
+</tr>
+<tr>
+<td>tailwindcss 4 (<code>@tailwindcss/vite</code>), daisyui 4</td>
+<td>styling</td>
+</tr>
+<tr>
+<td>react-select</td>
+<td>searchable dropdowns</td>
+</tr>
+<tr>
+<td>react-toastify</td>
+<td>notifications</td>
+</tr>
+<tr>
+<td>recharts</td>
+<td>charts</td>
+</tr>
+<tr>
+<td>lucide-react, react-icons</td>
+<td>icons</td>
+</tr>
+<tr>
+<td>jspdf, html2pdf.js, html2canvas-pro</td>
+<td>PDF export (html2canvas-pro adds <code>oklch()</code> colour support)</td>
+</tr>
+<tr>
+<td>react-to-print, react-csv</td>
+<td>print / CSV export</td>
+</tr>
+<tr>
+<td>html5-qrcode</td>
+<td>barcode / QR scanning</td>
+</tr>
+<tr>
+<td>react-helmet</td>
+<td>document head</td>
+</tr>
+</tbody></table>
+<p><strong>Scripts:</strong> <code>dev</code>, <code>build</code>, <code>lint</code>, <code>preview</code>.</p>
+<h3>Root <code>package.json</code></h3>
+<p>Holds a duplicate set of shared libs (cookie-parser, cors, express 5, mongoose,
+nodemailer, react-csv, react-helmet, react-icons, vite). It is <strong>not</strong> the
+runtime manifest for either app; install inside <code>backend/</code> and <code>frontend/</code>.</p>
+<hr>
+<h2>4. Getting Started</h2>
+<p><strong>Prerequisites:</strong> Node 18+, a MongoDB URI, (optional) PostgreSQL 13+.</p>
+<pre><code class="language-bash">git clone &lt;repo-url&gt; &amp;&amp; cd RootfinBrynexTestenv
+
+# Backend
+cd backend
+npm install
+cp .env .env.local   # then edit values (see §5)
+npm run dev          # http://localhost:7000 (or PORT)
+
+# Frontend (new terminal)
+cd frontend
+npm install
+npm run dev          # http://localhost:3000
+</code></pre>
+<p>Then open <code>http://localhost:3000</code>. API docs: <code>http://localhost:&lt;PORT&gt;/api-docs</code>.
+Health: <code>GET /api/test</code>, DB state: <code>GET /api/db-status</code>.</p>
+<blockquote>
+<p>Point the frontend at your local API by editing <code>frontend/src/api/api.js</code>
+(see §5.3).</p>
+</blockquote>
+<hr>
+<h2>5. Configuration</h2>
+<h3>5.1 Backend environment variables (<code>backend/.env</code>)</h3>
+<p><code>server.js</code> loads <code>.env.&lt;NODE_ENV&gt;</code> if that file exists, otherwise <code>.env</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Used by</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>PORT</code></td>
+<td>server.js</td>
+<td>listen port, default <code>7000</code></td>
+</tr>
+<tr>
+<td><code>NODE_ENV</code></td>
+<td>everywhere</td>
+<td><code>development</code> (default) or <code>production</code></td>
+</tr>
+<tr>
+<td><code>DB_TYPE</code></td>
+<td>server.js</td>
+<td><code>mongodb</code> (default), <code>postgresql</code>, or <code>both</code></td>
+</tr>
+<tr>
+<td><code>MONGODB_URI</code></td>
+<td>db/database.js</td>
+<td>fallback Mongo connection string</td>
+</tr>
+<tr>
+<td><code>MONGODB_URI_PROD</code></td>
+<td>db/database.js</td>
+<td>used when <code>NODE_ENV=production</code></td>
+</tr>
+<tr>
+<td><code>MONGODB_URI_DEV</code></td>
+<td>db/database.js</td>
+<td>used in non-production</td>
+</tr>
+<tr>
+<td><code>POSTGRES_DB_DEV</code> / <code>_USER_DEV</code> / <code>_PASSWORD_DEV</code> / <code>_HOST_DEV</code> / <code>_PORT_DEV</code></td>
+<td>db/postgresql.js</td>
+<td>dev PG credentials (defaults: <code>rootfin_dev</code>, <code>postgres</code>, <code>postgres</code>, <code>localhost</code>, <code>5432</code>)</td>
+</tr>
+<tr>
+<td><code>POSTGRES_*_PROD</code> / <code>POSTGRES_URI_PROD</code> / <code>DATABASE_URL</code></td>
+<td>db/postgresql.js</td>
+<td>production PG credentials or connection URI</td>
+</tr>
+<tr>
+<td><code>POSTGRES_URI_DEV</code></td>
+<td>db/postgresql.js</td>
+<td>optional dev connection URI</td>
+</tr>
+<tr>
+<td><code>POSTGRES_LOGGING</code></td>
+<td>db/postgresql.js</td>
+<td><code>true</code> logs SQL</td>
+</tr>
+<tr>
+<td><code>SYNC_DB</code></td>
+<td>db/postgresql.js</td>
+<td><code>true</code> runs <code>sequelize.sync()</code> on connect</td>
+</tr>
+<tr>
+<td>e-mail settings</td>
+<td>utils/emailService.js</td>
+<td>SMTP configuration for nodemailer</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>Values are supplied per environment and are never documented here.</p>
+</blockquote>
+<p><strong>Resilience features in <code>db/database.js</code>:</strong> environment-specific connection
+strings, protection against cross-environment connections, and
+<code>disconnected / reconnected / error</code> listeners.</p>
+<p><strong>Express middleware (<code>server.js</code>):</strong> JSON &amp; urlencoded body limit <strong>10 MB</strong>
+(base64 attachments), <code>cookie-parser</code>, CORS with credentials.</p>
+<p><strong>CORS:</strong> an explicit origin allow-list (local dev and deployed frontends) is
+configured in <code>server.js</code>. Add new frontend origins there.</p>
+<h3>5.2 PostgreSQL pool / SSL</h3>
+<p><code>db/postgresql.js</code> builds config per environment, supports a full URI with
+<code>dialectOptions</code> (SSL) and connection <code>pool</code> settings, and optionally syncs
+tables when <code>SYNC_DB=true</code>.</p>
+<h3>5.3 Frontend configuration</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>src/api/api.js</code></td>
+<td>exports <code>{ baseUrl }</code>, the API root used by every page. Set it to your local or deployed API (or switch to <code>import.meta.env.VITE_API_URL</code>).</td>
+</tr>
+<tr>
+<td><code>vite.config.js</code></td>
+<td>plugins <code>react()</code> and <code>tailwindcss()</code>; dev server on port <strong>3000</strong>.</td>
+</tr>
+<tr>
+<td><code>vercel.json</code></td>
+<td>rewrites all paths to <code>/index.html</code> (SPA routing).</td>
+</tr>
+<tr>
+<td><code>eslint.config.js</code></td>
+<td>ESLint 9 flat config with react-hooks / react-refresh.</td>
+</tr>
+<tr>
+<td><code>src/config/salesInventoryAccess.json</code></td>
+<td><code>allowedEmails</code> list — stores allowed to see <strong>Sales</strong> and <strong>Inventory</strong> menus (see <a href="#9-roles-access-control--guards">§9</a>). Case-insensitive; rebuild required in production.</td>
+</tr>
+<tr>
+<td><code>src/config/README.md</code></td>
+<td>how to add/remove stores from that list</td>
+</tr>
+<tr>
+<td><code>src/data/openingBalance.json</code></td>
+<td>opening balance seed data for stores</td>
+</tr>
+</tbody></table>
+<hr>
+<h2>6. Backend in Detail</h2>
+<h3>6.1 Startup flow (<code>server.js</code>)</h3>
+<ol>
+<li>Load env file → create Express app → <code>setupSwagger(app)</code>.</li>
+<li>Apply body parsers, cookies, CORS, <code>OPTIONS *</code> preflight.</li>
+<li>Mount routers (all under <code>/api</code> unless noted).</li>
+<li>Utility endpoints: <code>GET /</code> (liveness text), <code>GET /api/test</code>,
+<code>GET /api/db-status</code> (reports Mongo <code>readyState</code> and PG authentication).</li>
+<li><code>app.listen</code> → connect DBs by <code>DB_TYPE</code>. PostgreSQL failure is
+non-fatal when Mongo is used; Mongo failure exits the process.</li>
+</ol>
+<h3>6.2 Routers → API surface</h3>
+<table>
+<thead>
+<tr>
+<th>Router file</th>
+<th>Base path(s)</th>
+<th>Main endpoints</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LoginRoute.js</code></td>
+<td><code>/api</code> (users)</td>
+<td><code>POST /signin</code>, <code>POST /login</code>, <code>GET /getAllStores</code>, <code>GET /getAllUsers</code>, <code>PUT /updateUser/:id</code>, <code>DELETE /deleteUser/:id</code>, <code>POST /reset-password</code>, <code>POST /createPayment</code>, <code>GET /Getpayment</code>, <code>POST /saveCashBank</code>, <code>GET /getsaveCashBank</code>, <code>GET /pendingClosures</code>, <code>PUT /approveClosure/:id</code>, <code>GET /AdminColseView</code>, <code>GET /getTransactions</code>, <code>POST /syncTransaction</code>, <code>PUT /editTransaction/:id</code>, <code>GET /transaction/:id/attachment</code>, <code>GET /financialSummaryWithEdit</code></td>
+</tr>
+<tr>
+<td><code>TwsRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>GET /getEditedTransactions</code>, <code>GET /getsaveCashBank</code></td>
+</tr>
+<tr>
+<td><code>DayBookRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>GET /daybook</code>, <code>GET /daybook/range</code></td>
+</tr>
+<tr>
+<td><code>ExpenseTargetRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>POST/GET /expense-targets</code>, <code>GET /expense-targets/all</code></td>
+</tr>
+<tr>
+<td><code>ShoeItemRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/shoe-sales/items</code>, <code>/:itemId</code>, <code>/:itemId/history</code></td>
+</tr>
+<tr>
+<td><code>ItemGroupRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/shoe-sales/item-groups</code>, <code>/:id</code>, <code>/:id/items/:itemId/history</code>, <code>/:id/monthly-opening-stock</code></td>
+</tr>
+<tr>
+<td><code>ManufacturerRoutes.js</code> / <code>BrandRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/shoe-sales/manufacturers[/:id]</code>, <code>/shoe-sales/brands[/:id]</code></td>
+</tr>
+<tr>
+<td><code>AddressRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/addresses[/:id]</code></td>
+</tr>
+<tr>
+<td><code>VendorRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/vendors[/:id]</code>, <code>/:vendorId/history</code></td>
+</tr>
+<tr>
+<td><code>BillRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/bills[/:id]</code>, <code>/purchase/orders/:id/convert-to-bill</code>, <code>/purchase/receives/:id/convert-to-bill</code></td>
+</tr>
+<tr>
+<td><code>VendorCreditRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/vendor-credits[/:id]</code>, <code>/next-number</code>, <code>/available</code>, <code>/apply-to-bill</code></td>
+</tr>
+<tr>
+<td><code>PurchaseOrderRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/orders[/:id]</code>, <code>/number/:orderNumber</code>, <code>/next-number</code>, <code>POST /:id/send</code></td>
+</tr>
+<tr>
+<td><code>PurchaseReceiveRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/purchase/receives[/:id]</code>, <code>/next-number</code>, <code>POST /:id/send</code></td>
+</tr>
+<tr>
+<td><code>InventoryAdjustmentRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/inventory/adjustments[/:id]</code>, <code>/next-reference</code>, <code>/stock/item</code></td>
+</tr>
+<tr>
+<td><code>TransferOrderRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/inventory/transfer-orders[/:id]</code>, <code>/:id/receive</code>, <code>/stock/item</code></td>
+</tr>
+<tr>
+<td><code>StoreOrderRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/inventory/store-orders[/:id]</code>, <code>/next-number</code></td>
+</tr>
+<tr>
+<td><code>StoreRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/stores[/:id]</code>, <code>/stores/loc/:locCode</code></td>
+</tr>
+<tr>
+<td><code>SalesPersonRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/sales-persons[/:id]</code>, <code>/loc/:locCode</code></td>
+</tr>
+<tr>
+<td><code>SalesInvoiceRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/sales/invoices[/:id]</code>, <code>POST /next-number</code></td>
+</tr>
+<tr>
+<td><code>SalesReportRoutes.js</code></td>
+<td><code>/api/reports/sales</code></td>
+<td><code>/by-invoice</code>, <code>/summary</code>, <code>/by-item</code>, <code>/returns</code>, <code>/by-group</code></td>
+</tr>
+<tr>
+<td><code>InventoryReportRoutes.js</code></td>
+<td><code>/api/reports/inventory</code></td>
+<td><code>/summary</code>, <code>/stock-summary</code>, <code>/valuation</code>, <code>/aging</code>, <code>/opening-stock</code>, <code>/stock-on-hand</code></td>
+</tr>
+<tr>
+<td><code>ReorderAlertRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>/reorder-alerts</code>, <code>/warehouse/:w</code>, <code>PUT /:id/notify</code>, <code>PUT /:id/resolve</code>, <code>DELETE /:id</code>, <code>POST /test-email</code></td>
+</tr>
+<tr>
+<td><code>MergRoutes.js</code></td>
+<td><code>/api</code></td>
+<td><code>GET /mergedTransactions</code> (currently commented out in server.js)</td>
+</tr>
+</tbody></table>
+<p>Other: <code>/api-docs</code> (Swagger UI), <code>/api/test</code>, <code>/api/db-status</code>.</p>
+<h3>6.3 Controllers (<code>backend/controllers/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Controller</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>LoginAndSignup.js</code></td>
+<td>sign-up, login (bcrypt), user CRUD, password reset, store/user lists, payments</td>
+</tr>
+<tr>
+<td><code>CloseController.js</code></td>
+<td>cash/bank day closing, approval of pending closures, admin close view</td>
+</tr>
+<tr>
+<td><code>DayBookController.js</code></td>
+<td>Day Book per store/day and date ranges</td>
+</tr>
+<tr>
+<td><code>TransactionController.js</code>, <code>TwsTransaction.js</code>, <code>TwsControllers.js</code>, <code>EditController.js</code></td>
+<td>transaction sync, edit history, attachments, financial summary</td>
+</tr>
+<tr>
+<td><code>ExpenseTargetController.js</code></td>
+<td>monthly expense targets per store</td>
+</tr>
+<tr>
+<td><code>ShoeItemController.js</code>, <code>ItemGroupController.js</code></td>
+<td>items, groups, stock per warehouse, item history, monthly opening stock</td>
+</tr>
+<tr>
+<td><code>ManufacturerController.js</code>, <code>BrandController.js</code></td>
+<td>catalogue masters</td>
+</tr>
+<tr>
+<td><code>VendorController.js</code>, <code>VendorHistoryController.js</code>, <code>AddressController.js</code></td>
+<td>vendors, history log, addresses</td>
+</tr>
+<tr>
+<td><code>PurchaseOrderController.js</code>, <code>PurchaseReceiveController.js</code>, <code>BillController.js</code>, <code>VendorCreditController.js</code></td>
+<td>purchase cycle &amp; numbering</td>
+</tr>
+<tr>
+<td><code>InventoryAdjustmentController.js</code>, <code>TransferOrderController.js</code>, <code>StoreOrderController.js</code></td>
+<td>stock movements</td>
+</tr>
+<tr>
+<td><code>SalesInvoiceController.js</code>, <code>SalesPersonController.js</code></td>
+<td>sales, returns, salespeople</td>
+</tr>
+<tr>
+<td><code>SalesReportController.js</code>, <code>SalesByGroupController.js</code>, <code>InventoryReportController.js</code>, <code>OptimizedReportController.js</code></td>
+<td>reports (cached)</td>
+</tr>
+<tr>
+<td><code>StoreController.js</code></td>
+<td>store master CRUD</td>
+</tr>
+</tbody></table>
+<h3>6.4 Data layer</h3>
+<p><strong>Mongoose models (<code>backend/model/</code>)</strong>
+User, Store, Transaction, TransactionHistory, Close (<code>Closing.js</code>),
+ExpenseTarget, ShoeItem, ItemGroup, ItemHistory, Manufacturer, Brand, Vendor,
+VendorHistory, VendorCredit, Address, PurchaseOrder, PurchaseReceive, Bill,
+InventoryAdjustment, TransferOrder, StoreOrder, SalesInvoice, SalesPerson,
+ReorderAlert, Counter (auto-number sequences).</p>
+<p><strong>Sequelize models (<code>backend/models/sequelize/</code>)</strong> — InventoryAdjustment,
+SalesInvoice, SalesPerson, Store, StoreOrder, Transaction, TransferOrder,
+User, Vendor, VendorCredit, VendorHistory, wired together in <code>index.js</code>.</p>
+<h3>6.5 Utilities (<code>backend/utils/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>stockManagement.js</code> → <code>improvedStockManagement.js</code> → <code>ultraEnhancedStockManagement.js</code></td>
+<td>successive generations of the stock-update engine (per-warehouse quantity changes for sales, returns, receives, transfers, adjustments)</td>
+</tr>
+<tr>
+<td><code>stockValidationSystem.js</code></td>
+<td>validates stock consistency before/after operations</td>
+</tr>
+<tr>
+<td><code>monthlyStockTracking.js</code></td>
+<td>month-wise opening/closing stock</td>
+</tr>
+<tr>
+<td><code>cashPropagation.js</code></td>
+<td>carries closing cash/bank balances forward to later days</td>
+</tr>
+<tr>
+<td><code>next*.js</code> (SalesInvoice, PurchaseOrder, PurchaseReceive, CreditNote, StoreOrder, ItemGroup, InventoryAdjustment)</td>
+<td>auto-increment document numbers via <code>Counter</code></td>
+</tr>
+<tr>
+<td><code>cacheManager.js</code></td>
+<td><code>node-cache</code> wrapper (TTL 300 s, <code>generateCacheKey</code>)</td>
+</tr>
+<tr>
+<td><code>emailService.js</code>, <code>reorderNotification.js</code></td>
+<td>nodemailer; low-stock reorder alerts</td>
+</tr>
+<tr>
+<td><code>vendorHistoryLogger.js</code></td>
+<td>vendor audit trail</td>
+</tr>
+</tbody></table>
+<h3>6.6 Swagger</h3>
+<p><code>swagger.js</code> builds a spec with <code>swagger-jsdoc</code> from JSDoc comments in
+<code>route/*.js</code> (e.g. in <code>LoginRoute.js</code>) and serves it at <code>/api-docs</code>.</p>
+<hr>
+<h2>7. Frontend in Detail</h2>
+<h3>7.1 Bootstrapping</h3>
+<ul>
+<li><code>main.jsx</code> renders <code>&lt;App /&gt;</code> in the router.</li>
+<li><code>App.jsx</code> reads the logged-in user from client storage (<code>currentuser</code>),
+defines every <code>&lt;Route&gt;</code>, and wraps pages with guards.</li>
+<li>Unauthenticated users are redirected to <code>/login</code>; authenticated users visiting
+<code>/login</code> are redirected to <code>/</code>.</li>
+</ul>
+<h3>7.2 Shared components (<code>src/components/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Nav.jsx</code></td>
+<td>sidebar menu; applies role and <code>salesInventoryAccess</code> gating</td>
+</tr>
+<tr>
+<td><code>Header.jsx</code>, <code>Head.jsx</code></td>
+<td>top bar / document head</td>
+</tr>
+<tr>
+<td><code>DaybookGuard.jsx</code></td>
+<td>blocks pages until the previous day&#39;s Day Book is closed</td>
+</tr>
+<tr>
+<td><code>OptimizedTable.jsx</code></td>
+<td>paginated/virtualised data table</td>
+</tr>
+<tr>
+<td><code>AssignTargetModal.jsx</code></td>
+<td>set expense targets</td>
+</tr>
+<tr>
+<td><code>ImageUpload.jsx</code>, <code>SingleImageUpload.jsx</code>, <code>AttachmentDisplay.jsx</code></td>
+<td>base64 attachments</td>
+</tr>
+<tr>
+<td><code>LoadingScreen.jsx</code></td>
+<td>loading UI</td>
+</tr>
+</tbody></table>
+<h3>7.3 Hooks (<code>src/hooks/</code>)</h3>
+<p><code>useFetch</code>, <code>useOptimizedFetch</code> (cached fetching), <code>useFinancialData</code>,
+<code>useSidebar</code>, <code>useEnterToSave</code>, <code>usePreventNumberInputScroll</code>.</p>
+<h3>7.4 Utils (<code>src/utils/</code>)</h3>
+<p><code>cache.js</code> (client cache), <code>customAlert.jsx</code> / <code>customConfirm.jsx</code>
+(styled dialogs), <code>imageUpload.js</code>, <code>warehouseMapping.js</code> (store ↔ warehouse
+names / location codes).</p>
+<h3>7.5 Page / route map (<code>src/pages/</code>)</h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Routes</th>
+<th>Pages</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Auth</td>
+<td><code>/login</code></td>
+<td>Login</td>
+</tr>
+<tr>
+<td>Home &amp; Day Book</td>
+<td><code>/</code>, <code>/daybook</code>, <code>/datewisedaybook</code>, <code>/RentOutReport</code>, <code>/BookingReport</code></td>
+<td>Home, DayBook, Datewisedaybook, Booking</td>
+</tr>
+<tr>
+<td>Accounts</td>
+<td><code>/income</code>, <code>/expenses</code>, <code>/Income&amp;Expenses</code>, <code>/CashBankLedger</code>, <code>/securityReport</code>, <code>/Revenuereport</code></td>
+<td>Income, Expenses, SecurityReturn, SecurityPending, Security, Revenuereport, IncomeExpenseReport, BillWiseIncome</td>
+</tr>
+<tr>
+<td>Closing (admin)</td>
+<td><code>/CloseReport</code>, <code>/AdminClose</code>, <code>/PendingDaybookClosures</code></td>
+<td>CloseReport, AdminClose, PendingDaybookClosures</td>
+</tr>
+<tr>
+<td>Store/User admin</td>
+<td><code>/ManageStores</code>, <code>/manage-users/*</code></td>
+<td>ManageStores, AddNewStore, AddNewUser, ExistingUsers, EditUser, ResetUserPassword</td>
+</tr>
+<tr>
+<td>Items</td>
+<td><code>/shoe-sales/items</code>, <code>/item-groups</code>, <code>/price-lists</code>, <code>/inactive-items</code>, <code>…/stocks</code></td>
+<td>ShoeSalesItems, ShoeSalesItemCreate/Detail/DetailFromGroup, ShoeSalesItemGroups/Create/Detail, ShoeSalesPriceLists/Create, InactiveItems, ItemStockManagement, StandaloneItemStockManagement</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td><code>/inventory/adjustments</code>, <code>/packages</code>, <code>/transfer-orders</code>, <code>/store-orders</code>, <code>/reorder-alerts</code></td>
+<td>InventoryAdjustments/Create/Detail, InventoryPackages/Create, TransferOrders/Create/View, StoreOrders/Create/View, ReorderAlerts</td>
+</tr>
+<tr>
+<td>Sales</td>
+<td><code>/sales/customers</code>, <code>/orders</code>, `/invoices[/returns</td>
+<td>/new</td>
+</tr>
+<tr>
+<td>Purchase</td>
+<td><code>/purchase/orders</code>, <code>/receives</code>, <code>/bills</code>, <code>/payments</code>, <code>/vendor-credits</code>, <code>/vendors</code> (each with <code>/new</code>, <code>/:id</code>, <code>/:id/edit</code>)</td>
+<td>PurchaseOrders/Create/Detail, PurchaseReceives/Create/Detail, Bills, BillDetail, BillBooking, PaymentsMade, VendorCredits, VendorCreditDetail, PurchaseVendors/Create/Detail</td>
+</tr>
+<tr>
+<td>Reports</td>
+<td><code>/reports/sales</code>, <code>/sales-by-invoice</code>, <code>/sales-by-group</code>, <code>/inventory</code>, <code>/income-expense</code></td>
+<td>SalesReport, SalesByInvoiceReport, SalesByGroupReport, InventoryReport, IncomeExpenseReport, OptimizedFinancialSummary</td>
+</tr>
+</tbody></table>
+<h3>7.6 PDF / print</h3>
+<p>Day Book and report PDFs use <code>html2canvas-pro</code> + <code>jspdf</code> (fits to a single
+page; supports Tailwind 4 <code>oklch</code> colours). Print views use <code>react-to-print</code>.</p>
+<h3>7.7 Tests</h3>
+<p><code>src/pages/__tests__/</code> contains tests for transfer-order creation and
+warehouse filtering. No test runner script is defined in <code>package.json</code>.</p>
+<hr>
+<h2>8. Domain Modules</h2>
+<ol>
+<li><strong>Day Book &amp; Closure</strong> – each store records transactions (income, expense,
+payments, security deposits/returns, bookings). At day end the store submits
+a <em>cash/bank closing</em>; supervisors/admins approve in
+<em>Pending Daybook Closures</em>. <code>cashPropagation</code> carries balances forward.
+<code>DaybookGuard</code> forces yesterday to be closed first.</li>
+<li><strong>Expense Targets</strong> – per-store monthly targets (<code>AssignTargetModal</code>).</li>
+<li><strong>Items &amp; Groups</strong> – items belong to item groups with per-warehouse stock,
+price lists, brands, manufacturers, history logs and monthly opening stock.</li>
+<li><strong>Purchase cycle</strong> – Vendor → Purchase Order → Purchase Receive (adds stock)
+→ Bill → Payments Made; Vendor Credits applied to bills; vendor history log.</li>
+<li><strong>Inventory control</strong> – adjustments, inter-warehouse transfer orders
+(with receive step), store orders, reorder alerts with e-mail.</li>
+<li><strong>Sales</strong> – invoices (auto-numbered), returns, credit notes, salespeople per
+location, sales reports by invoice / item / group.</li>
+<li><strong>Reporting</strong> – inventory valuation, aging, stock-on-hand, opening stock;
+sales summaries; financial summary; results cached for 5 minutes.</li>
+</ol>
+<hr>
+<h2>9. Roles, Access Control &amp; Guards</h2>
+<ul>
+<li><code>power: &#39;admin&#39;</code> – full access: user/store management, close reports,
+stock-management pages, Purchase section.</li>
+<li>Head-office location users – may access <code>AdminClose</code>.</li>
+<li><code>role: &#39;supervisor&#39;</code> (and admin) – <code>PendingDaybookClosures</code>.</li>
+<li><strong>Cluster manager</strong> (<code>isClusterManager</code>) – redirected to
+<code>/datewisedaybook</code> home; <code>ClusterGuard</code> limits income/expense pages.</li>
+<li><strong>Sales &amp; Inventory visibility</strong> – menu items appear only for emails in
+<code>frontend/src/config/salesInventoryAccess.json</code>.</li>
+<li><strong>DaybookGuard</strong> – wraps most operational pages (requires previous-day close).</li>
+</ul>
+<hr>
+<h2>10. CI/CD &amp; Deployment</h2>
+<table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Frontend</strong></td>
+<td>Vercel; <code>vercel.json</code> rewrites to <code>index.html</code>.</td>
+</tr>
+<tr>
+<td><strong>Backend</strong></td>
+<td>Render and/or AWS EC2.</td>
+</tr>
+<tr>
+<td><code>.github/workflows/deploy.yml</code></td>
+<td>On push to <code>master</code>: checkout → configure SSH from repository secrets → <code>rsync</code> to the server → <code>npm install</code> → restart via PM2. Credentials are stored as GitHub Actions secrets.</td>
+</tr>
+<tr>
+<td><code>.github/workflows/daily-commit-report.yml</code></td>
+<td>scheduled; lists recent commits and flags those not matching Conventional Commits (<code>type(scope): summary</code>) in the run summary.</td>
+</tr>
+</tbody></table>
+<p>Production start: <code>NODE_ENV=production node --max-old-space-size=2048 server.js</code>.</p>
+<hr>
+<h2>11. Maintenance Scripts (<code>backend/scripts/</code>, run with <code>node</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Script</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>check-database-connection.js</code></td>
+<td>verify DB connectivity</td>
+</tr>
+<tr>
+<td><code>create-indexes.js</code>, <code>quick-optimize.js</code>, <code>optimize-data-types.js</code></td>
+<td>index / performance tuning</td>
+</tr>
+<tr>
+<td><code>sync-stores-to-postgresql.js</code>, <code>migrate-vendors-to-postgresql.js</code>, <code>sync-vendor-history-table.js</code></td>
+<td>Mongo → PostgreSQL migration</td>
+</tr>
+<tr>
+<td><code>add-vendor-credit-columns.js</code>, <code>drop-invoiceno-unique-index.js</code></td>
+<td>schema fixes</td>
+</tr>
+<tr>
+<td><code>analyze-cash-closecash-issue.js</code>, <code>fix-cash-closecash-swap.js</code>, <code>MIGRATION_CASH_CLOSECASH_README.md</code></td>
+<td>repair swapped cash/closeCash values</td>
+</tr>
+<tr>
+<td><code>recalculate-close-balances.js</code></td>
+<td>rebuild closing balances</td>
+</tr>
+<tr>
+<td><code>fix-return-location-codes.js</code>, <code>test-return-query.js</code>, <code>check-transfer-orders.js</code>, <code>test-calc.js</code></td>
+<td>data fixes / diagnostics</td>
+</tr>
+</tbody></table>
+<p>Also in <code>backend/</code>: <code>query_closures.js</code>, <code>query_targets.js</code>,
+<code>check_palakkad.js</code>, <code>revoke_requests.cjs</code>, <code>test_db.js</code> (ad-hoc diagnostics).</p>
+<hr>
+<h2>12. Housekeeping Files &amp; Known Issues</h2>
+<ul>
+<li><strong>Dev helpers (safe to ignore / delete):</strong> <code>fix_home.cjs</code>, <code>fix_report.cjs</code>,
+<code>scratch.jsx</code>, <code>production_changes.patch</code>, <code>frontend/fix_*.{cjs,py}</code>,
+<code>frontend/patch_css.js</code>, <code>frontend/test-*.js</code>, <code>frontend/src/pages/fix*.cjs</code>,
+<code>pages/InactiveItems*.txt</code>.</li>
+<li><code>frontend/src/pages/S极狐alesInvoiceCreate.jsx</code> has a corrupted filename
+(stray characters) — it is a stray duplicate of <code>SalesInvoiceCreate.jsx</code>.</li>
+<li><code>backend/utlis/</code> (typo) and <code>backend/utils/</code> coexist.</li>
+<li><code>frontend/Readme.txt</code> and old README content describe an earlier plan
+(JWT, Plaid/Stripe) that is <strong>not</strong> implemented; this document supersedes it.</li>
+<li>The API URL is set directly in <code>api.js</code>; consider <code>VITE_API_URL</code>.</li>
+<li><code>server.js</code> contains a large commented-out legacy version at the bottom.</li>
+<li>Backend uses Express 4; root <code>package.json</code> lists Express 5 (unused).</li>
+</ul>
+<hr>
+<h2>13. Git Workflow</h2>
+<ul>
+<li>Default deploy branch: <code>master</code>; test environment branch carries local
+features merged with production fixes (see <code>production_changes.patch</code>).</li>
+<li>Use Conventional Commits (<code>feat:</code>, <code>fix:</code>, <code>docs:</code> …) — audited daily by
+the commit-report workflow.</li>
+</ul>
+<p><strong>Contact (legacy README):</strong> Rootments — Project dev: Jishnu M.
+License: MIT — Rootments.</p>
+</body></html>
