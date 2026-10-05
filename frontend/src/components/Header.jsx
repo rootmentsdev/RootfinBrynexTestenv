@@ -1,5 +1,5 @@
 import { IoPersonCircleOutline } from "react-icons/io5";
-import BRYNEX from '../assets/BRYNEX.jpg';
+
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
@@ -233,7 +233,7 @@ const Header = (prop) => {
                 }
 
                 try {
-                    const adjRes = await fetch(`${API_URL}/inventory/adjustments?status=pending_approval`);
+                    const adjRes = await fetch(`${API_URL}/api/inventory/adjustments?status=pending_approval`);
                     if (adjRes.ok) {
                         const adjData = await adjRes.json();
                         setPendingAdjustmentsCount(adjData.data?.length || 0);
