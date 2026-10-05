@@ -3,7 +3,8 @@ import Headers from '../components/Header.jsx';
 import { customAlert } from '../utils/customAlert.jsx';
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { customConfirm } from '../utils/customConfirm';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas-pro';
+import { jsPDF } from 'jspdf';
 import Select, { components } from "react-select";
 import useFetch from '../hooks/useFetch.jsx';
 import baseUrl from '../api/api.js';
@@ -794,15 +795,7 @@ const DayBookInc = () => {
             // Auto download PDF only for late daybook closures (yesterday's daybook flow)
             if (!isToday && printRef.current) {
                 try {
-                    const element = printRef.current;
-                    const opt = {
-                        margin: 0.2,
-                        filename: `DayBook_Close_${currentDate}_${locCode}.pdf`,
-                        image: { type: 'jpeg', quality: 0.98 },
-                        html2canvas: { scale: 2, useCORS: true, allowTaint: true },
-                        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' }
-                    };
-                    await html2pdf().set(opt).from(element).save();
+                    await generateReportPdf();
                 } catch (pdfError) {
                     console.error("PDF generation failed:", pdfError);
                     // Don't show an error to the user — the save was successful.
@@ -817,8 +810,8 @@ const DayBookInc = () => {
             takeCreateCashBank();
             
             if (!isToday) {
-                // Return to today's date so the system freezes today's day book as pending approval
-                setCurrentDate(new Date().toISOString().split("T")[0]);
+                // Removed automatic redirect to today so the user can manually download the PDF.
+                // The lock screen for pending approval will appear upon manual reload.
             }
         } catch (error) {
             console.error("Error saving data:", error);
@@ -1196,10 +1189,94 @@ const DayBookInc = () => {
             parseInt(transaction.Tupi) || 0,
     }));
 
-    const handleDownloadReport = useReactToPrint({
-        contentRef: printRef,
-        documentTitle: `${currentDate}_DayBook_report`,
-    });
+    // Screenshot the live report (html2canvas-pro understands Tailwind's oklch colors)
+    // and fit the whole thing on a single landscape A4 page, exactly as on screen.
+    const generateReportPdf = async () => {
+        const element = printRef.current;
+        if (!element) throw new Error("Nothing to export");
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: -window.scrollY,
+            windowWidth: Math.max(element.scrollWidth, 1200),
+            ignoreElements: (el) => el.classList && el.classList.contains('no-print'),
+        });
+        const pdf = new jsPDF({ unit: 'pt', format: 'a4', orientation: 'landscape' });
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const margin = 20;
+        const ratio = Math.min((pageW - margin * 2) / canvas.width, (pageH - margin * 2) / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pageW - w) / 2, margin, w, h);
+        pdf.save(`DayBook_Close_${currentDate}_${locCode}.pdf`);
+    };
+
+    const handleDownloadReport = async () => {
+        try {
+            await generateReportPdf();
+            return;
+        } catch (e) {
+            console.error("PDF download failed, falling back to print:", e);
+        }
+        handlePrintFallback();
+    };
+
+    const handlePrintFallback = () => {
+        if (!printRef.current) return;
+        const tableHtml = printRef.current.innerHTML;
+        
+        // Use a hidden iframe but keep it in the render tree to ensure cross-browser printing
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'absolute';
+        iframe.style.top = '-9999px';
+        iframe.style.left = '-9999px';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        document.body.appendChild(iframe);
+        
+        iframe.contentDocument.write(`
+        <html>
+          <head>
+            <title>DayBook_Close_${currentDate}_${locCode}</title>
+            <style>
+              body { font-family: sans-serif; padding: 20px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+              th { background-color: #f3f4f6; font-weight: bold; }
+              .text-right { text-align: right; }
+              .text-center { text-align: center; }
+              .font-bold { font-weight: bold; }
+              .bg-gray-50 { background-color: #f9fafb; }
+              .text-red-500 { color: #ef4444; }
+              @media print {
+                body { padding: 0; }
+                @page { margin: 0.5cm; size: landscape; }
+              }
+            </style>
+          </head>
+          <body>
+            <div style="margin-bottom: 20px;">
+              <h2 style="margin: 0 0 10px 0;">Day Book Report</h2>
+              <p style="margin: 0; color: #666; font-size: 14px;">Store: ${locCode}</p>
+              <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Date: ${currentDate}</p>
+            </div>
+            ${tableHtml}
+          </body>
+        </html>
+        `);
+        iframe.contentDocument.close();
+        
+        // Trigger print after styles load
+        setTimeout(() => {
+          iframe.contentWindow.focus();
+          iframe.contentWindow.print();
+          // Clean up the iframe after a short delay
+          setTimeout(() => document.body.removeChild(iframe), 2000);
+        }, 250);
+    };
 
     const physicalCash = preOpen1?.Closecash != null ? preOpen1.Closecash : totalAmount;
     const difference = physicalCash - calculatedTotals.totalCash;
