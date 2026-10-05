@@ -174,7 +174,7 @@ const SalesInvoices = () => {
         }
 
         // Check if user is admin
-        const adminEmails = ['officerootments@gmail.com'];
+        const adminEmails = ['officebrynex@gmail.com'];
         const isAdminEmail = user.email && adminEmails.some(email => user.email.toLowerCase() === email.toLowerCase());
         const userIsAdmin = isAdminEmail || user.power === "admin" || (user.locCode && (user.locCode === '858' || user.locCode === '103'));
         setIsAdmin(userIsAdmin);

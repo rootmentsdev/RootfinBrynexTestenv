@@ -1,6 +1,6 @@
 # RootFin — Project Documentation
 
-RootFin is a retail ERP / finance platform built by **Rootments** for a chain of
+RootFin is a retail ERP / finance platform built by **BRYNEX** for a chain of
 stores (shoe / suit / wedding-wear retail). It covers daily cash & bank
 accounting (Day Book, closures, security deposits), purchasing, sales,
 inventory (items, groups, adjustments, transfers, store orders) and reporting.
@@ -455,5 +455,5 @@ Also in `backend/`: `query_closures.js`, `query_targets.js`,
 * Use Conventional Commits (`feat:`, `fix:`, `docs:` …) — audited daily by
   the commit-report workflow.
 
-**Contact (legacy README):** Rootments — Project dev: Jishnu M.
-License: MIT — Rootments.
+**Contact (legacy README):** BRYNEX — Project dev: Jishnu M.
+License: MIT — BRYNEX.

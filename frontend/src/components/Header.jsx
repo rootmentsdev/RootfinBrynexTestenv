@@ -1,5 +1,5 @@
 import { IoPersonCircleOutline } from "react-icons/io5";
-import Rootments from '../assets/Rootments.jpg';
+import BRYNEX from '../assets/BRYNEX.jpg';
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';

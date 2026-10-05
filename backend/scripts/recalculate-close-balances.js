@@ -47,7 +47,7 @@ const connectMongoDB = async () => {
 // Fetch external TWS transactions for a specific date and locCode
 async function fetchTwsCashForDate(locCode, dateStr) {
   let twsCash = 0;
-  const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+  const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
 
   try {
     // 1. Bookings

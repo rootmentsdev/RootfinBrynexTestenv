@@ -130,4 +130,4 @@ GitHub: https://github.com/jishnuMgit
 
 LICENSE
 -------
-MIT License - Rootments.
+MIT License - BRYNEX.

@@ -788,8 +788,8 @@ export const createPurchaseReceive = async (req, res) => {
     }
     
     // Determine target warehouse from user's email or locCode
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin email (officebrynex@gmail.com) always uses "Warehouse" regardless of locCode
+    const adminEmails = ['officebrynex@gmail.com'];
     const userId = receiveData.userId || "";
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     
@@ -1061,8 +1061,8 @@ export const getPurchaseReceives = async (req, res) => {
     
     const query = {};
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
+    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officebrynex@gmail.com'
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
@@ -1218,8 +1218,8 @@ export const updatePurchaseReceive = async (req, res) => {
     console.log(`   Old items: ${oldItems.length}, New items: ${newItems.length}`);
     
     // Determine target warehouse from user's email or locCode (same as createPurchaseReceive)
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin email (officebrynex@gmail.com) always uses "Warehouse" regardless of locCode
+    const adminEmails = ['officebrynex@gmail.com'];
     const userId = receiveData.userId || purchaseReceive.userId || "";
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     
@@ -1550,7 +1550,7 @@ export const sendPurchaseReceive = async (req, res) => {
     await purchaseReceive.save();
 
     // Update stock (same behavior as when a purchase receive is saved as "received")
-    const adminEmails = ["officerootments@gmail.com"];
+    const adminEmails = ["officebrynex@gmail.com"];
     const userId = purchaseReceive.userId || "";
     const isAdminEmail =
       userId &&

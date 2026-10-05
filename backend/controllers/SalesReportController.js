@@ -17,7 +17,7 @@ export const getSalesByInvoice = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isClusterManager = req.query.isClusterManager === "true";
@@ -323,7 +323,7 @@ export const getSalesSummary = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
 
@@ -493,7 +493,7 @@ export const getSalesByItem = async (req, res) => {
     toDate.setUTCHours(23, 59, 59, 999);
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
 

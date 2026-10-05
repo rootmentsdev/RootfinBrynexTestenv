@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const MONGODB_URI = "mongodb+srv://techrootments_db_user:Brynex@cluster0.y82ex01.mongodb.net/rootfinn?appName=Cluster0";
+const MONGODB_URI = "mongodb+srv://techbrynex_db_user:Brynex@cluster0.y82ex01.mongodb.net/rootfinn?appName=Cluster0";
 
 mongoose.connect(MONGODB_URI)
   .then(async () => {

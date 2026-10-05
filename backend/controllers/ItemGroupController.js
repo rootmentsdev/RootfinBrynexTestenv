@@ -485,8 +485,8 @@ export const getItemGroups = async (req, res) => {
     // Get user locCode from query
     const userLocCode = req.query.locCode || "";
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
+    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officebrynex@gmail.com'
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const userIsAdmin = isAdmin === "true" || isAdmin === true || 
                         isAdminEmail ||

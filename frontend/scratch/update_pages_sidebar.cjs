@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const pagesDir = 'd:/Testfolderrootments/RootfinProduction-main/frontend/src/pages';
+const pagesDir = 'd:/Testfolderbrynex/RootfinProduction-main/frontend/src/pages';
 const files = fs.readdirSync(pagesDir).filter(f => f.endsWith('.jsx'));
 
 let modifiedCount = 0;

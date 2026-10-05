@@ -91,7 +91,7 @@ const Dashboard = ({ isSidebarOpen }) => {
 
   const fetchDashboardData = async () => {
     setLoading(true);
-    const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
+    const TWS_BASE = "https://rentalapi.brynex.live/api/GetBooking";
     const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "";
     const ALL_LOC_CODES = STORE_LIST.map(s => s.locCode);
     const DEPT_CODES = ["759", "102", "101", "858", "103"];

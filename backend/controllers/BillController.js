@@ -877,8 +877,8 @@ export const createBill = async (req, res) => {
       if (sourceType === "direct") {
         console.log(`   ✅ Source type is "direct", will add stock...`);
         // Determine target warehouse from billData.warehouse, user's email, or locCode
-        // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-        const adminEmails = ['officerootments@gmail.com'];
+        // Admin email (officebrynex@gmail.com) always uses "Warehouse" regardless of locCode
+        const adminEmails = ['officebrynex@gmail.com'];
         const userId = billData.userId || "";
         const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
         
@@ -1031,8 +1031,8 @@ export const getBills = async (req, res) => {
     
     const query = {};
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
+    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officebrynex@gmail.com'
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
@@ -1107,8 +1107,8 @@ export const updateBill = async (req, res) => {
     const sourceType = billData.sourceType || existingBill.sourceType || "direct";
     
     // Determine target warehouse from billData.warehouse, existingBill.warehouse, user's email, or locCode
-    // Admin email (officerootments@gmail.com) always uses "Warehouse" regardless of locCode
-    const adminEmails = ['officerootments@gmail.com'];
+    // Admin email (officebrynex@gmail.com) always uses "Warehouse" regardless of locCode
+    const adminEmails = ['officebrynex@gmail.com'];
     const userId = billData.userId || existingBill.userId || "";
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     

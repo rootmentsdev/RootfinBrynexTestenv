@@ -772,8 +772,8 @@ export const getInventoryAdjustments = async (req, res) => {
     
     const where = {};
     
-    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officerootments@gmail.com'
-    const adminEmails = ['officerootments@gmail.com'];
+    // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR email === 'officebrynex@gmail.com'
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
