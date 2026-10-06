@@ -98,6 +98,7 @@ const headers = [
   { label: "Customer Name", key: "customerName" },
   { label: "Quantity", key: "quantity" },
   { label: "Category", key: "Category" },
+  { label: "Sub Category", key: "SubCategory" },
   { label: "Balance Payable", key: "SubCategory1" },
   { label: "Amount", key: "amount" },
   { label: "Total Transaction", key: "totalTransaction" },
@@ -110,8 +111,8 @@ const headers = [
   { label: "Razorpay", key: "rbl" },
   { label: "Card/Bank", key: "bank" },
   { label: "UPI", key: "upi" },
-  { label: "Branch", key: "branch" },
   { label: "Attachment", key: "attachment" },
+  { label: "Branch", key: "branch" },
 ];
 
 const subCategories = [
@@ -1287,7 +1288,9 @@ const Datewisedaybook = () => {
     return isNaN(n) ? 0 : n;
   };
 
-  // ✅ Updated export data with RBL
+  // ✅ Updated export data with exact CSV format from Rootfin CSV Format.xlsx
+  const currentBranchName = AllLoation.find(loc => loc.locCode === currentusers?.locCode)?.locName || currentusers?.locCode || "";
+
   const exportData = [
     {
       date: "OPENING BALANCE",
@@ -1302,28 +1305,30 @@ const Datewisedaybook = () => {
       securityAmount: "",
       Balance: "",
       remark: "",
+      discountAmount: "",
       billValue: "",
       cash: openingCash,
-      rbl: openingRbl, // ✅ Added RBL to export
+      rbl: openingRbl,
       bank: 0,
       upi: 0,
       attachment: "",
+      branch: "",
     },
 
     ...(displayedRows)
       .map((t) => {
-        const isReturn = t.Category === "Return";
-        const isCancel = t.Category === "Cancel";
-        const isRent = t.Category === "RentOut";
+        const isReturn = (t.Category || t.type || "").toLowerCase() === "return";
+        const isCancel = (t.Category || t.type || "").toLowerCase() === "cancel";
+        const isRent = (t.Category || t.type || "").toLowerCase() === "rentout";
 
         let cash = num(t.cash);
-        let rbl = num(t.rbl); // ✅ Added RBL to export mapping
+        let rbl = num(t.rbl);
         let bank = num(t.bank);
         let upi = num(t.upi);
 
         if (isReturn || isCancel) {
           cash = -Math.abs(cash);
-          rbl = -Math.abs(rbl); // ✅ Added RBL negative handling
+          rbl = -Math.abs(rbl);
           bank = -Math.abs(bank);
           upi = -Math.abs(upi);
         }
@@ -1331,7 +1336,9 @@ const Datewisedaybook = () => {
         const securityAmount = num(t.securityAmount);
         const balance = num(t.Balance);
         const amount = isRent ? securityAmount + balance
-          : cash + rbl + bank + upi; // ✅ Added rbl
+          : cash + rbl + bank + upi;
+
+        const rowBranch = t.branch || (AllLoation.find(loc => loc.locCode === t.locCode)?.locName) || currentBranchName;
 
         return {
           date: t.date,
@@ -1339,24 +1346,21 @@ const Datewisedaybook = () => {
           customerName: t.customerName || "",
           quantity: t.quantity || 1,
           Category: t.Category || t.type || "",
-          SubCategory: [t.SubCategory || t.category || ""]
-            .concat(isRent ? [t.SubCategory1 || t.subCategory1 || ""] : [])
-            .filter(Boolean)
-            .map(getCatLabel)
-            .join(" + ") || "-", 
-          SubCategory1: t.SubCategory1 || t.subCategory1 || "",
+          SubCategory: isRent ? (t.SubCategory || "Security") : getCatLabel(t.SubCategory || t.category || "-"),
+          SubCategory1: isRent ? (t.SubCategory1 || "Balance Payable") : "",
           amount,
           totalTransaction: t.totalTransaction ?? amount,
-          securityAmount: isRent ? securityAmount : "",
-          Balance: isRent ? balance : "",
+          securityAmount: isRent ? securityAmount : (t.securityAmount ? num(t.securityAmount) : ""),
+          Balance: isRent ? balance : (t.Balance ? num(t.Balance) : ""),
           remark: t.remark || "",
           discountAmount: num(t.discountAmount || 0),
           billValue: num(t.billValue || t.invoiceAmount || t.amount || amount),
           cash,
-          rbl, // ✅ Added RBL to export
+          rbl,
           bank,
           upi,
           attachment: t.hasAttachment ? "Yes" : "No",
+          branch: rowBranch,
         };
       }),
     
@@ -1381,6 +1385,7 @@ const Datewisedaybook = () => {
       bank: totalBankAmount,
       upi: totalUpiAmount,
       attachment: "",
+      branch: "",
     }
   ];
 
@@ -1644,24 +1649,46 @@ const Datewisedaybook = () => {
     ...multiBranchData.filter(filterTransaction).map(t => {
       const isReturn = (t.Category || t.type || "").toLowerCase() === "return";
       const isCancel = (t.Category || t.type || "").toLowerCase() === "cancel";
+      const isRent = (t.Category || t.type || "").toLowerCase() === "rentout";
       
       let cash = Number(t.cash || 0);
       let rbl = Number(t.rbl || 0);
       let bank = Number(t.bank || 0);
       let upi = Number(t.upi || 0);
+
+      if (isReturn || isCancel) {
+        cash = -Math.abs(cash);
+        rbl = -Math.abs(rbl);
+        bank = -Math.abs(bank);
+        upi = -Math.abs(upi);
+      }
+
+      const securityAmount = Number(t.securityAmount || 0);
+      const balance = Number(t.Balance || 0);
+      const amount = isRent ? securityAmount + balance : (cash + rbl + bank + upi);
+      const rowBranch = t.branch || (AllLoation.find(loc => loc.locCode === t.locCode)?.locName) || (t.locCode || "");
       
       return {
-        ...t,
-        SubCategory: [t.SubCategory || t.category || ""]
-            .concat((t.Category || "").toLowerCase() === "rentout" ? [t.SubCategory1 || t.subCategory1 || ""] : [])
-            .filter(Boolean)
-            .map(getCatLabel)
-            .join(" + ") || "-", 
-        cash: isReturn || isCancel ? -Math.abs(cash) : cash,
-        rbl: isReturn || isCancel ? -Math.abs(rbl) : rbl,
-        bank: isReturn || isCancel ? -Math.abs(bank) : bank,
-        upi: isReturn || isCancel ? -Math.abs(upi) : upi,
-        attachment: t.hasAttachment ? "Yes" : "No"
+        date: t.date || "",
+        invoiceNo: t.invoiceNo || t.locCode || "",
+        customerName: t.customerName || "",
+        quantity: t.quantity || 1,
+        Category: t.Category || t.type || "",
+        SubCategory: isRent ? (t.SubCategory || "Security") : getCatLabel(t.SubCategory || t.category || "-"),
+        SubCategory1: isRent ? (t.SubCategory1 || "Balance Payable") : "",
+        amount,
+        totalTransaction: t.totalTransaction ?? amount,
+        securityAmount: isRent ? securityAmount : (t.securityAmount ? Number(t.securityAmount) : ""),
+        Balance: isRent ? balance : (t.Balance ? Number(t.Balance) : ""),
+        remark: t.remark || "",
+        discountAmount: Number(t.discountAmount || 0),
+        billValue: Number(t.billValue || t.invoiceAmount || t.amount || amount),
+        cash,
+        rbl,
+        bank,
+        upi,
+        attachment: t.hasAttachment ? "Yes" : "No",
+        branch: rowBranch,
       };
     }),
     {
@@ -1683,8 +1710,8 @@ const Datewisedaybook = () => {
       rbl: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.rbl || 0)), 0),
       bank: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.bank || 0)), 0),
       upi: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.upi || 0)), 0),
-      branch: "",
       attachment: "",
+      branch: "",
     }
   ];
 

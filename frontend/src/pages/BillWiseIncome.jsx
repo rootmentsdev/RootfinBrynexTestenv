@@ -29,21 +29,53 @@ const CheckboxOption = (props) => {
     );
 };
 
+const AllLoation = [
+    { locName: "Z-Edapally1", locCode: "144" },
+    { locName: "Warehouse", locCode: "858" },
+    { locName: "G-Edappally", locCode: "702" },
+    { locName: "HEAD OFFICE01", locCode: "759" },
+    { locName: "SG-Trivandrum", locCode: "700" },
+    { locName: "Z- Edappal", locCode: "100" },
+    { locName: "Z.Perinthalmanna", locCode: "133" },
+    { locName: "Z.Kottakkal", locCode: "122" },
+    { locName: "G.Kottayam", locCode: "701" },
+    { locName: "G.Perumbavoor", locCode: "703" },
+    { locName: "G.Thrissur", locCode: "704" },
+    { locName: "G.Chavakkad", locCode: "706" },
+    { locName: "G.Calicut ", locCode: "712" },
+    { locName: "G.Vadakara", locCode: "708" },
+    { locName: "G.Edappal", locCode: "707" },
+    { locName: "G.Perinthalmanna", locCode: "709" },
+    { locName: "G.Kottakkal", locCode: "711" },
+    { locName: "G.Manjeri", locCode: "710" },
+    { locName: "G.Palakkad ", locCode: "705" },
+    { locName: "G.Kalpetta", locCode: "717" },
+    { locName: "G.Kannur", locCode: "716" },
+    { locName: "G.MG Road", locCode: "718" },
+    { locName: "WAREHOUSE", locCode: "103" }
+];
+
 const headers = [
-    { label: "Time", key: "time" },
+    { label: "Date", key: "date" },
     { label: "Invoice No", key: "invoiceNo" },
     { label: "Customer Name", key: "customerName" },
+    { label: "Quantity", key: "quantity" },
     { label: "Category", key: "Category" },
     { label: "Sub Category", key: "SubCategory" },
-    { label: "Remarks", key: "remarks" },
+    { label: "Balance Payable", key: "SubCategory1" },
     { label: "Amount", key: "amount" },
     { label: "Total Transaction", key: "totalTransaction" },
+    { label: "security", key: "securityAmount" },
+    { label: "Balance Payable", key: "Balance" },
+    { label: "Remark", key: "remark" },
     { label: "Discount", key: "discountAmount" },
     { label: "Bill Value", key: "billValue" },
     { label: "Cash", key: "cash" },
     { label: "Razorpay", key: "rbl" },
     { label: "Card/Bank", key: "bank" },
     { label: "UPI", key: "upi" },
+    { label: "Attachment", key: "attachment" },
+    { label: "Branch", key: "branch" },
 ];
 
 const categories = [
@@ -1165,29 +1197,107 @@ const DayBookInc = () => {
         }
     }, editingIndex === null);
 
-    const csvData = filteredTransactions.map(transaction => ({
-        ...transaction,
-        SubCategory: getCatLabel(transaction.SubCategory || transaction.subCategory || transaction.category || ""),
-        cash:
-            -(parseInt(transaction.deleteCashAmount)) ||
-            parseInt(transaction.rentoutCashAmount) ||
-            parseInt(transaction.bookingCashAmount) ||
-            parseInt(transaction.returnCashAmount) ||
-            parseInt(transaction.cash1) || 0,
-        rbl: parseInt(transaction.rbl) || 0,
-        bank:
-            parseInt(transaction.rentoutBankAmount) ||
-            parseInt(transaction.bookingBank1) ||
-            parseInt(transaction.returnBankAmount) ||
-            parseInt(transaction.deleteBankAmount) * -1 ||
-            parseInt(transaction.bank1) || 0,
-        upi:
-            parseInt(transaction.rentoutUPIAmount) ||
-            parseInt(transaction.bookingUPIAmount) ||
-            parseInt(transaction.returnUPIAmount) ||
-            parseInt(transaction.deleteUPIAmount) * -1 ||
-            parseInt(transaction.Tupi) || 0,
-    }));
+    const currentBranchName = AllLoation.find(loc => loc.locCode === currentusers?.locCode)?.locName || currentusers?.locCode || "";
+
+    const csvData = [
+        {
+            date: "OPENING BALANCE",
+            invoiceNo: "",
+            customerName: "",
+            quantity: "",
+            Category: "",
+            SubCategory: "",
+            SubCategory1: "",
+            amount: openingCash + (Number(preOpen?.rbl ?? 0)),
+            totalTransaction: openingCash + (Number(preOpen?.rbl ?? 0)),
+            securityAmount: "",
+            Balance: "",
+            remark: "",
+            discountAmount: "",
+            billValue: "",
+            cash: openingCash,
+            rbl: Number(preOpen?.rbl ?? 0),
+            bank: 0,
+            upi: 0,
+            attachment: "",
+            branch: "",
+        },
+        ...filteredTransactions.map(transaction => {
+            const isReturn = (transaction.Category || transaction.type || "").toLowerCase() === "return";
+            const isCancel = (transaction.Category || transaction.type || "").toLowerCase() === "cancel";
+            const isRent = (transaction.Category || transaction.type || "").toLowerCase() === "rentout";
+            const isExpense = (transaction.Category || transaction.type || "").toLowerCase() === "expense";
+
+            let cash = Number(transaction.cash ?? 0);
+            let rbl = Number(transaction.rbl ?? 0);
+            let bank = Number(transaction.bank ?? 0);
+            let upi = Number(transaction.upi ?? 0);
+
+            if (isReturn || isCancel) {
+                cash = -Math.abs(cash);
+                rbl = -Math.abs(rbl);
+                bank = -Math.abs(bank);
+                upi = -Math.abs(upi);
+            } else if (isExpense) {
+                if (cash > 0 && rbl === 0 && bank === 0 && upi === 0) cash = -cash;
+                else if (bank > 0 && cash === 0 && rbl === 0 && upi === 0) bank = -bank;
+                else if (upi > 0 && cash === 0 && rbl === 0 && bank === 0) upi = -upi;
+                else if (rbl > 0 && cash === 0 && bank === 0 && upi === 0) rbl = -rbl;
+            }
+
+            const securityAmount = Number(transaction.securityAmount || 0);
+            const balance = Number(transaction.Balance || 0);
+            const amount = isRent ? (securityAmount + balance) : (cash + rbl + bank + upi);
+            const totalTxn = isRent ? (securityAmount + balance) : (transaction.totalTransaction !== undefined ? Number(transaction.totalTransaction) : amount);
+
+            const rowBranch = transaction.branch || (AllLoation.find(loc => loc.locCode === transaction.locCode)?.locName) || currentBranchName;
+
+            return {
+                date: transaction.date || currentDate,
+                invoiceNo: transaction.invoiceNo || transaction.locCode || "",
+                customerName: transaction.customerName || "",
+                quantity: transaction.quantity || 1,
+                Category: transaction.Category || transaction.type || "",
+                SubCategory: isRent ? (transaction.SubCategory || "Security") : getCatLabel(transaction.SubCategory || transaction.category || transaction.subCategory || "-"),
+                SubCategory1: isRent ? (transaction.SubCategory1 || "Balance Payable") : "",
+                amount,
+                totalTransaction: totalTxn,
+                securityAmount: isRent ? securityAmount : (transaction.securityAmount ? Number(transaction.securityAmount) : ""),
+                Balance: isRent ? balance : (transaction.Balance ? Number(transaction.Balance) : ""),
+                remark: (() => { const r = transaction.remark || transaction.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
+                discountAmount: Number(transaction.discountAmount || 0),
+                billValue: Number(transaction.billValue ?? transaction.invoiceAmount ?? Math.abs(amount)),
+                cash,
+                rbl,
+                bank,
+                upi,
+                attachment: (transaction.hasAttachment || transaction.attachment) ? "Yes" : "No",
+                branch: rowBranch,
+            };
+        }),
+        {
+            date: "TOTAL",
+            invoiceNo: "",
+            customerName: "",
+            quantity: "",
+            Category: "",
+            SubCategory: "",
+            SubCategory1: "",
+            amount: calculatedTotals.totalCash + calculatedTotals.totalRblAmount + calculatedTotals.totalBankAmount1 + calculatedTotals.totalBankAmountupi,
+            totalTransaction: calculatedTotals.totalCash + calculatedTotals.totalRblAmount + calculatedTotals.totalBankAmount1 + calculatedTotals.totalBankAmountupi,
+            securityAmount: "",
+            Balance: "",
+            remark: "",
+            discountAmount: totalCalculatedDiscount || 0,
+            billValue: "",
+            cash: calculatedTotals.totalCash,
+            rbl: calculatedTotals.totalRblAmount,
+            bank: calculatedTotals.totalBankAmount1,
+            upi: calculatedTotals.totalBankAmountupi,
+            attachment: "",
+            branch: "",
+        }
+    ];
 
     // Screenshot the live report (html2canvas-pro understands Tailwind's oklch colors)
     // and fit the whole thing on a single landscape A4 page, exactly as on screen.
@@ -1525,6 +1635,134 @@ const DayBookInc = () => {
                                                     const displayBank = tx.bank != null ? tx.bank : 0;
                                                     const displayUpi = tx.upi != null ? tx.upi : 0;
 
+                                                    const isRentOut = tx.Category === "RentOut" || (tx.category || "").toLowerCase() === "rentout" || (tx.type || "").toLowerCase() === "rentout";
+
+                                                    if (isRentOut) {
+                                                        const secAmt = isEditing ? (editedTransaction.securityAmount ?? tx.securityAmount ?? 0) : (tx.securityAmount ?? 0);
+                                                        const balAmt = isEditing ? (editedTransaction.Balance ?? tx.Balance ?? 0) : (tx.Balance ?? 0);
+                                                        const subCat1 = tx.SubCategory || "Security";
+                                                        const subCat2 = tx.SubCategory1 || "Balance Payable";
+
+                                                        return (
+                                                            <React.Fragment key={`rentout-frag-${tx._id || tx.invoiceNo || idx}`}>
+                                                                {/* Row 1: Security */}
+                                                                <tr key={`rentout-${idx}-sec`} className="hover:bg-gray-50/70 transition-colors text-gray-800 border-b border-gray-100">
+                                                                    <td className="py-3.5 pl-4 pr-2 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
+                                                                    <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
+                                                                    <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-xs whitespace-nowrap align-middle">{displayCategory}</td>
+                                                                    <td className="py-3.5 px-2 text-xs whitespace-nowrap">{subCat1}</td>
+                                                                    <td className="py-3.5 px-2 text-xs text-gray-500 max-w-[140px] truncate">{displayRemarks}</td>
+                                                                    <td className="py-3.5 px-2 text-right font-medium text-xs whitespace-nowrap">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.securityAmount ?? ""}
+                                                                                onChange={(e) => handleInputChange("securityAmount", e.target.value)}
+                                                                                className="w-20 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (secAmt ? Math.round(Number(secAmt)).toLocaleString() : 0)}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right font-medium text-xs whitespace-nowrap align-middle">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.totalTransaction ?? ""}
+                                                                                onChange={(e) => handleInputChange("totalTransaction", e.target.value)}
+                                                                                className="w-20 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (displayTotalTxn ? Math.round(Number(displayTotalTxn)).toLocaleString() : 0)}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right text-xs text-gray-600 whitespace-nowrap align-middle">
+                                                                        {displayDiscount}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap align-middle">
+                                                                        {displayBillValue ? (typeof displayBillValue === 'number' ? Math.round(displayBillValue).toLocaleString() : displayBillValue) : "-"}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap align-middle">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.cash ?? ""}
+                                                                                onChange={(e) => handleInputChange("cash", e.target.value)}
+                                                                                className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (displayCash ? Math.round(Number(displayCash)).toLocaleString() : "-")}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap align-middle">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.rbl ?? ""}
+                                                                                onChange={(e) => handleInputChange("rbl", e.target.value)}
+                                                                                className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (displayRazorpay ? Math.round(Number(displayRazorpay)).toLocaleString() : "-")}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 px-2 text-right text-xs text-gray-800 whitespace-nowrap align-middle">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.bank ?? ""}
+                                                                                onChange={(e) => handleInputChange("bank", e.target.value)}
+                                                                                className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (displayBank ? Math.round(Number(displayBank)).toLocaleString() : "-")}
+                                                                    </td>
+                                                                    <td rowSpan={2} className="py-3.5 pl-2 pr-4 text-right text-xs text-gray-800 whitespace-nowrap align-middle">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.upi ?? ""}
+                                                                                onChange={(e) => handleInputChange("upi", e.target.value)}
+                                                                                className="w-16 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (displayUpi ? Math.round(Number(displayUpi)).toLocaleString() : "-")}
+                                                                    </td>
+                                                                    {showAction && (
+                                                                        <td rowSpan={2} className="py-3.5 px-2 text-center whitespace-nowrap print:hidden align-middle">
+                                                                            {isEditing ? (
+                                                                                <button
+                                                                                    onClick={handleSave}
+                                                                                    className="bg-[#a855f7] text-white px-3 py-1 rounded-md text-xs font-medium hover:bg-purple-600 cursor-pointer shadow-sm"
+                                                                                >
+                                                                                    Save
+                                                                                </button>
+                                                                            ) : (
+                                                                                <button
+                                                                                    onClick={() => handleEditClick(tx, idx)}
+                                                                                    className="flex items-center gap-1.5 text-[#a855f7] hover:text-[#9333ea] px-2 py-1 text-xs font-medium cursor-pointer mx-auto"
+                                                                                >
+                                                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                                                                    Edit
+                                                                                </button>
+                                                                            )}
+                                                                        </td>
+                                                                    )}
+                                                                </tr>
+
+                                                                {/* Row 2: Balance Payable */}
+                                                                <tr key={`rentout-${idx}-bal`} className="hover:bg-gray-50/70 transition-colors text-gray-800 border-b border-gray-100">
+                                                                    <td className="py-3.5 pl-4 pr-2 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
+                                                                    <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayInvoice}</td>
+                                                                    <td className="py-3.5 px-2 font-medium text-xs whitespace-nowrap">{displayCustomer}</td>
+                                                                    <td className="py-3.5 px-2 text-xs whitespace-nowrap">{subCat2}</td>
+                                                                    <td className="py-3.5 px-2 text-xs text-gray-500 max-w-[140px] truncate">{displayRemarks}</td>
+                                                                    <td className="py-3.5 px-2 text-right font-medium text-xs whitespace-nowrap">
+                                                                        {isEditing ? (
+                                                                            <input
+                                                                                type="number"
+                                                                                value={editedTransaction.Balance ?? ""}
+                                                                                onChange={(e) => handleInputChange("Balance", e.target.value)}
+                                                                                className="w-20 p-1 border border-gray-300 text-xs text-right"
+                                                                            />
+                                                                        ) : (balAmt ? Math.round(Number(balAmt)).toLocaleString() : 0)}
+                                                                    </td>
+                                                                </tr>
+                                                            </React.Fragment>
+                                                        );
+                                                    }
+
                                                     return (
                                                         <tr key={tx._id || idx} className="hover:bg-gray-50/70 transition-colors text-gray-800">
                                                             <td className="py-3.5 pl-4 pr-2 text-xs text-gray-600 whitespace-nowrap">{displayTime}</td>
@@ -1742,6 +1980,20 @@ const DayBookInc = () => {
                                         >
                                             Download Report
                                         </button>
+
+                                        <CSVLink
+                                            data={csvData}
+                                            headers={headers}
+                                            filename={`${currentDate}_DayBook_${locCode || "store"}.csv`}
+                                            className="flex-1"
+                                        >
+                                            <button
+                                                type="button"
+                                                className="w-full py-2.5 px-4 text-sm font-semibold rounded-lg transition-colors text-center border bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer border-gray-200"
+                                            >
+                                                Export CSV
+                                            </button>
+                                        </CSVLink>
 
                                         {loading ? (
                                             <button
