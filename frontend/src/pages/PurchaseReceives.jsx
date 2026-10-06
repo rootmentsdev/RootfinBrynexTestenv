@@ -31,7 +31,7 @@ const PurchaseReceives = () => {
 
         if (!userId) { setReceives([]); setLoading(false); return; }
 
-        const adminEmails = ['officerootments@gmail.com'];
+        const adminEmails = ['officebrynex@gmail.com'];
         const isAdminEmail = adminEmails.some(e => userId.toLowerCase() === e.toLowerCase());
         const isAdmin = isAdminEmail ||
           (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||

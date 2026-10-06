@@ -20,7 +20,7 @@ const Revenuereport = () => {
             alert("Please select both From and To dates.");
             return;
         }
-        const baseUrl1 = "https://rentalapi.rootments.live/api/GetBooking";
+        const baseUrl1 = "https://rentalapi.brynex.live/api/GetBooking";
         const updatedApiUrl = `${baseUrl1}/GetBookingList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
         const updatedApiUrl1 = `${baseUrl1}/GetRentoutList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 

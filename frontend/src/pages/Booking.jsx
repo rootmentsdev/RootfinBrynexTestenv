@@ -16,7 +16,7 @@ const Booking = () => {
     const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
 
     const handleFetch = () => {
-        const baseUrl = "https://rentalapi.rootments.live/api/GetBooking";
+        const baseUrl = "https://rentalapi.brynex.live/api/GetBooking";
         if (!fromDate || !toDate) {
             return alert("select date ");
         } else {

@@ -232,7 +232,7 @@ const VendorCreditDetail = () => {
   const companyName = "Grooms Wedding Hub"; // This should come from user/organization settings
   const companyAddress = "Kerala"; // This should come from user/organization settings
   const companyGSTIN = "32ABCFR1426N129"; // This should come from user/organization settings
-  const companyEmail = "rootmentsoffice@gmail.com"; // This should come from user/organization settings
+  const companyEmail = "brynexoffice@gmail.com"; // This should come from user/organization settings
   const companyCountry = "India";
 
   // Get vendor details

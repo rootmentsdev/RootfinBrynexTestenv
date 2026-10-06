@@ -36,7 +36,7 @@ const ShoeSalesItems = () => {
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
+  const adminEmails = ['officebrynex@gmail.com'];
   const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
   const isAdmin = isAdminEmail ||
                   user?.power === "admin" || 

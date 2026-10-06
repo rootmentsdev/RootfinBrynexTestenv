@@ -319,7 +319,7 @@ const Datewisedaybook = () => {
       ? "2025-01-01"
       : new Date(new Date(fromDate).setDate(new Date(fromDate).getDate() - 1)).toISOString().split("T")[0];
 
-    const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+    const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
     const bookingU = `${twsBase}/GetBookingList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
     const rentoutU = `${twsBase}/GetRentoutList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
     const returnU = `${twsBase}/GetReturnList?LocCode=${currentusers.locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
@@ -348,7 +348,7 @@ const Datewisedaybook = () => {
         openingRbl = Number(openData?.data?.rbl ?? 0); // ✅ Added RBL opening
       } catch { }
 
-      const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+      const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
       const bookingU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const rentoutU = `${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
       const returnU = `${twsBase}/GetReturnList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
@@ -624,7 +624,7 @@ const Datewisedaybook = () => {
       const storesToFetch = visibleLocations.filter(loc => locCodesToFetch.includes(loc.locCode));
       const allResults = await Promise.all(
         storesToFetch.map(async ({ locCode, locName }) => {
-          const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+          const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
           const bU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
           const rU = `${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
           const retU = `${twsBase}/GetReturnList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;

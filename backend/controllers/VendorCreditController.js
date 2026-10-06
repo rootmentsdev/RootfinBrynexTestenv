@@ -630,7 +630,7 @@ export const getVendorCredits = async (req, res) => {
     const { userId, userPower, status, warehouse, locCode } = req.query;
     const whereClause = {};
     
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail ||
                     (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||

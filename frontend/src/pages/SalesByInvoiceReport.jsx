@@ -42,7 +42,7 @@ const SalesByInvoiceReport = () => {
 
   const currentUser = JSON.parse(localStorage.getItem("rootfinuser"));
   const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
-  const isMainAdmin = currentUser?.locCode === '858' || currentUser?.locCode === '103' || (currentUser?.email && ['officerootments@gmail.com'].includes(currentUser.email.toLowerCase()));
+  const isMainAdmin = currentUser?.locCode === '858' || currentUser?.locCode === '103' || (currentUser?.email && ['officebrynex@gmail.com'].includes(currentUser.email.toLowerCase()));
   const isWarehouse = (currentUser?.power || "").toLowerCase() === "warehouse";
   const canSeeCost = isAdmin || isWarehouse || isMainAdmin;
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";

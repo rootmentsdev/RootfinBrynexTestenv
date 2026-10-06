@@ -1271,7 +1271,7 @@ export const getTransferOrders = async (req, res) => {
     const validDestinationWarehouse = destinationWarehouse && destinationWarehouse !== 'undefined' && destinationWarehouse !== 'null' ? destinationWarehouse : null;
     
     // Check if user is admin or warehouse user
-    const isAdmin = userPower === 'admin' || (userId && userId.toLowerCase() === 'officerootments@gmail.com');
+    const isAdmin = userPower === 'admin' || (userId && userId.toLowerCase() === 'officebrynex@gmail.com');
     const isWarehouseUser = userPower === 'warehouse' || locCode === '858' || locCode === '103';
     
     console.log(`\n=== GET TRANSFER ORDERS REQUEST ===`);

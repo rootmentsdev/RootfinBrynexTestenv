@@ -359,7 +359,7 @@ index 537bbc1..06fae9a 100644
 -      } catch { }
 +      } catch {}
  
-       const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+       const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
        const bookingU = `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`;
 @@ -326,7 +241,7 @@ const Datewisedaybook = () => {
          );

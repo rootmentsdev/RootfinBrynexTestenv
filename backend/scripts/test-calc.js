@@ -16,7 +16,7 @@ const dateStr = '2026-08-31';
 const locCode = '707';
 
 let twsTransactions = [];
-const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
+const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
 
 const [bookingRes, rentoutRes, returnRes, deleteRes] = await Promise.all([
   fetch(`${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${dateStr}&DateTo=${dateStr}`),

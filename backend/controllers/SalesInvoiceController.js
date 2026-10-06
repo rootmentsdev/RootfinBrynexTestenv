@@ -361,7 +361,7 @@ export const getSalesInvoices = async (req, res) => {
       console.log(`📅 Date filtering applied: ${fromDate} to ${toDate}`);
     }
 
-    const adminEmails = ["officerootments@gmail.com"];
+    const adminEmails = ["officebrynex@gmail.com"];
     const isAdminEmail =
       userId &&
       typeof userId === "string" &&

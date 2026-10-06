@@ -418,7 +418,7 @@ export const getPurchaseOrders = async (req, res) => {
       console.log(`Searching by orderNumber: ${orderNumber}`);
     } else {
       // Filter by user email only - admin users see all data
-      const adminEmails = ['officerootments@gmail.com'];
+      const adminEmails = ['officebrynex@gmail.com'];
       const isAdminEmail = userId && typeof userId === 'string' && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
       const isAdmin = isAdminEmail ||
                       (userPower && (userPower.toLowerCase() === 'admin' || userPower.toLowerCase() === 'super_admin')) ||
@@ -542,7 +542,7 @@ export const updatePurchaseOrder = async (req, res) => {
 
     // If status changed to "received", update stock quantities (similar to purchase receive)
     if (oldStatus !== "received" && newStatus === "received") {
-      const adminEmails = ["officerootments@gmail.com"];
+      const adminEmails = ["officebrynex@gmail.com"];
       const userId = orderData.userId || purchaseOrder.userId || "";
       const isAdminEmail =
         userId &&

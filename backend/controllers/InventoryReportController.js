@@ -283,7 +283,7 @@ export const getInventorySummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;
@@ -689,7 +689,7 @@ export const getStockSummary = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;
@@ -979,7 +979,7 @@ export const getInventoryValuation = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;
@@ -1110,7 +1110,7 @@ export const getInventoryAging = async (req, res) => {
     const userId = req.query.userId || req.body.userId;
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;
@@ -1285,7 +1285,7 @@ export const getOpeningStockReport = async (req, res) => {
       };
     }
 
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;
@@ -1460,7 +1460,7 @@ export const getStockOnHandReport = async (req, res) => {
     console.log("📊 Stock On Hand Report Request:", { locCode, warehouse, startDate, endDate });
 
     // Check if user is admin
-    const adminEmails = ['officerootments@gmail.com'];
+    const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
     const isMainAdmin = isAdmin;

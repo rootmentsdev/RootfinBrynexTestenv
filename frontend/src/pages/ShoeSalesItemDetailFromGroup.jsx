@@ -365,9 +365,9 @@ const ShoeSalesItemDetailFromGroup = () => {
   // Get user info for filtering
   const userStr = localStorage.getItem("rootfinuser");
   const user = userStr ? JSON.parse(userStr) : null;
-  // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR locCode === '103' (WAREHOUSE) OR email === 'officerootments@gmail.com'
+  // User is admin if: power === 'admin' OR locCode === '858' (Warehouse) OR locCode === '103' (WAREHOUSE) OR email === 'officebrynex@gmail.com'
   const userEmail = user?.email || user?.username || "";
-  const adminEmails = ['officerootments@gmail.com'];
+  const adminEmails = ['officebrynex@gmail.com'];
   const isAdminEmail = userEmail && adminEmails.some(email => userEmail.toLowerCase() === email.toLowerCase());
   const isAdmin = isAdminEmail ||
                   user?.power === "admin" || 

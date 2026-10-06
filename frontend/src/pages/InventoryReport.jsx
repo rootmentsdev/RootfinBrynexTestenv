@@ -67,7 +67,7 @@ const InventoryReport = () => {
   const isAdmin = (currentUser?.power || "").toLowerCase() === "admin";
   const isClusterManager = (currentUser?.role || "").toLowerCase() === "cluster_manager";
   const clusterAllowedLocCodes = currentUser?.allowedLocCodes || [];
-  const adminEmails = ['officerootments@gmail.com'];
+  const adminEmails = ['officebrynex@gmail.com'];
   const isMainAdmin =
     adminEmails.some(email => (currentUser?.email || "").toLowerCase() === email.toLowerCase()) ||
     ['858', '103'].includes(currentUser?.locCode);

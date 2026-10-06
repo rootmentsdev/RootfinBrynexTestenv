@@ -6,7 +6,7 @@ import Headers from "../components/Header.jsx";
 import baseUrl from "../api/api";
 import useSidebar from "../hooks/useSidebar";
 
-const TWS_BASE = "https://rentalapi.rootments.live/api/GetBooking";
+const TWS_BASE = "https://rentalapi.brynex.live/api/GetBooking";
 
 const fmt = (n) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2 }).format(n || 0);
