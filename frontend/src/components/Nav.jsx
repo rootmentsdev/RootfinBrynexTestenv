@@ -584,7 +584,9 @@ const Nav = () => {
 
                                 {/* Income & Expenses */}
                                 <Link to="/income" className={singleLinkClasses("/income")}><DollarSign size={18} className="shrink-0" /><span>Income</span></Link>
-                                <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><Wallet size={18} className="shrink-0" /><span>Record Expense</span></Link>
+                                {isAdminOrSuperAdmin && (
+                                    <Link to="/record-expense" className={singleLinkClasses("/record-expense")}><Wallet size={18} className="shrink-0" /><span>Record Expense</span></Link>
+                                )}
                                 <Link to="/expenses" className={singleLinkClasses("/expenses")}><DollarSign size={18} className="shrink-0" /><span>All Expenses</span></Link>
 
                                 {/* Admin only */}

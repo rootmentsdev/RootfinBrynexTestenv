@@ -1,7 +1,20 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import baseUrl from "../api/api";
-import { ChevronDown, X, Menu, ArrowLeft, Search, Check } from "lucide-react";
+import { 
+  ChevronDown, 
+  X, 
+  Menu, 
+  ArrowLeft, 
+  Search, 
+  Check, 
+  UploadCloud, 
+  IndianRupee, 
+  Layers, 
+  Building2, 
+  FileText,
+  Lock
+} from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import {
   IMAGE_CONFIG,
@@ -17,6 +30,7 @@ const SearchableSelect = ({
   placeholder = "Select...",
   disabled = false,
   searchPlaceholder = "Search...",
+  icon: Icon = null,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -50,77 +64,142 @@ const SearchableSelect = ({
     );
   }, [options, search]);
 
-  const selectedOption = options.find((opt) => opt.value === value);
+  const selectedOption = options.find((opt) => String(opt.value) === String(value));
 
   return (
     <div className="relative w-full" ref={containerRef}>
-      <button
-        type="button"
-        disabled={disabled}
+      <div
+        role="button"
+        tabIndex={disabled ? -1 : 0}
         onClick={() => {
           if (!disabled) setIsOpen((prev) => !prev);
         }}
-        className={`w-full flex items-center justify-between rounded-xl border bg-white px-4 py-3.5 text-sm transition-all focus:outline-none ${
-          isOpen ? "border-purple-500 ring-2 ring-purple-100 shadow-xs" : "border-gray-200"
-        } ${disabled ? "bg-gray-50 text-gray-400 cursor-not-allowed" : "cursor-pointer hover:border-gray-300"}`}
+        onKeyDown={(e) => {
+          if (!disabled && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            setIsOpen((prev) => !prev);
+          }
+        }}
+        className={`w-full h-12 flex items-center justify-between rounded-xl border bg-white px-4 text-sm transition-all duration-200 select-none outline-none ${
+          isOpen
+            ? "border-[#9B48D7] ring-4 ring-purple-500/10 shadow-xs"
+            : "border-gray-200 hover:border-gray-300"
+        } ${
+          disabled
+            ? "bg-gray-50/80 text-gray-400 cursor-not-allowed border-gray-200"
+            : "cursor-pointer hover:bg-gray-50/30"
+        }`}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}
       >
-        <span
-          className={`truncate ${
-            selectedOption ? "text-gray-800 font-medium" : "text-gray-400"
-          }`}
-        >
-          {selectedOption ? selectedOption.label : placeholder}
-        </span>
-        <ChevronDown
-          size={18}
-          className={`text-gray-400 transition-transform duration-200 shrink-0 ml-2 ${
-            isOpen ? "rotate-180 text-purple-600" : ""
-          }`}
-        />
-      </button>
+        <div className="flex items-center gap-2.5 truncate flex-1 min-w-0 pr-2">
+          {Icon && (
+            <Icon size={16} className={`shrink-0 ${selectedOption ? "text-[#9B48D7]" : "text-gray-400"}`} />
+          )}
+          <span
+            className={`truncate text-left block text-sm ${
+              selectedOption ? "text-gray-900 font-medium" : "text-gray-400 font-normal"
+            }`}
+          >
+            {selectedOption ? selectedOption.label : placeholder}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0 ml-2">
+          {disabled ? (
+            <Lock size={14} className="text-gray-400" />
+          ) : (
+            <>
+              {selectedOption && (
+                <span
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChange("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.stopPropagation();
+                      onChange("");
+                    }
+                  }}
+                  className="p-1 text-gray-300 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+                  title="Clear selection"
+                >
+                  <X size={13} />
+                </span>
+              )}
+              <ChevronDown
+                size={16}
+                className={`text-gray-400 transition-transform duration-200 shrink-0 ${
+                  isOpen ? "rotate-180 text-[#9B48D7]" : ""
+                }`}
+              />
+            </>
+          )}
+        </div>
+      </div>
 
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border border-gray-100 bg-white shadow-xl overflow-hidden animate-in fade-in-0 duration-150">
-          <div className="p-2.5 border-b border-gray-100 bg-gray-50/70">
+        <div className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden animate-in fade-in-0 duration-150">
+          <div className="p-2.5 border-b border-gray-100 bg-gray-50/80">
             <div className="relative flex items-center">
-              <Search size={15} className="absolute left-3 text-gray-400 pointer-events-none" />
+              <Search size={14} className="absolute left-3 text-gray-400 pointer-events-none" />
               <input
                 ref={inputRef}
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full pl-9 pr-7 py-2 text-xs bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9B48D7] focus:ring-2 focus:ring-purple-500/10 font-normal"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-2.5 text-gray-400 hover:text-gray-600 p-0.5"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
           </div>
-          <div className="max-h-60 overflow-y-auto py-1">
+
+          <div className="max-h-60 overflow-y-auto py-1 divide-y divide-gray-50">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((opt) => {
-                const isSelected = opt.value === value;
+                const isSelected = String(opt.value) === String(value);
                 return (
-                  <button
+                  <div
                     key={opt.value}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
                     onClick={() => {
                       onChange(opt.value);
                       setIsOpen(false);
                       setSearch("");
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left transition-colors cursor-pointer ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        onChange(opt.value);
+                        setIsOpen(false);
+                        setSearch("");
+                      }
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs text-left transition-colors cursor-pointer select-none ${
                       isSelected
-                        ? "bg-purple-50 text-purple-700 font-semibold"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                        ? "bg-purple-50/90 text-[#9B48D7] font-semibold"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-medium"
                     }`}
                   >
-                    <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check size={14} className="text-purple-600 shrink-0 ml-2" />}
-                  </button>
+                    <span className="truncate pr-2">{opt.label}</span>
+                    {isSelected && <Check size={14} className="text-[#9B48D7] shrink-0 ml-2" />}
+                  </div>
                 );
               })
             ) : (
-              <div className="px-4 py-6 text-center text-xs text-gray-400">
-                No matching options
+              <div className="px-4 py-7 text-center text-xs text-gray-400">
+                No matching options found
               </div>
             )}
           </div>
@@ -474,36 +553,36 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
 
   return (
     <div className={`min-h-screen bg-[#FAFAFB] transition-all duration-300 ${isSidebarOpen ? "md:ml-64 ml-0" : "ml-0"}`}>
-      <div className="w-full px-6 sm:px-10 py-8">
+      <div className="w-full max-w-6xl px-6 sm:px-10 py-8">
         
         {/* Top Header: Sidebar Menu Toggle, Back Button & Direct / Indirect Expense Pill Switch */}
-        <div className="mb-8 flex items-center gap-3">
+        <div className="mb-8 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => document.dispatchEvent(new CustomEvent('toggle-sidebar'))}
-            className="p-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
+            className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
             title="Toggle Sidebar Menu"
           >
-            <Menu size={20} />
+            <Menu size={18} />
           </button>
 
           <button
             type="button"
             onClick={() => navigate("/record-expense")}
-            className="p-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
+            className="p-2.5 rounded-xl bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 shadow-xs cursor-pointer transition-colors"
             title="Back to Expense List"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </button>
 
-          <div className="inline-flex bg-[#EBECEF] p-1 rounded-full border border-gray-200/60 shadow-xs">
+          <div className="inline-flex bg-[#EBECEF] p-1 rounded-full border border-gray-200/70 shadow-xs">
             <button
               type="button"
               onClick={() => setExpenseType("direct")}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
                 expenseType === "direct"
-                  ? "bg-white text-gray-800 shadow-sm font-semibold"
-                  : "text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-gray-900 shadow-xs font-semibold"
+                  : "text-gray-600 hover:text-gray-900 font-medium"
               }`}
             >
               Direct Expense
@@ -511,10 +590,10 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
             <button
               type="button"
               onClick={() => setExpenseType("indirect")}
-              className={`px-5 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-150 cursor-pointer ${
+              className={`px-5 py-2 rounded-full text-xs sm:text-sm transition-all duration-150 cursor-pointer ${
                 expenseType === "indirect"
-                  ? "bg-white text-gray-800 shadow-sm font-semibold"
-                  : "text-gray-500 hover:text-gray-800"
+                  ? "bg-white text-gray-900 shadow-xs font-semibold"
+                  : "text-gray-600 hover:text-gray-900 font-medium"
               }`}
             >
               Indirect Expense
@@ -542,16 +621,16 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
           </div>
         )}
 
-        {/* Form Container (Left-aligned) */}
-        <form onSubmit={handleSubmit} className="space-y-6 max-w-5xl">
+        {/* Form Container */}
+        <form onSubmit={handleSubmit} className="space-y-6">
           
           {/* Row 1: Category, Branch, Amount (3 Columns) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
             {/* Category */}
             <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-2 uppercase">
+                Category <span className="text-red-500 font-bold">*</span>
               </label>
               <SearchableSelect
                 value={category}
@@ -559,13 +638,14 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 options={categories}
                 placeholder="Select Category"
                 searchPlaceholder="Search category..."
+                icon={Layers}
               />
             </div>
 
             {/* Branch */}
             <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Branch <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-2 uppercase">
+                Branch <span className="text-red-500 font-bold">*</span>
               </label>
               <SearchableSelect
                 value={branch || (canSelectStore ? "" : (currentusers.locCode || "759"))}
@@ -577,34 +657,48 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 placeholder="Select Branch"
                 searchPlaceholder="Search branch..."
                 disabled={!canSelectStore}
+                icon={Building2}
               />
             </div>
 
             {/* Amount */}
             <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Amount <span className="text-red-500">*</span>
+              <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-2 uppercase">
+                Amount <span className="text-red-500 font-bold">*</span>
               </label>
-              <input
-                type="number"
-                step="any"
-                min="0.01"
-                placeholder="Enter the amount"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all font-medium"
-              />
+              <div className="relative w-full h-12 flex items-center rounded-xl border border-gray-200 bg-white px-3.5 transition-all duration-200 focus-within:border-[#9B48D7] focus-within:ring-4 focus-within:ring-purple-500/10 hover:border-gray-300">
+                <IndianRupee size={16} className="text-gray-400 shrink-0 select-none mr-2" />
+                <input
+                  type="number"
+                  step="any"
+                  min="0.01"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="w-full h-full bg-transparent text-sm font-semibold text-gray-900 placeholder:text-gray-400 placeholder:font-normal focus:outline-none"
+                />
+                {amount && (
+                  <button
+                    type="button"
+                    onClick={() => setAmount("")}
+                    className="p-1 text-gray-300 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors shrink-0 ml-1"
+                    title="Clear amount"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
             </div>
 
           </div>
 
           {/* Row 2: Attachment (Left) and Remarks (Right) (2 Columns) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-1">
             
             {/* Attachment */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
-                Attachment <span className="text-red-500">*</span>
+            <div className="flex flex-col">
+              <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-2 uppercase">
+                Attachment <span className="text-red-500 font-bold">*</span>
               </label>
 
               {/* Upload Drop Area */}
@@ -613,26 +707,29 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border border-dashed rounded-2xl p-8 bg-white flex flex-col items-center justify-center text-center min-h-[200px] transition-colors ${
+                className={`flex-1 border-2 border-dashed rounded-2xl p-6 bg-white flex flex-col items-center justify-center text-center min-h-[220px] transition-all duration-200 ${
                   dragActive
-                    ? "border-purple-500 bg-purple-50/20"
-                    : "border-gray-300 hover:border-gray-400"
+                    ? "border-[#9B48D7] bg-purple-50/20"
+                    : "border-gray-200 hover:border-purple-300 hover:bg-purple-50/10"
                 }`}
               >
+                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-[#9B48D7] mb-3">
+                  <UploadCloud size={22} />
+                </div>
                 <p className="text-sm font-semibold text-gray-800">
-                  Drag image (s) here or browse images
+                  Drag image(s) here or browse images
                 </p>
                 <p className="mt-1 text-xs text-gray-400 max-w-xs leading-relaxed">
-                  You can add up to 15 images, each not exceeding 5MB in size and 7000x7000 pixels resolution.
+                  Up to 15 images (max 5MB each, max 7000×7000px)
                 </p>
 
                 <button
                   type="button"
                   onClick={() => triggerFileInput(fileInputRef)}
                   disabled={uploading}
-                  className="mt-4 rounded-lg bg-[#272B30] hover:bg-black text-white px-7 py-2.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="mt-4 rounded-xl bg-[#1E232A] hover:bg-black text-white px-6 py-2.5 text-xs font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
-                  {uploading ? "Uploading..." : "Upload"}
+                  {uploading ? "Uploading..." : "Upload Images"}
                 </button>
 
                 <input
@@ -689,26 +786,28 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
             </div>
 
             {/* Remarks */}
-            <div>
-              <label className="block text-sm font-normal text-gray-700 mb-2">
+            <div className="flex flex-col">
+              <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-2 uppercase">
                 Remarks
               </label>
-              <textarea
-                placeholder="Enter remarks..."
-                value={remarks}
-                onChange={(e) => setRemarks(e.target.value)}
-                className="w-full h-[200px] rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all resize-none"
-              />
+              <div className="relative flex-1">
+                <textarea
+                  placeholder="Enter remarks or details about this expense..."
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  className="w-full h-[220px] rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9B48D7] focus:ring-4 focus:ring-purple-500/10 hover:border-gray-300 transition-all duration-200 resize-none font-normal leading-relaxed"
+                />
+              </div>
             </div>
 
           </div>
 
           {/* Row 3: Action Buttons (Bottom Left) */}
-          <div className="flex items-center gap-3 pt-6">
+          <div className="flex items-center gap-3 pt-4">
             <button
               type="submit"
               disabled={isSubmitting}
-              className="rounded-lg bg-[#9B48D7] hover:bg-[#8B38C7] text-white px-7 py-2.5 text-sm font-medium transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+              className="rounded-xl bg-[#9B48D7] hover:bg-[#8B38C7] text-white px-8 py-2.5 text-sm font-semibold transition-all shadow-xs hover:shadow-sm cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -716,7 +815,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                   <span>Saving...</span>
                 </>
               ) : (
-                <span>Save</span>
+                <span>Save Expense</span>
               )}
             </button>
 
@@ -724,7 +823,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
               type="button"
               onClick={handleCancel}
               disabled={isSubmitting}
-              className="rounded-lg bg-[#F3F4F6] hover:bg-[#E5E7EB] text-gray-700 px-7 py-2.5 text-sm font-medium transition-all cursor-pointer"
+              className="rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 px-7 py-2.5 text-sm font-semibold transition-all cursor-pointer"
             >
               Cancel
             </button>
@@ -738,3 +837,4 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
 };
 
 export default DirectIndirectExpenses;
+

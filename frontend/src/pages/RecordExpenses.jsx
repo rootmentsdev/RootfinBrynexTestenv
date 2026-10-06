@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import baseUrl from '../api/api';
 import { 
@@ -9,9 +9,222 @@ import {
   ChevronDown, 
   FileText, 
   ExternalLink,
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 import { useSidebar } from '../hooks/useSidebar.js';
+
+// Animated Search Bar matching "scry:search" 3D Flip Animation
+const AnimatedSearchBar = ({ value, onChange, placeholder = "Search by category, branch, remark..." }) => {
+  const [isOpen, setIsOpen] = useState(Boolean(value));
+  const inputRef = useRef(null);
+
+  // Keep open if external value exists
+  useEffect(() => {
+    if (value && !isOpen) {
+      setIsOpen(true);
+    }
+  }, [value]);
+
+  const handleButtonClick = () => {
+    // One button, three jobs:
+    // 1. If closed -> open and focus
+    // 2. If has text -> clear text and keep focused
+    // 3. If open and empty -> close
+    if (!isOpen) {
+      setIsOpen(true);
+      setTimeout(() => inputRef.current?.focus(), 80);
+      return;
+    }
+    if (value && value.trim().length > 0) {
+      onChange("");
+      inputRef.current?.focus();
+      return;
+    }
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Escape") {
+      if (value) {
+        onChange("");
+      } else {
+        setIsOpen(false);
+      }
+    }
+  };
+
+  const hasText = Boolean(value && value.trim().length > 0);
+
+  return (
+    <>
+      <style>{`
+        .scry__seat {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          perspective: 800px;
+          transform-style: preserve-3d;
+          height: 44px;
+        }
+
+        .scry__shadow {
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03);
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+
+        .scry__seat[data-open="true"] .scry__shadow {
+          opacity: 1;
+        }
+
+        .scry__field {
+          position: relative;
+          display: flex;
+          align-items: center;
+          height: 44px;
+          background: #ffffff;
+          border-radius: 9999px;
+          border: 1.5px solid #E5E7EB;
+          overflow: hidden;
+          transform-origin: 50% 50%;
+          transition: transform 0.633s cubic-bezier(0.55, 0.08, 0.4, 0.95),
+                      width 0.633s cubic-bezier(0.55, 0.08, 0.4, 0.95),
+                      opacity 0.35s ease,
+                      border-color 0.2s ease,
+                      box-shadow 0.2s ease;
+        }
+
+        .scry__field[data-state="closed"] {
+          transform: rotateX(-90deg);
+          opacity: 0;
+          width: 44px;
+          pointer-events: none;
+        }
+
+        .scry__field[data-state="open"] {
+          transform: rotateX(0deg);
+          opacity: 1;
+          width: 340px;
+          pointer-events: auto;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+        }
+
+        .scry__field[data-state="open"]:focus-within {
+          border-color: #9B48D7;
+          box-shadow: 0 0 0 4px rgba(155, 72, 215, 0.12), 0 4px 14px rgba(0, 0, 0, 0.04);
+        }
+
+        @media (max-width: 640px) {
+          .scry__field[data-state="open"] {
+            width: 230px;
+          }
+        }
+
+        .scry__sheen {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 60%);
+          pointer-events: none;
+          border-radius: 9999px;
+        }
+
+        .scry__input {
+          width: 100%;
+          height: 100%;
+          padding: 0 46px 0 18px;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-size: 13.5px;
+          color: #111827;
+          font-weight: 500;
+        }
+
+        .scry__input::placeholder {
+          color: #9CA3AF;
+          font-weight: 400;
+        }
+
+        .scry__btn {
+          width: 36px;
+          height: 36px;
+          border-radius: 9999px;
+          background: #111827;
+          color: #ffffff;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          border: none !important;
+          cursor: pointer;
+          transition: background-color 0.2s ease, transform 0.3s cubic-bezier(0.55, 0.08, 0.4, 0.95), box-shadow 0.2s ease;
+          z-index: 10;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+
+        .scry__btn:hover {
+          background: #000000;
+          transform: scale(1.05);
+        }
+
+        .scry__btn:active {
+          transform: scale(0.95);
+        }
+
+        .scry__seat[data-open="true"] .scry__btn {
+          position: absolute;
+          right: 4px;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+
+        .scry__seat[data-open="true"] .scry__btn:hover {
+          transform: translateY(-50%) scale(1.05);
+        }
+
+        .scry__seat[data-open="true"] .scry__btn:active {
+          transform: translateY(-50%) scale(0.95);
+        }
+      `}</style>
+
+      <div className="scry__seat" data-open={isOpen ? "true" : "false"}>
+        <span className="scry__shadow" />
+        
+        <div className="scry__field" data-state={isOpen ? "open" : "closed"}>
+          <span className="scry__sheen" />
+          <input
+            ref={inputRef}
+            className="scry__input"
+            type="search"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            autoComplete="off"
+            spellCheck="false"
+          />
+        </div>
+
+        <button
+          type="button"
+          className="scry__btn custom-button"
+          onClick={handleButtonClick}
+          title={!isOpen ? "Search" : hasText ? "Clear search" : "Close search"}
+        >
+          {isOpen ? (
+            <X size={17} className="transition-transform duration-200 animate-in fade-in zoom-in-75" />
+          ) : (
+            <Search size={16} className="transition-transform duration-200" />
+          )}
+        </button>
+      </div>
+    </>
+  );
+};
 
 const fallbackLocations = [
   { locName: "Warehouse", locCode: "858" },
@@ -174,16 +387,11 @@ const RecordExpenses = () => {
               <Menu size={20} />
             </button>
 
-            <div className="relative w-full sm:w-80">
-              <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Search by name or sku"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 shadow-xs"
-              />
-            </div>
+            <AnimatedSearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search category, branch, remarks..."
+            />
           </div>
 
           <button

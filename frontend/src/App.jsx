@@ -94,6 +94,8 @@ const App = () => {
   const currentuser = JSON.parse(localStorage.getItem("rootfinuser")); // Convert back to an object
   const isClusterManager = (currentuser?.role || "").toLowerCase() === "cluster_manager";
   const isFinancialHead = (currentuser?.role || "").toLowerCase() === "financial_head";
+  const isAdminOrSuperAdmin = (currentuser?.power || "").toLowerCase() === "admin" || (currentuser?.role || "").toLowerCase() === "superadmin" || (currentuser?.role || "").toLowerCase() === "admin";
+  const canAccessRecordExpense = isAdminOrSuperAdmin || isFinancialHead;
 
   // Allowed routes for cluster managers
   const clusterAllowedRoutes = ["/datewisedaybook", "/BookingReport", "/RentOutReport", "/securityReport", "/Revenuereport", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
@@ -228,11 +230,11 @@ const App = () => {
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityReturn /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><DaybookGuard><Income /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><Expenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expense" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/direct-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/indirect-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="indirect" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
+          <Route path="/record-expenses" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
+          <Route path="/record-expense/new" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
+          <Route path="/direct-expenses" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
+          <Route path="/indirect-expenses" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="indirect" /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityPending /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <DaybookGuard><Security /></DaybookGuard> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
