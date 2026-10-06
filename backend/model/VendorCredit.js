@@ -62,6 +62,16 @@ const vendorCreditSchema = new mongoose.Schema(
     totalTax: { type: Number, default: 0 },
     finalTotal: { type: Number, default: 0 },
     
+    // Financial Tracking
+    unusedCredit: { type: Number, default: 0 },
+    appliedCredit: { type: Number, default: 0 },
+    appliedToBills: [{
+      billId: { type: String },
+      billNumber: { type: String },
+      appliedAmount: { type: Number, default: 0 },
+      appliedDate: { type: Date, default: Date.now },
+    }],
+
     // Notes
     notes: { type: String, default: "" },
     

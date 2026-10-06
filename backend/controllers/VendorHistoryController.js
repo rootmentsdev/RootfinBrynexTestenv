@@ -1,4 +1,5 @@
-import { VendorHistory } from "../models/sequelize/index.js";
+// Pure MongoDB VendorHistory Controller
+import VendorHistory from "../model/VendorHistory.js";
 
 // Get vendor history by vendor ID
 export const getVendorHistory = async (req, res) => {
@@ -10,14 +11,15 @@ export const getVendorHistory = async (req, res) => {
       return res.status(400).json({ message: "Vendor ID is required" });
     }
 
-    const history = await VendorHistory.findAll({
-      where: { vendorId },
-      order: [['changedAt', 'DESC']],
-      limit: parseInt(limit),
-    });
+    const history = await VendorHistory.find({ vendorId })
+      .sort({ changedAt: -1 })
+      .limit(parseInt(limit));
 
-    // Convert Sequelize instances to plain objects
-    const historyData = history.map(item => item.toJSON());
+    const historyData = history.map(item => {
+      const obj = item.toObject();
+      obj.id = obj._id.toString();
+      return obj;
+    });
 
     res.status(200).json(historyData);
   } catch (error) {

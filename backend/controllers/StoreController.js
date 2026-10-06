@@ -1,6 +1,4 @@
 import Store from "../model/Store.js";
-// Import PostgreSQL model for dual-save
-import { Store as PgStore } from "../models/sequelize/index.js";
 import mongoose from "mongoose";
 
 // Create a new store

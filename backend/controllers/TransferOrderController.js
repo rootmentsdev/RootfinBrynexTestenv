@@ -1,6 +1,4 @@
 // Transfer Order Controller - Manages stock transfers between warehouses
-import { Op } from "sequelize";
-import { TransferOrder as TransferOrderPostgres } from "../models/sequelize/index.js";
 import TransferOrder from "../model/TransferOrder.js"; // MongoDB model
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";

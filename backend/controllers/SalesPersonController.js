@@ -1,7 +1,5 @@
 import SalesPerson from "../model/SalesPerson.js";
 import Store from "../model/Store.js";
-// Import PostgreSQL models for dual-save
-import { SalesPerson as PgSalesPerson, Store as PgStore } from "../models/sequelize/index.js";
 import mongoose from "mongoose";
 
 // Create a new sales person

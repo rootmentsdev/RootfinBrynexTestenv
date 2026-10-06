@@ -1,12 +1,10 @@
-// Use PostgreSQL VendorHistory model
-import { VendorHistory } from "../models/sequelize/index.js";
-// Also import MongoDB model for dual-save
-import MongoVendorHistory from "../model/VendorHistory.js";
+// Pure MongoDB VendorHistory Logger
+import VendorHistory from "../model/VendorHistory.js";
 
 /**
  * Log vendor activity to history
  * @param {Object} params - History parameters
- * @param {String} params.vendorId - Vendor ID (UUID)
+ * @param {String} params.vendorId - Vendor ID
  * @param {String} params.eventType - Type of event (BILL_ADDED, BILL_UPDATED, etc.)
  * @param {String} params.title - Event title
  * @param {String} params.description - Event description
@@ -34,49 +32,22 @@ export const logVendorActivity = async ({
     }
 
     const historyEntry = {
-      vendorId,
+      vendorId: vendorId.toString(),
       eventType,
       title,
       description,
       originator,
-      relatedEntityId,
+      relatedEntityId: relatedEntityId ? relatedEntityId.toString() : null,
       relatedEntityType,
       metadata,
       changedBy,
       changedAt: new Date(),
     };
 
-    const pgHistory = await VendorHistory.create(historyEntry);
-    console.log(`✅ Logged vendor activity: ${eventType} for vendor ${vendorId}`);
-    
-    // DUAL-SAVE: Also save to MongoDB for safety/redundancy
-    try {
-      console.log(`💾 Dual-saving vendor history to MongoDB for safety...`);
-      
-      const mongoHistoryEntry = {
-        vendorId,
-        eventType,
-        title,
-        description,
-        originator,
-        relatedEntityId,
-        relatedEntityType,
-        metadata,
-        changedBy,
-        changedAt: historyEntry.changedAt,
-        // Add PostgreSQL ID as reference
-        postgresqlId: pgHistory.id,
-      };
-      
-      await MongoVendorHistory.create(mongoHistoryEntry);
-      console.log(`✅ Successfully saved vendor history to MongoDB`);
-    } catch (mongoError) {
-      console.error(`⚠️  Failed to save vendor history to MongoDB (PostgreSQL save was successful):`, mongoError);
-      // Don't fail the entire operation if MongoDB save fails
-    }
+    await VendorHistory.create(historyEntry);
+    console.log(`✅ Logged vendor activity to MongoDB: ${eventType} for vendor ${vendorId}`);
   } catch (error) {
-    console.error("Error logging vendor activity:", error);
-    // Don't throw - history logging should not break the main operation
+    console.error("Error logging vendor activity to MongoDB:", error.message);
   }
 };
 
@@ -99,7 +70,6 @@ const formatCurrency = (value) => {
  * Helper to get originator name from bill or user
  */
 export const getOriginatorName = (warehouse, branch, user) => {
-  // Try warehouse first, then branch, then user location, then default
   if (warehouse && warehouse.trim()) {
     return warehouse.trim();
   }

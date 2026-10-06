@@ -1,7 +1,6 @@
 import Bill from "../model/Bill.js";
 import ShoeItem from "../model/ShoeItem.js";
 import ItemGroup from "../model/ItemGroup.js";
-import { Vendor } from "../models/sequelize/index.js";
 import mongoose from "mongoose";
 import { logVendorActivity, getOriginatorName } from "../utils/vendorHistoryLogger.js";
 import { updateMonthlyStockForPurchase } from "../utils/monthlyStockTracking.js";

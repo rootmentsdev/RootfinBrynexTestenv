@@ -1,6 +1,4 @@
 import SalesInvoice from "../model/SalesInvoice.js";
-import SalesInvoicePostgres from "../models/sequelize/SalesInvoice.js";
-import TransactionPostgres from "../models/sequelize/Transaction.js";
 import { nextGlobalSalesInvoice } from "../utils/nextSalesInvoice.js";
 import { updateStockOnInvoiceCreate, reverseStockOnInvoiceDelete } from "../utils/ultraEnhancedStockManagement.js";
 import { validateStockBeforeInvoice, validateStockAfterInvoice } from "../utils/stockValidationSystem.js";
