@@ -115,7 +115,7 @@ export const calculateTotalCashForDate = async (locCode, dateInput) => {
 
   // 1. Fetch TWS External Transactions
   let twsTransactions = [];
-  const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
+  const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
 
   try {
     const [bookingRes, rentoutRes, returnRes, deleteRes] = await Promise.all([

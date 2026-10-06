@@ -7,7 +7,7 @@ export const getMergedTransactions = async (req, res) => {
     const { fromDate, toDate } = req.query;
 
     // 1. Fetch TWS transactions from external API
-    const twsResponse = await axios.get("https://rentalapi.brynex.live/api/GetTransactionList", {
+    const twsResponse = await axios.get("https://rentalapi.rootments.live/api/GetTransactionList", {
       params: { DateFrom: fromDate, DateTo: toDate }
     });
 

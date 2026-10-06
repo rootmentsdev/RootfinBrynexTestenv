@@ -18,7 +18,6 @@ const columns = [
 
 // Generate skeleton rows for loading state (no mock data)
 const generateSkeletonRows = (count = 5) => {
-  const isSidebarOpen = useSidebar();
   return Array.from({ length: count }, (_, i) => ({
     id: `skeleton-${i}`,
     name: "",

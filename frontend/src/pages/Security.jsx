@@ -100,7 +100,7 @@ const Security = () => {
   const clusterStores = isClusterManager
     ? AllLoation.filter(s => (user.allowedLocCodes || []).includes(s.locCode))
     : [];
-  const baseAPI = "https://rentalapi.brynex.live/api/GetBooking";
+  const baseAPI = "https://rentalapi.rootments.live/api/GetBooking";
 
   const [loading, setLoading] = useState(false);
 

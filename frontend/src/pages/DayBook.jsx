@@ -49,7 +49,7 @@ const DayBook = () => {
     };
 
     const handleFetch = async () => {
-        const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
+        const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
         if (!fromDate || !toDate) {
             return alert("select date ");
         }

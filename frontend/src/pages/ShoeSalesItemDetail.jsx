@@ -178,7 +178,6 @@ const ShoeSalesItemDetail = () => {
   const isSidebarOpen = useSidebar();
   const { itemId } = useParams();
   const navigate = useNavigate();
-  const isSidebarOpen = useSidebar();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [item, setItem] = useState(null);

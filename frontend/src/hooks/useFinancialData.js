@@ -16,7 +16,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
 
   // Memoized API URLs generator
   const generateApiUrls = useCallback((fromDate, toDate, locCode) => {
-    const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
+    const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
     return {
       booking: `${twsBase}/GetBookingList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`,
       rentout: `${twsBase}/GetRentoutList?LocCode=${locCode}&DateFrom=${fromDate}&DateTo=${toDate}`,

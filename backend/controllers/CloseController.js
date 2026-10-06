@@ -211,7 +211,7 @@ export const getFinancialSummaryWithEdit = async (req, res) => {
         }).sort({ createdAt: -1 });
 
         // Fetch external API data (like Financial Summary)
-        const twsBase = "https://rentalapi.brynex.live/api/GetBooking";
+        const twsBase = "https://rentalapi.rootments.live/api/GetBooking";
         const dateStr = date; // Use the date parameter directly
         
         let externalBank = 0;

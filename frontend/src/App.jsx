@@ -213,18 +213,11 @@ const App = () => {
   return (
     <div className="">
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
-<<<<<<< HEAD
-      <div className="min-w-0">
-        <Routes>
-          {/* Login Route */}
-          <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
-=======
-      <div className="w-full">
+      <div className="w-full min-w-0">
         <FinancialHeadGuard>
           <Routes>
             {/* Login Route */}
             <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
->>>>>>> FinancalHead
 
             {/* Protected Routes (Redirect to Login if Not Authenticated) */}
             <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : (isFinancialHead ? <Navigate to="/daybook" /> : ((currentuser?.power === 'admin' || currentuser?.role === 'superadmin') ? <Home /> : <Navigate to="/daybook" />))) : <Navigate to="/login" />} />
