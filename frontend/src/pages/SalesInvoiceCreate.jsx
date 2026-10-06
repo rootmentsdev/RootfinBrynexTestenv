@@ -412,8 +412,13 @@ const ItemDropdown = ({ rowId, value, onChange, warehouse, onNewItem, isStoreUse
                         {item.itemName || "Unnamed Item"}
                         {isOutOfStock && <span className="ml-2 text-xs font-normal text-[#ef4444]">(Out of Stock)</span>}
                       </div>
-                      <div className="text-xs text-[#9ca3af] mt-0.5">
-                        SKU: {item.sku || "N/A"} · Purchase Rate: ₹{purchaseRate.toFixed(2)}
+                      <div className="text-xs text-[#9ca3af] mt-0.5 flex items-center flex-wrap gap-1.5">
+                        <span>SKU: {item.sku || "N/A"} · Purchase Rate: ₹{purchaseRate.toFixed(2)}</span>
+                        {item.category && item.category !== "other" && (
+                          <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-purple-100 text-purple-700 capitalize">
+                            {item.category}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -707,17 +712,51 @@ const TaxDropdown = ({ rowId, value, onChange, taxOptions, nonTaxableOptions, on
   );
 };
 
-// Simple SubCategory Dropdown Component - Opens Downwards
+// Simple SubCategory Dropdown Component - Opens Downwards with Dynamic Categories
 const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [customInput, setCustomInput] = useState("");
+  const [isTypingCustom, setIsTypingCustom] = useState(false);
+  const [dynamicOptions, setDynamicOptions] = useState([]);
   const dropdownRef = useRef(null);
+  const API_URL = baseUrl?.baseUrl?.replace(/\/$/, "") || "http://localhost:7000";
 
-  const options = [
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/shoe-sales/items?page=1&limit=1000`);
+        if (response.ok) {
+          const data = await response.json();
+          const itemsList = Array.isArray(data) ? data : (data.items || []);
+          const uniqueCats = [...new Set(
+            itemsList
+              .map(i => (i.category || "").trim())
+              .filter(c => c && c.toLowerCase() !== "shirt" && c.toLowerCase() !== "shoe" && c.toLowerCase() !== "other")
+          )];
+          const mapped = uniqueCats.map(cat => {
+            const formatted = cat.toLowerCase().endsWith("sales") ? cat : `${cat} Sales`;
+            const val = cat.toLowerCase().endsWith("sales") ? cat.toLowerCase() : `${cat.toLowerCase()} sales`;
+            return {
+              value: val,
+              label: formatted.charAt(0).toUpperCase() + formatted.slice(1)
+            };
+          });
+          setDynamicOptions(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch custom categories:", err);
+      }
+    };
+    fetchCategories();
+  }, [API_URL]);
+
+  const baseOptions = useMemo(() => [
     { value: "", label: "Select sub category" },
     { value: "shoe sales", label: "Shoe Sales" },
     { value: "shirt sales", label: "Shirt Sales" },
-    { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" }, // New option for mixed sales
-  ];
+    { value: "mixed sales", label: "Mixed Sales (Shoes & Shirts)" },
+    ...dynamicOptions,
+  ], [dynamicOptions]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -729,31 +768,57 @@ const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const selectedLabel = options.find(opt => opt.value === value)?.label || "Select sub category";
+  const selectedOpt = baseOptions.find(opt => opt.value.toLowerCase() === (value || "").toLowerCase());
+  const selectedLabel = selectedOpt ? selectedOpt.label : (value || "Select sub category");
 
   return (
     <div ref={dropdownRef} className="relative w-full">
-      <input
-        type="text"
-        readOnly
-        onClick={() => setIsOpen(!isOpen)}
-        value={selectedLabel}
-        className="w-full h-[42px] rounded-none border border-[#e5e7eb] bg-white text-sm text-[#111827] hover:border-[#8b5cf6] focus:border-[#8b5cf6] focus:outline-none transition-all cursor-pointer px-3.5 pr-8 appearance-none"
-        style={{ backgroundImage: 'none' }}
-      />
-      <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+      {isTypingCustom ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            autoFocus
+            value={customInput}
+            onChange={(e) => {
+              setCustomInput(e.target.value);
+              onChange(e.target.value);
+            }}
+            placeholder="Type custom subcategory..."
+            className="w-full h-[42px] rounded-none border border-[#8b5cf6] bg-white text-sm text-[#111827] focus:outline-none px-3.5"
+          />
+          <button
+            type="button"
+            onClick={() => setIsTypingCustom(false)}
+            className="px-3 h-[42px] bg-purple-600 hover:bg-purple-700 text-xs font-semibold text-white cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      ) : (
+        <div className="relative w-full">
+          <input
+            type="text"
+            readOnly
+            onClick={() => setIsOpen(!isOpen)}
+            value={selectedLabel}
+            className="w-full h-[42px] rounded-none border border-[#e5e7eb] bg-white text-sm text-[#111827] hover:border-[#8b5cf6] focus:border-[#8b5cf6] focus:outline-none transition-all cursor-pointer px-3.5 pr-8 appearance-none"
+            style={{ backgroundImage: 'none' }}
+          />
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+        </div>
+      )}
 
-      {isOpen && (
+      {isOpen && !isTypingCustom && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#e5e7eb] rounded-none shadow-lg z-50 max-h-64 overflow-y-auto">
-          {options.map((option) => (
+          {baseOptions.map((option) => (
             <div
-              key={option.value}
+              key={option.value || "empty"}
               onClick={() => {
                 onChange(option.value);
                 setIsOpen(false);
               }}
               className={`px-3 py-2.5 text-sm cursor-pointer transition-colors ${
-                value === option.value
+                (value || "").toLowerCase() === option.value.toLowerCase()
                   ? "bg-[#f3f4f6] text-[#111827] font-medium border-l-4 border-l-[#9ca3af]"
                   : "text-[#111827] hover:bg-[#f9fafb]"
               }`}
@@ -761,6 +826,16 @@ const SubCategoryDropdown = ({ value, onChange, subtleControlBase }) => {
               {option.label}
             </div>
           ))}
+          <div
+            onClick={() => {
+              setIsTypingCustom(true);
+              setCustomInput(value || "");
+              setIsOpen(false);
+            }}
+            className="px-3 py-2.5 text-sm font-semibold text-purple-600 hover:bg-purple-50 cursor-pointer border-t border-gray-100 flex items-center justify-between"
+          >
+            <span>+ Type Custom Subcategory</span>
+          </div>
         </div>
       )}
     </div>
@@ -2605,6 +2680,8 @@ Customer Service Available`;
         setSubCategory("shoe sales");
       } else if (itemCategory === "shirt") {
         setSubCategory("shirt sales");
+      } else if (itemCategory && itemCategory !== "other") {
+        setSubCategory(itemCategory.endsWith("sales") ? itemCategory : `${itemCategory} sales`);
       } else {
         setSubCategory("");
       }

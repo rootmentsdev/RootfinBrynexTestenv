@@ -216,6 +216,7 @@ const AddNewUser = () => {
                                 <option value="store_user">Store User</option>
                                 <option value="store_manager">Store Manager</option>
                                 <option value="cluster_manager">Cluster Manager</option>
+                                <option value="financial_head">Financial Head</option>
                                 <option value="admin">Admin</option>
                                 <option value="superadmin">Super Admin</option>
                             </select>

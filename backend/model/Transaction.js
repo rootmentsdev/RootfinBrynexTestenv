@@ -104,6 +104,8 @@ const transactionSchema = new mongoose.Schema(
 
     category:     { type: String, required: true },
     subCategory:  { type: String, default: "" }, // Added missing subCategory field
+    expenseType:  { type: String, default: "" }, // "direct" | "indirect"
+    entryType:    { type: String, default: "" }, // "branch_entry" | "accountant_entry"
 
     remark:       { type: String, default: "" },
 

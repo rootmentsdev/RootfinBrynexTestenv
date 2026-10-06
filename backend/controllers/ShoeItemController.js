@@ -360,7 +360,7 @@ export const createShoeItem = async (req, res) => {
     return res.status(201).json(item);
   } catch (error) {
     console.error("Error creating shoe item:", error);
-    return res.status(500).json({ message: "Failed to create shoe item." });
+    return res.status(500).json({ message: error.message || "Failed to create shoe item.", error: error.message });
   }
 };
 
@@ -812,7 +812,7 @@ export const updateShoeItem = async (req, res) => {
     return res.json(updatedItem);
   } catch (error) {
     console.error("Error updating shoe item:", error);
-    return res.status(500).json({ message: "Failed to update shoe item." });
+    return res.status(500).json({ message: error.message || "Failed to update shoe item.", error: error.message });
   }
 };
 

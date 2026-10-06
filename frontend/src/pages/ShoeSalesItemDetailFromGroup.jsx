@@ -155,6 +155,14 @@ const normalizeWarehouseName = (warehouseName) => {
   return null;
 };
 
+const formatCategoryName = (cat) => {
+  if (!cat) return "Other";
+  if (cat.toLowerCase() === "shirt") return "Shirt Sales";
+  if (cat.toLowerCase() === "shoe") return "Shoe Sales";
+  if (cat.toLowerCase() === "other") return "Other";
+  return cat;
+};
+
 const ShoeSalesItemDetailFromGroup = () => {
   const isSidebarOpen = useSidebar();
   const { id, itemId } = useParams();
@@ -1407,6 +1415,10 @@ const ShoeSalesItemDetailFromGroup = () => {
                         <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
                           <span className="text-xs font-medium text-[#6B7280]">Item Type</span>
                           <span className="text-xs font-bold text-[#111827] uppercase">{itemGroup.itemType === "goods" ? "Inventory Item" : "Service"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
+                          <span className="text-xs font-medium text-[#6B7280]">Category</span>
+                          <span className="text-xs font-bold text-[#7C3AED] uppercase">{formatCategoryName(item.category || itemGroup.category)}</span>
                         </div>
                         <div className="flex justify-between items-center py-1.5 border-b border-[#F3F4F6]">
                           <span className="text-xs font-medium text-[#6B7280]">SKU</span>

@@ -43,14 +43,13 @@ const ItemGroupSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["shirt", "shoe", "other"],
       default: "other",
       trim: true,
     },
     taxPreference: {
       type: String,
-      enum: ["taxable", "non-taxable"],
       default: "taxable",
+      trim: true,
     },
     intraStateTaxRate: {
       type: String,

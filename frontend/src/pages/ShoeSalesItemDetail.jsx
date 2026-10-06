@@ -166,7 +166,16 @@ const formatCurrency = (value) => {
   }).format(numberValue);
 };
 
+const formatCategoryName = (cat) => {
+  if (!cat) return "Other";
+  if (cat.toLowerCase() === "shirt") return "Shirt Sales";
+  if (cat.toLowerCase() === "shoe") return "Shoe Sales";
+  if (cat.toLowerCase() === "other") return "Other";
+  return cat;
+};
+
 const ShoeSalesItemDetail = () => {
+  const isSidebarOpen = useSidebar();
   const { itemId } = useParams();
   const navigate = useNavigate();
   const isSidebarOpen = useSidebar();
@@ -1261,9 +1270,17 @@ const ShoeSalesItemDetail = () => {
                           isActive ? "bg-[#eef2ff] font-semibold text-[#1f2937]" : "text-[#475569] hover:bg-[#f6f8ff]"
                         }`}
                       >
-                        <div className="flex flex-col">
-                          <span>{entry.itemName || "Untitled Item"}</span>
-                          <span className="text-xs text-[#94a3b8]">{entry.sku || "No SKU"}</span>
+                        <div className="flex flex-col min-w-0 pr-2">
+                          <span className="truncate">{entry.itemName || "Untitled Item"}</span>
+                          <div className="flex items-center gap-1.5 text-xs text-[#94a3b8] truncate">
+                            <span>{entry.sku || "No SKU"}</span>
+                            {entry.category && (
+                              <>
+                                <span>•</span>
+                                <span className="text-[#4f46e5] font-medium truncate">{formatCategoryName(entry.category)}</span>
+                              </>
+                            )}
+                          </div>
                         </div>
                         <span className="text-xs font-semibold text-[#1f2937]">
                           {formatCurrency(entry.sellingPrice || 0)}
@@ -1341,7 +1358,14 @@ const ShoeSalesItemDetail = () => {
             <div className="flex items-start justify-between mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-[#1a1a2e] tracking-tight">{item.itemName}</h1>
-                <p className="text-base text-[#64748b] mt-2">SKU: {item.sku || "N/A"} {item.brand && `• ${item.brand}`}</p>
+                <div className="flex items-center gap-2.5 mt-2 flex-wrap">
+                  <p className="text-base text-[#64748b]">SKU: {item.sku || "N/A"} {item.brand && `• ${item.brand}`}</p>
+                  {item.category && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#eef2ff] text-[#4f46e5] border border-[#c7d2fe]">
+                      {formatCategoryName(item.category)}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="text-right">
                 <p className="text-sm text-[#64748b] mb-1">Selling Price</p>
@@ -1480,6 +1504,12 @@ const ShoeSalesItemDetail = () => {
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">Item Type</span>
                           <span className="text-sm font-medium text-[#1a1a2e]">{item.type === "service" ? "Service" : "Inventory Item"}</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <span className="text-sm text-[#64748b]">Category</span>
+                          <span className="text-sm font-semibold text-[#4f46e5] bg-[#eef2ff] px-2.5 py-0.5 rounded-full border border-[#c7d2fe]">
+                            {formatCategoryName(item.category)}
+                          </span>
                         </div>
                         <div className="flex justify-between items-center py-2">
                           <span className="text-sm text-[#64748b]">Unit</span>

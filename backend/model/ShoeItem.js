@@ -34,7 +34,6 @@ const ShoeItemSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ["shirt", "shoe", "other"],
       default: "other",
       trim: true,
     },
@@ -56,8 +55,8 @@ const ShoeItemSchema = new mongoose.Schema(
   },
     taxPreference: {
       type: String,
-      enum: ["taxable", "non-taxable"],
       default: "taxable",
+      trim: true,
     },
     dimensions: {
       type: String,

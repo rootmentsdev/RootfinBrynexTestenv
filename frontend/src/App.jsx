@@ -79,6 +79,8 @@ import ReorderAlerts from "./pages/ReorderAlerts.jsx";
 import Income from "./pages/Income.jsx";
 import Expenses from "./pages/Expenses.jsx";
 import IncomeExpenseReport from "./pages/IncomeExpenseReport.jsx";
+import DirectIndirectExpenses from "./pages/DirectIndirectExpenses.jsx";
+import RecordExpenses from "./pages/RecordExpenses.jsx";
 
 const App = () => {
   const location = useLocation();
@@ -91,12 +93,43 @@ const App = () => {
   // Retrieve the current user from localStorage
   const currentuser = JSON.parse(localStorage.getItem("rootfinuser")); // Convert back to an object
   const isClusterManager = (currentuser?.role || "").toLowerCase() === "cluster_manager";
+  const isFinancialHead = (currentuser?.role || "").toLowerCase() === "financial_head";
 
   // Allowed routes for cluster managers
   const clusterAllowedRoutes = ["/datewisedaybook", "/BookingReport", "/RentOutReport", "/securityReport", "/Revenuereport", "/reports/income-expense", "/reports/inventory", "/reports/sales", "/reports/sales-by-invoice", "/reports/sales-by-group"];
   const ClusterGuard = ({ children }) => {
     if (isClusterManager && !clusterAllowedRoutes.includes(location.pathname)) {
       return <Navigate to="/datewisedaybook" />;
+    }
+    return children;
+  };
+
+  // Allowed routes for financial head
+  const financialHeadAllowedRoutes = [
+    "/",
+    "/daybook",
+    "/datewisedaybook",
+    "/income",
+    "/expenses",
+    "/record-expense",
+    "/record-expenses",
+    "/record-expense/new",
+    "/direct-expenses",
+    "/indirect-expenses",
+    "/Income&Expenses",
+    "/BookingReport",
+    "/RentOutReport",
+    "/securityReport",
+    "/Revenuereport",
+    "/reports/income-expense",
+    "/reports/inventory",
+    "/reports/sales",
+    "/reports/sales-by-invoice",
+    "/reports/sales-by-group"
+  ];
+  const FinancialHeadGuard = ({ children }) => {
+    if (isFinancialHead && !financialHeadAllowedRoutes.includes(location.pathname)) {
+      return <Navigate to="/daybook" replace />;
     }
     return children;
   };
@@ -125,7 +158,7 @@ const App = () => {
       }
 
       // Only process if user is logged in
-      if (!currentuser) return;
+      if (!currentuser || isClusterManager || isFinancialHead) return;
 
       const key = e.key.toLowerCase();
 
@@ -180,13 +213,21 @@ const App = () => {
   return (
     <div className="">
       {currentuser && <Nav />} {/* Show Nav only if user is logged in */}
+<<<<<<< HEAD
       <div className="min-w-0">
         <Routes>
           {/* Login Route */}
           <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
+=======
+      <div className="w-full">
+        <FinancialHeadGuard>
+          <Routes>
+            {/* Login Route */}
+            <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
+>>>>>>> FinancalHead
 
-          {/* Protected Routes (Redirect to Login if Not Authenticated) */}
-          <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : ((currentuser?.power === 'admin' || currentuser?.role === 'superadmin') ? <Home /> : <Navigate to="/daybook" />)) : <Navigate to="/login" />} />
+            {/* Protected Routes (Redirect to Login if Not Authenticated) */}
+            <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : (isFinancialHead ? <Navigate to="/daybook" /> : ((currentuser?.power === 'admin' || currentuser?.role === 'superadmin') ? <Home /> : <Navigate to="/daybook" />))) : <Navigate to="/login" />} />
           <Route path="/daybook" element={currentuser ? <DayBookInc /> : <Navigate to="/login" />} />
           <Route path="/datewisedaybook" element={currentuser ? <Datewisedaybook /> : <Navigate to="/login" />} />
           <Route path="/BookingReport" element={currentuser ? <DaybookGuard><Booking /></DaybookGuard> : <Navigate to="/login" />} />
@@ -194,6 +235,11 @@ const App = () => {
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityReturn /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><DaybookGuard><Income /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><Expenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/direct-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/indirect-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="indirect" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityPending /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <DaybookGuard><Security /></DaybookGuard> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
@@ -288,6 +334,7 @@ const App = () => {
           <Route path="/inventory/reorder-alerts" element={currentuser ? <DaybookGuard><ReorderAlerts /></DaybookGuard> : <Navigate to="/login" />} />
 
         </Routes>
+        </FinancialHeadGuard>
       </div>
     </div>
   );
