@@ -14,6 +14,9 @@ export const getSalesByGroup = async (req, res) => {
         $gte: new Date(dateFrom + "T00:00:00.000Z"),
         $lte: new Date(dateTo + "T23:59:59.999Z"),
       },
+      category: { $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"] },
+      invoiceNumber: { $not: /^(RTN-|RET-|REFUND-|CANCEL-)/i },
+      returnStatus: { $ne: "full" },
       status: { $ne: "draft" },
     };
 

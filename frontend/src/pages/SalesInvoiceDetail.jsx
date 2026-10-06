@@ -596,6 +596,10 @@ const SalesInvoiceDetail = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             lineItems: [],
+            subTotal: 0,
+            finalTotal: 0,
+            totalTax: 0,
+            discountAmount: 0,
             returnStatus: "full",
             userId: user?.email,
           }),

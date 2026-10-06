@@ -1,7 +1,43 @@
 import SalesInvoice from "../model/SalesInvoice.js";
 import User from "../model/UserModel.js";
 
-// Get Sales by Invoice Report (NEW - with advanced filtering)
+// Helper to check if an invoice is a return/refund/cancel document
+const isReturnInvoiceDoc = (invoice) => {
+  if (!invoice) return true;
+  const category = (invoice.category || "").toLowerCase().trim();
+  if (["return", "refund", "cancel"].includes(category)) return true;
+  const num = (invoice.invoiceNumber || "").toUpperCase().trim();
+  if (num.startsWith("RTN-") || num.startsWith("RET-") || num.startsWith("REFUND-") || num.startsWith("CANCEL-")) return true;
+  return false;
+};
+
+// Helper to check if an invoice is fully returned (no sold items remaining)
+const isFullyReturnedInvoice = (invoice) => {
+  if (!invoice) return true;
+  if (isReturnInvoiceDoc(invoice)) return true;
+  if (invoice.returnStatus === "full") return true;
+  if (!invoice.lineItems || !Array.isArray(invoice.lineItems) || invoice.lineItems.length === 0) return true;
+  const totalQty = (invoice.lineItems || []).reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
+  if (totalQty <= 0) return true;
+  return false;
+};
+
+// Helper to compute effective active invoice sales amount
+const getEffectiveInvoiceSalesAmount = (invoice) => {
+  if (isFullyReturnedInvoice(invoice)) return 0;
+  const finalTotal = parseFloat(invoice.finalTotal) || 0;
+  if (finalTotal > 0) return finalTotal;
+  // Fallback if finalTotal is <= 0 but lineItems exist
+  const computed = (invoice.lineItems || []).reduce((sum, item) => {
+    const qty = parseFloat(item.quantity) || 0;
+    const rate = parseFloat(item.price || item.rate || 0);
+    const amt = parseFloat(item.amount) || (qty * rate);
+    return sum + (amt > 0 ? amt : 0);
+  }, 0);
+  return computed > 0 ? computed : 0;
+};
+
+// Get Sales by Invoice Report (with advanced filtering and excluding returns)
 export const getSalesByInvoice = async (req, res) => {
   try {
     const { dateFrom, dateTo, locCode, category, sku, size, customer } = req.query;
@@ -25,7 +61,9 @@ export const getSalesByInvoice = async (req, res) => {
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
-      category: { $ne: "Return" } // Exclude returns from sales
+      category: { $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"] },
+      invoiceNumber: { $not: /^(RTN-|RET-|REFUND-|CANCEL-)/i },
+      returnStatus: { $ne: "full" }
     };
 
     // Store filtering logic
@@ -36,14 +74,12 @@ export const getSalesByInvoice = async (req, res) => {
         query.locCode = { $in: allowedLocCodes };
       }
     } else if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
-      // For store users, filter by their locCode
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
         { locCode: locCode }
       ];
     } else if (isAdmin && locCode && locCode !== 'all') {
-      // For admin users, filter by selected store if specified
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
@@ -53,9 +89,8 @@ export const getSalesByInvoice = async (req, res) => {
 
     // Advanced filtering
     if (category) {
-      // Combine category filter with existing exclusion of returns
       query.category = { 
-        $ne: "Return",
+        $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"],
         $regex: new RegExp(category, 'i')
       };
     }
@@ -64,7 +99,10 @@ export const getSalesByInvoice = async (req, res) => {
       query.customer = new RegExp(customer, 'i');
     }
 
-    let invoices = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
+    let rawInvoices = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
+
+    // Exclude fully returned invoices and return invoice documents
+    let invoices = rawInvoices.filter(inv => !isFullyReturnedInvoice(inv));
 
     // Filter by SKU or size if specified (requires checking line items)
     if (sku || size) {
@@ -78,44 +116,33 @@ export const getSalesByInvoice = async (req, res) => {
           let matchesSize = true;
           
           if (sku) {
-            // Check both 'sku' and 'itemSku' fields since the structure may vary
             const itemSku = item.sku || item.itemSku;
-            const cleanSku = sku.trim(); // Remove leading/trailing spaces
+            const cleanSku = sku.trim();
             matchesSku = itemSku && itemSku.toLowerCase().includes(cleanSku.toLowerCase());
           }
           
           if (size) {
-            // Check multiple places for size information:
-            // 1. Direct size field
-            // 2. ItemData.size field  
-            // 3. Item name (e.g., "Last test - black/34")
-            // 4. AttributeCombination in itemData
             let sizeFound = false;
-            const cleanSize = size.trim(); // Remove leading/trailing spaces
+            const cleanSize = size.trim();
             
-            // Check direct size field
             if (item.size && item.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check itemData.size field
             if (!sizeFound && item.itemData && item.itemData.size && item.itemData.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check item name for size pattern (e.g., "/34", "-34", " 34")
             if (!sizeFound && item.item) {
               const sizePattern = new RegExp(`[/\\-\\s]${cleanSize}(?:[/\\-\\s]|$)`, 'i');
               sizeFound = sizePattern.test(item.item);
               
-              // Also check for exact size match at the end of item name
               if (!sizeFound) {
                 const endPattern = new RegExp(`${cleanSize}$`, 'i');
                 sizeFound = endPattern.test(item.item);
               }
             }
             
-            // Check attributeCombination in itemData
             if (!sizeFound && item.itemData && item.itemData.attributeCombination) {
               sizeFound = item.itemData.attributeCombination.some(attr => 
                 attr.toString().toLowerCase() === cleanSize.toLowerCase()
@@ -125,7 +152,7 @@ export const getSalesByInvoice = async (req, res) => {
             matchesSize = sizeFound;
           }
           
-          return matchesSku && matchesSize;
+          return matchesSku && matchesSize && (parseFloat(item.quantity) || 0) > 0;
         });
         
         return hasMatchingItem;
@@ -138,9 +165,10 @@ export const getSalesByInvoice = async (req, res) => {
     let totalDiscount = 0;
     let totalPurchaseCost = 0;
 
-    const processedInvoices = invoices.map(invoice => {
-      // Filter line items to only include matching items (for SKU/size filters)
-      let relevantItems = invoice.lineItems || [];
+    const processedInvoices = [];
+
+    invoices.forEach(invoice => {
+      let relevantItems = (invoice.lineItems || []).filter(item => (parseFloat(item.quantity) || 0) > 0);
       
       if (sku || size) {
         relevantItems = relevantItems.filter(item => {
@@ -149,42 +177,32 @@ export const getSalesByInvoice = async (req, res) => {
           
           if (sku) {
             const itemSku = item.sku || item.itemSku;
-            const cleanSku = sku.trim(); // Remove leading/trailing spaces
+            const cleanSku = sku.trim();
             matchesSku = itemSku && itemSku.toLowerCase().includes(cleanSku.toLowerCase());
           }
           
           if (size) {
-            // Check multiple places for size information:
-            // 1. Direct size field
-            // 2. ItemData.size field  
-            // 3. Item name (e.g., "Last test - black/34")
-            // 4. AttributeCombination in itemData
             let sizeFound = false;
-            const cleanSize = size.trim(); // Remove leading/trailing spaces
+            const cleanSize = size.trim();
             
-            // Check direct size field
             if (item.size && item.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check itemData.size field
             if (!sizeFound && item.itemData && item.itemData.size && item.itemData.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check item name for size pattern (e.g., "/34", "-34", " 34")
             if (!sizeFound && item.item) {
               const sizePattern = new RegExp(`[/\\-\\s]${cleanSize}(?:[/\\-\\s]|$)`, 'i');
               sizeFound = sizePattern.test(item.item);
               
-              // Also check for exact size match at the end of item name
               if (!sizeFound) {
                 const endPattern = new RegExp(`${cleanSize}$`, 'i');
                 sizeFound = endPattern.test(item.item);
               }
             }
             
-            // Check attributeCombination in itemData
             if (!sizeFound && item.itemData && item.itemData.attributeCombination) {
               sizeFound = item.itemData.attributeCombination.some(attr => 
                 attr.toString().toLowerCase() === cleanSize.toLowerCase()
@@ -198,52 +216,48 @@ export const getSalesByInvoice = async (req, res) => {
         });
       }
       
-      // Calculate amounts based only on relevant items
-      const itemCount = relevantItems.length;
+      const itemCount = relevantItems.reduce((sum, item) => sum + (parseFloat(item.quantity) || 0), 0);
+      if (itemCount <= 0) return; // Skip if no sold items
+
       let itemAmount = 0;
       let itemDiscount = 0;
       let itemPurchaseCost = 0;
       let uniqueSkus = [];
       
       if (sku || size) {
-        // Calculate amount from matching items only
         itemAmount = relevantItems.reduce((sum, item) => {
-          return sum + (parseFloat(item.amount) || 0);
+          const qty = parseFloat(item.quantity) || 0;
+          const rate = parseFloat(item.price || item.rate || 0);
+          return sum + (parseFloat(item.amount) || (qty * rate));
         }, 0);
         
-        // Calculate purchase cost from matching items
         itemPurchaseCost = relevantItems.reduce((sum, item) => {
           const quantity = parseFloat(item.quantity) || 0;
           const purchasePrice = parseFloat(item.itemData?.costPrice || 0);
           return sum + (quantity * purchasePrice);
         }, 0);
         
-        // For discount, calculate proportionally based on item amounts vs total
-        const totalInvoiceAmount = parseFloat(invoice.finalTotal) || 0;
+        const totalInvoiceAmount = getEffectiveInvoiceSalesAmount(invoice);
         const totalInvoiceDiscount = parseFloat(invoice.discountAmount) || 0;
         
         if (totalInvoiceAmount > 0 && totalInvoiceDiscount > 0) {
           itemDiscount = (itemAmount / totalInvoiceAmount) * totalInvoiceDiscount;
         }
         
-        // Collect SKUs from relevant (filtered) items only
         const skus = relevantItems.map(item => item.sku || item.itemSku).filter(Boolean);
-        uniqueSkus = [...new Set(skus)]; // Remove duplicates
+        uniqueSkus = [...new Set(skus)];
       } else {
-        // Use full invoice amounts if no item-specific filters
-        itemAmount = parseFloat(invoice.finalTotal) || 0;
+        itemAmount = getEffectiveInvoiceSalesAmount(invoice);
         itemDiscount = parseFloat(invoice.discountAmount) || 0;
         
-        // Calculate total purchase cost for all items in invoice
-        itemPurchaseCost = (invoice.lineItems || []).reduce((sum, item) => {
+        itemPurchaseCost = relevantItems.reduce((sum, item) => {
           const quantity = parseFloat(item.quantity) || 0;
           const purchasePrice = parseFloat(item.itemData?.costPrice || 0);
           return sum + (quantity * purchasePrice);
         }, 0);
         
-        // Get all SKUs from all items if no filters
-        const allSkus = (invoice.lineItems || []).map(item => item.sku || item.itemSku).filter(Boolean);
-        uniqueSkus = [...new Set(allSkus)]; // Remove duplicates
+        const allSkus = relevantItems.map(item => item.sku || item.itemSku).filter(Boolean);
+        uniqueSkus = [...new Set(allSkus)];
       }
       
       totalSales += itemAmount;
@@ -251,36 +265,26 @@ export const getSalesByInvoice = async (req, res) => {
       totalItems += itemCount;
       totalPurchaseCost += itemPurchaseCost;
 
-      return {
+      processedInvoices.push({
         invoiceNumber: invoice.invoiceNumber,
-        date: invoice.invoiceDate?.toISOString().split('T')[0] || '',
+        date: invoice.invoiceDate ? new Date(invoice.invoiceDate).toISOString().split('T')[0] : '',
         customer: invoice.customer || 'Unknown',
         category: invoice.category || 'General',
-        skus: uniqueSkus.join(', ') || 'N/A', // Join multiple SKUs with comma
+        skus: uniqueSkus.join(', ') || 'N/A',
         itemCount: itemCount,
         totalAmount: itemAmount,
         discount: itemDiscount,
         purchaseCost: itemPurchaseCost,
         netAmount: itemAmount - itemDiscount,
         profit: (itemAmount - itemDiscount) - itemPurchaseCost,
-        paymentMethod: invoice.paymentMethod || 'Cash',
+        paymentMethod: Array.isArray(invoice.paymentMethod) ? invoice.paymentMethod.join(', ') : (invoice.paymentMethod || 'Cash'),
         branch: invoice.branch || invoice.warehouse || invoice.locCode || 'Unknown',
         salesPerson: invoice.salesperson || 'N/A'
-      };
+      });
     });
 
-    // Separate returned invoices (those with no line items) from regular sales
-    const nonReturnedInvoices = processedInvoices.filter(inv => inv.itemCount > 0);
-    const returnedInvoices = processedInvoices.filter(inv => inv.itemCount === 0);
-
-    // Recalculate totals excluding returned invoices
-    const nonReturnedSales = nonReturnedInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0);
-    const nonReturnedItems = nonReturnedInvoices.reduce((sum, inv) => sum + inv.itemCount, 0);
-    const nonReturnedDiscount = nonReturnedInvoices.reduce((sum, inv) => sum + inv.discount, 0);
-    const nonReturnedPurchaseCost = nonReturnedInvoices.reduce((sum, inv) => sum + inv.purchaseCost, 0);
-
-    const avgInvoiceValue = nonReturnedInvoices.length > 0 ? nonReturnedSales / nonReturnedInvoices.length : 0;
-    const totalProfit = (nonReturnedSales - nonReturnedDiscount) - nonReturnedPurchaseCost;
+    const avgInvoiceValue = processedInvoices.length > 0 ? totalSales / processedInvoices.length : 0;
+    const totalProfit = (totalSales - totalDiscount) - totalPurchaseCost;
 
     res.status(200).json({
       success: true,
@@ -288,17 +292,17 @@ export const getSalesByInvoice = async (req, res) => {
         summary: {
           dateFrom,
           dateTo,
-          totalInvoices: nonReturnedInvoices.length,
-          totalSales: nonReturnedSales,
-          totalItems: nonReturnedItems,
-          totalDiscount: nonReturnedDiscount,
-          totalPurchaseCost: nonReturnedPurchaseCost,
+          totalInvoices: processedInvoices.length,
+          totalSales,
+          totalItems,
+          totalDiscount,
+          totalPurchaseCost,
           totalProfit,
-          netSales: nonReturnedSales - nonReturnedDiscount,
+          netSales: totalSales - totalDiscount,
           avgInvoiceValue,
-          returnedCount: returnedInvoices.length
+          returnedCount: rawInvoices.length - processedInvoices.length
         },
-        invoices: processedInvoices   // still include returned rows in the list for visibility
+        invoices: processedInvoices
       }
     });
   } catch (error) {
@@ -307,7 +311,7 @@ export const getSalesByInvoice = async (req, res) => {
   }
 };
 
-// Get Sales Summary Report
+// Get Sales Summary Report (excluding returns and fully returned invoices)
 export const getSalesSummary = async (req, res) => {
   try {
     const { dateFrom, dateTo, locCode, warehouse } = req.query;
@@ -326,30 +330,36 @@ export const getSalesSummary = async (req, res) => {
     const adminEmails = ['officebrynex@gmail.com'];
     const isAdminEmail = userId && adminEmails.some(email => userId.toLowerCase() === email.toLowerCase());
     const isAdmin = isAdminEmail || (locCode && (locCode === '858' || locCode === '103'));
+    const isClusterManager = req.query.isClusterManager === "true";
+    const allowedLocCodes = req.query.allowedLocCodes ? req.query.allowedLocCodes.split(",") : [];
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
-      category: { $ne: "Return" } // Exclude returns from sales
+      category: { $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"] },
+      invoiceNumber: { $not: /^(RTN-|RET-|REFUND-|CANCEL-)/i },
+      returnStatus: { $ne: "full" }
     };
 
-    // For store users (non-admin), filter by their locCode
-    if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
+    // Store filtering logic
+    if (isClusterManager) {
+      if (locCode && locCode !== "all") {
+        query.$or = [{ warehouse: locCode }, { branch: locCode }, { locCode: locCode }];
+      } else if (allowedLocCodes.length > 0) {
+        query.locCode = { $in: allowedLocCodes };
+      }
+    } else if (!isAdmin && locCode && locCode !== '858' && locCode !== '103' && locCode !== 'all') {
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
         { locCode: locCode }
       ];
-    }
-    // For admin users, filter by selected store if specified and not "all"
-    else if (isAdmin && locCode && locCode !== 'all' && locCode !== '858' && locCode !== '103') {
+    } else if (isAdmin && locCode && locCode !== 'all' && locCode !== '858' && locCode !== '103') {
       query.$or = [
         { warehouse: locCode },
         { branch: locCode },
         { locCode: locCode }
       ];
-    }
-    // Legacy support: also check warehouse parameter
-    else if (isAdmin && warehouse && warehouse !== "All Stores") {
+    } else if (isAdmin && warehouse && warehouse !== "All Stores") {
       query.$or = [
         { warehouse: warehouse },
         { branch: warehouse },
@@ -357,7 +367,10 @@ export const getSalesSummary = async (req, res) => {
       ];
     }
 
-    const invoices = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
+    const rawInvoices = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
+
+    // Filter out any returned invoices or invoices with 0 sold items
+    const activeInvoices = rawInvoices.filter(inv => !isFullyReturnedInvoice(inv));
 
     // Calculate totals
     let totalSales = 0;
@@ -370,33 +383,33 @@ export const getSalesSummary = async (req, res) => {
 
     const salesByCategory = {};
     const salesBySalesPerson = {};
+    const activeInvoicesList = [];
 
-    invoices.forEach(invoice => {
-      const amount = parseFloat(invoice.finalTotal) || 0;
+    activeInvoices.forEach(invoice => {
+      const amount = getEffectiveInvoiceSalesAmount(invoice);
+      if (amount <= 0) return; // Skip zero/negative amount invoices
+
       const discount = parseFloat(invoice.discountAmount) || 0;
       
-      // Handle both single payment method (string) and split payments (array)
+      // Handle payment breakdown
       const paymentMethods = Array.isArray(invoice.paymentMethod) 
         ? invoice.paymentMethod 
         : [invoice.paymentMethod];
       
-      // For split payments, divide amount equally among payment methods
-      const amountPerMethod = amount / paymentMethods.length;
+      const amountPerMethod = amount / (paymentMethods.length || 1);
       
-      // Count each payment method
       paymentMethods.forEach(method => {
-        const normalizedMethod = (method || "Cash").toString().trim();
+        const normalizedMethod = (method || "Cash").toString().trim().toLowerCase();
         
-        if (normalizedMethod.toLowerCase() === "cash") {
+        if (normalizedMethod === "cash") {
           totalCash += amountPerMethod;
-        } else if (normalizedMethod.toLowerCase() === "bank") {
+        } else if (normalizedMethod === "bank" || normalizedMethod.includes("card") || normalizedMethod.includes("bank")) {
           totalBank += amountPerMethod;
-        } else if (normalizedMethod.toLowerCase() === "upi") {
+        } else if (normalizedMethod === "upi") {
           totalUPI += amountPerMethod;
-        } else if (normalizedMethod.toLowerCase() === "rbl") {
+        } else if (normalizedMethod === "rbl") {
           totalRBL += amountPerMethod;
         } else {
-          // Default to cash for unknown payment methods
           totalCash += amountPerMethod;
         }
       });
@@ -413,10 +426,10 @@ export const getSalesSummary = async (req, res) => {
       salesByCategory[category].count++;
       salesByCategory[category].amount += amount;
 
-      // Group by sales person AND store (to handle same name in different stores)
+      // Group by sales person AND store
       const salesPerson = invoice.salesperson || "Unknown";
       const branch = invoice.branch || invoice.warehouse || invoice.locCode || "Unknown";
-      const salesPersonKey = `${salesPerson}_${branch}`; // Unique key per person per store
+      const salesPersonKey = `${salesPerson}_${branch}`;
       if (!salesBySalesPerson[salesPersonKey]) {
         salesBySalesPerson[salesPersonKey] = { 
           count: 0, 
@@ -427,6 +440,17 @@ export const getSalesSummary = async (req, res) => {
       }
       salesBySalesPerson[salesPersonKey].count++;
       salesBySalesPerson[salesPersonKey].amount += amount;
+
+      activeInvoicesList.push({
+        invoiceNumber: invoice.invoiceNumber,
+        date: invoice.invoiceDate,
+        customer: invoice.customer,
+        category: invoice.category,
+        amount: amount,
+        discount: discount,
+        paymentMethod: Array.isArray(invoice.paymentMethod) ? invoice.paymentMethod.join(', ') : invoice.paymentMethod,
+        branch: invoice.branch || invoice.warehouse
+      });
     });
 
     res.status(200).json({
@@ -459,16 +483,7 @@ export const getSalesSummary = async (req, res) => {
           }))
           .sort((a, b) => b.amount - a.amount)
           .slice(0, 10),
-        invoices: invoices.map(inv => ({
-          invoiceNumber: inv.invoiceNumber,
-          date: inv.invoiceDate,
-          customer: inv.customer,
-          category: inv.category,
-          amount: inv.finalTotal,
-          discount: inv.discountAmount,
-          paymentMethod: inv.paymentMethod,
-          branch: inv.branch || inv.warehouse
-        }))
+        invoices: activeInvoicesList
       }
     });
   } catch (error) {
@@ -477,7 +492,7 @@ export const getSalesSummary = async (req, res) => {
   }
 };
 
-// Get Sales by Item Report (Enhanced with filtering)
+// Get Sales by Item Report (Enhanced with filtering and excluding returns)
 export const getSalesByItem = async (req, res) => {
   try {
     const { dateFrom, dateTo, locCode, category, sku, size, customer } = req.query;
@@ -499,7 +514,9 @@ export const getSalesByItem = async (req, res) => {
 
     let query = {
       invoiceDate: { $gte: fromDate, $lte: toDate },
-      category: { $ne: "Return" }
+      category: { $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"] },
+      invoiceNumber: { $not: /^(RTN-|RET-|REFUND-|CANCEL-)/i },
+      returnStatus: { $ne: "full" }
     };
 
     // Store filtering logic
@@ -519,64 +536,63 @@ export const getSalesByItem = async (req, res) => {
 
     // Advanced filtering
     if (category) {
-      query.category = new RegExp(category, 'i');
+      query.category = {
+        $nin: ["Return", "return", "refund", "Refund", "cancel", "Cancel"],
+        $regex: new RegExp(category, 'i')
+      };
     }
 
     if (customer) {
       query.customer = new RegExp(customer, 'i');
     }
 
-    const invoices = await SalesInvoice.find(query);
+    const rawInvoices = await SalesInvoice.find(query);
+    const invoices = rawInvoices.filter(inv => !isFullyReturnedInvoice(inv));
 
     const itemSales = {};
 
     invoices.forEach(invoice => {
       if (invoice.lineItems && Array.isArray(invoice.lineItems)) {
         invoice.lineItems.forEach(item => {
+          const quantity = parseFloat(item.quantity) || 0;
+          if (quantity <= 0) return; // Skip returned/zero-quantity items
+
           // Apply SKU and size filters
           let includeItem = true;
           
           if (sku) {
             const itemSku = item.sku || item.itemSku;
-            const cleanSku = sku.trim(); // Remove leading/trailing spaces
+            const cleanSku = sku.trim();
             if (!itemSku || !itemSku.toLowerCase().includes(cleanSku.toLowerCase())) {
               includeItem = false;
             }
           }
           
           if (size) {
-            // Check multiple places for size information:
-            // 1. Direct size field
-            // 2. Item name (e.g., "Last test - black/34")
-            // 3. AttributeCombination in itemData
             let sizeFound = false;
+            const cleanSize = size.trim();
             
-            // Check direct size field
-            if (item.size && item.size.toString().toLowerCase() === size.toLowerCase()) {
+            if (item.size && item.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check itemData.size field
-            if (!sizeFound && item.itemData && item.itemData.size && item.itemData.size.toString().toLowerCase() === size.toLowerCase()) {
+            if (!sizeFound && item.itemData && item.itemData.size && item.itemData.size.toString().toLowerCase() === cleanSize.toLowerCase()) {
               sizeFound = true;
             }
             
-            // Check item name for size pattern (e.g., "/34", "-34", " 34")
             if (!sizeFound && item.item) {
-              const sizePattern = new RegExp(`[/\\-\\s]${size}(?:[/\\-\\s]|$)`, 'i');
+              const sizePattern = new RegExp(`[/\\-\\s]${cleanSize}(?:[/\\-\\s]|$)`, 'i');
               sizeFound = sizePattern.test(item.item);
               
-              // Also check for exact size match at the end of item name
               if (!sizeFound) {
-                const endPattern = new RegExp(`${size}$`, 'i');
+                const endPattern = new RegExp(`${cleanSize}$`, 'i');
                 sizeFound = endPattern.test(item.item);
               }
             }
             
-            // Check attributeCombination in itemData
             if (!sizeFound && item.itemData && item.itemData.attributeCombination) {
               sizeFound = item.itemData.attributeCombination.some(attr => 
-                attr.toString().toLowerCase() === size.toLowerCase()
+                attr.toString().toLowerCase() === cleanSize.toLowerCase()
               );
             }
             
@@ -589,16 +605,14 @@ export const getSalesByItem = async (req, res) => {
 
           const itemSku = item.sku || item.itemSku || "";
           const itemSize = item.size || item.itemData?.size || "";
-          // Resolve item name - fall back to itemData if item.item looks like a MongoDB ObjectID
           const isObjectId = (val) => typeof val === 'string' && /^[a-f0-9]{24}$/i.test(val);
           const rawName = item.name || item.itemName || item.item;
           const itemName = (rawName && !isObjectId(rawName))
             ? rawName
             : (item.itemData?.itemName || item.itemData?.name || "Unknown");
           const itemKey = `${itemName}_${itemSku}_${itemSize}`;
-          const quantity = parseFloat(item.quantity) || 0;
           const price = parseFloat(item.price || item.rate) || 0;
-          const amount = quantity * price;
+          const amount = parseFloat(item.amount) || (quantity * price);
 
           if (!itemSales[itemKey]) {
             itemSales[itemKey] = {
@@ -645,10 +659,6 @@ export const getSalesReturnSummary = async (req, res) => {
     const { dateFrom, dateTo, locCode } = req.query;
     const userId = req.query.userId || req.body.userId;
 
-    console.log("\n=== RETURN SUMMARY REQUEST ===");
-    console.log("locCode received:", locCode);
-    console.log("locCode type:", typeof locCode);
-
     if (!dateFrom || !dateTo) {
       return res.status(400).json({ message: "dateFrom and dateTo are required" });
     }
@@ -658,41 +668,40 @@ export const getSalesReturnSummary = async (req, res) => {
     fromDate.setUTCHours(0, 0, 0, 0);
     toDate.setUTCHours(23, 59, 59, 999);
 
-    let query;
+    let query = {
+      invoiceDate: { $gte: fromDate, $lte: toDate },
+      $or: [
+        { category: { $in: ["Return", "return", "Refund", "refund", "Cancel", "cancel"] } },
+        { invoiceNumber: { $regex: /^(RTN-|RET-|REFUND-|CANCEL-)/i } }
+      ]
+    };
     
     // Filter by store if locCode is provided and not "all"
     if (locCode && locCode !== "all") {
-      console.log("✅ APPLYING STORE FILTER for locCode:", locCode);
-      query = {
-        invoiceDate: { $gte: fromDate, $lte: toDate },
-        category: "Return",
-        $or: [
-          { warehouse: locCode },
-          { branch: locCode },
-          { locCode: locCode }
-        ]
-      };
-    } else {
-      console.log("❌ NO STORE FILTER - returning all");
-      query = {
-        invoiceDate: { $gte: fromDate, $lte: toDate },
-        category: "Return"
-      };
+      query.$and = [
+        {
+          $or: [
+            { warehouse: locCode },
+            { branch: locCode },
+            { locCode: locCode },
+            { branch: new RegExp(`^${locCode}$`, 'i') }
+          ]
+        }
+      ];
     }
     
     const returns = await SalesInvoice.find(query).sort({ invoiceDate: -1 });
-    console.log("Returns found:", returns.length);
 
     let totalReturns = 0;
     let totalReturnAmount = 0;
     const returnsByReason = {};
 
     returns.forEach(ret => {
-      const amount = Math.abs(parseFloat(ret.finalTotal)) || 0;
+      const amount = Math.abs(parseFloat(ret.finalTotal || ret.subTotal || 0)) || 0;
       totalReturns++;
       totalReturnAmount += amount;
 
-      const reason = ret.remark || "No reason provided";
+      const reason = ret.remark || ret.notes || ret.customerNotes || "No reason provided";
       if (!returnsByReason[reason]) {
         returnsByReason[reason] = { count: 0, amount: 0 };
       }
@@ -718,8 +727,8 @@ export const getSalesReturnSummary = async (req, res) => {
           invoiceNumber: ret.invoiceNumber,
           date: ret.invoiceDate,
           customer: ret.customer,
-          amount: Math.abs(ret.finalTotal),
-          reason: ret.remark,
+          amount: Math.abs(parseFloat(ret.finalTotal || ret.subTotal || 0)),
+          reason: ret.remark || ret.notes || ret.customerNotes || "Return",
           branch: ret.branch || ret.warehouse,
           warehouse: ret.warehouse,
           locCode: ret.locCode
