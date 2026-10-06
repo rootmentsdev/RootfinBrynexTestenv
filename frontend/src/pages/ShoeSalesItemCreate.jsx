@@ -103,6 +103,7 @@ const initialFormData = {
   hsnCode: "",
   manufacturer: "",
   brand: "",
+  category: "other",
   returnable: true,
   sellable: true,
   purchasable: true,
@@ -159,6 +160,7 @@ const ShoeSalesItemCreate = () => {
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [newBrand, setNewBrand] = useState("");
   const [category, setCategory] = useState("other");
+  const [customCategory, setCustomCategory] = useState("");
   const [attributeValues, setAttributeValues] = useState([]);
   const [priceIncludesGST, setPriceIncludesGST] = useState(true);
 
@@ -269,7 +271,15 @@ const ShoeSalesItemCreate = () => {
             exemptionReason: data.exemptionReason || "",
             sac: data.sac || "",
             images: data.images || [],
+            category: data.category || "other",
           }));
+          const fetchedCat = data.category || "other";
+          if (fetchedCat !== "shirt" && fetchedCat !== "shoe" && fetchedCat !== "other") {
+            setCategory("custom");
+            setCustomCategory(fetchedCat);
+          } else {
+            setCategory(fetchedCat);
+          }
           setAttributeValues(data.attributeCombination || []);
           setSelectedManufacturer(data.manufacturer || "");
           setSelectedBrand(data.brand || "");
@@ -366,7 +376,15 @@ const ShoeSalesItemCreate = () => {
                 reorderPoint: foundItem.reorderPoint || "",
                 sac: foundItem.sac || "",
                 size: sizeValue || "", // Set size from attributes
+                category: foundItem.category || data.category || "other",
               }));
+              const groupCat = foundItem.category || data.category || "other";
+              if (groupCat !== "shirt" && groupCat !== "shoe" && groupCat !== "other") {
+                setCategory("custom");
+                setCustomCategory(groupCat);
+              } else {
+                setCategory(groupCat);
+              }
               setSkuManuallyEdited(!!foundItem.sku);
               setAttributeValues(foundItem.attributeCombination || []);
             } else {
@@ -564,8 +582,20 @@ const handleCheckboxChange = (field) => (event) => {
   };
 
   const handleCategorySelect = (value) => {
-    setCategory(value);
-    setFormData((prev) => ({ ...prev, category: value }));
+    if (value === "custom") {
+      const customVal = customCategory.trim() || "";
+      setCategory("custom");
+      setFormData((prev) => ({ ...prev, category: customVal || "other" }));
+    } else {
+      setCategory(value);
+      setFormData((prev) => ({ ...prev, category: value }));
+    }
+  };
+
+  const handleCustomCategoryChange = (val) => {
+    setCustomCategory(val);
+    setCategory("custom");
+    setFormData((prev) => ({ ...prev, category: val.trim() || "other" }));
   };
 
   const handleRadioChange = (field, value) => () => {
@@ -843,8 +873,13 @@ const handleCheckboxChange = (field) => (event) => {
           };
         });
         
+        const computedCategory = (category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")) 
+          ? (customCategory.trim() || "other") 
+          : (category || "other");
+
         const updatePayload = {
           ...formData,
+          category: computedCategory,
           images: processedImages,
           trackInventory,
           trackBin,
@@ -854,7 +889,7 @@ const handleCheckboxChange = (field) => (event) => {
           warehouseStocks: standaloneItem?.warehouseStocks || [], // Preserve warehouse stocks
         };
 
-        console.log("Updating standalone item with payload:", { returnable: updatePayload.returnable, itemId });
+        console.log("Updating standalone item with payload:", { returnable: updatePayload.returnable, itemId, category: computedCategory });
 
         const response = await fetch(`${API_ROOT}/api/shoe-sales/items/${itemId}`, {
           method: "PUT",
@@ -902,12 +937,17 @@ const handleCheckboxChange = (field) => (event) => {
             data: base64Data,
           };
         });
+
+        const computedCategory = (category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")) 
+          ? (customCategory.trim() || "other") 
+          : (category || "other");
         
         const response = await fetch(`${API_ROOT}/api/shoe-sales/items`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...formData,
+            category: computedCategory,
             images: processedImages,
             trackInventory,
             trackBin,
@@ -1163,7 +1203,33 @@ const handleCheckboxChange = (field) => (event) => {
                         />
                         <span>Other</span>
                       </label>
+                      <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="category"
+                          value="custom"
+                          checked={category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")}
+                          onChange={(e) => handleCategorySelect(e.target.value)}
+                          className="accent-[#8B5CF6]"
+                          disabled={status.loading}
+                        />
+                        <span>Custom Category</span>
+                      </label>
                     </div>
+
+                    {(category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")) && (
+                      <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
+                        <input
+                          type="text"
+                          value={customCategory}
+                          onChange={(e) => handleCustomCategoryChange(e.target.value)}
+                          placeholder="Type custom category name (e.g. Perfume, Accessories, Suits)..."
+                          className="w-full h-10 px-3.5 text-xs bg-white border border-[#8B5CF6] rounded-none text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-1 focus:ring-[#8B5CF6]"
+                          disabled={status.loading}
+                          autoFocus
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Variant Attributes */}

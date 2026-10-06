@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import baseUrl from "../api/api";
-import { ChevronDown, X, Menu, ArrowLeft } from "lucide-react";
+import { ChevronDown, X, Menu, ArrowLeft, Search, Check } from "lucide-react";
 import { useSidebar } from "../hooks/useSidebar.js";
 import {
   IMAGE_CONFIG,
@@ -10,35 +10,247 @@ import {
   triggerFileInput,
 } from "../utils/imageUpload";
 
+const SearchableSelect = ({
+  value,
+  onChange,
+  options = [],
+  placeholder = "Select...",
+  disabled = false,
+  searchPlaceholder = "Search...",
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const containerRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const filteredOptions = useMemo(() => {
+    if (!search.trim()) return options;
+    const term = search.toLowerCase().trim();
+    return options.filter(
+      (opt) =>
+        (opt.label || "").toLowerCase().includes(term) ||
+        (opt.value || "").toLowerCase().includes(term)
+    );
+  }, [options, search]);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  return (
+    <div className="relative w-full" ref={containerRef}>
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) setIsOpen((prev) => !prev);
+        }}
+        className={`w-full flex items-center justify-between rounded-xl border bg-white px-4 py-3.5 text-sm transition-all focus:outline-none ${
+          isOpen ? "border-purple-500 ring-2 ring-purple-100 shadow-xs" : "border-gray-200"
+        } ${disabled ? "bg-gray-50 text-gray-400 cursor-not-allowed" : "cursor-pointer hover:border-gray-300"}`}
+      >
+        <span
+          className={`truncate ${
+            selectedOption ? "text-gray-800 font-medium" : "text-gray-400"
+          }`}
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <ChevronDown
+          size={18}
+          className={`text-gray-400 transition-transform duration-200 shrink-0 ml-2 ${
+            isOpen ? "rotate-180 text-purple-600" : ""
+          }`}
+        />
+      </button>
+
+      {isOpen && !disabled && (
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 rounded-xl border border-gray-100 bg-white shadow-xl overflow-hidden animate-in fade-in-0 duration-150">
+          <div className="p-2.5 border-b border-gray-100 bg-gray-50/70">
+            <div className="relative flex items-center">
+              <Search size={15} className="absolute left-3 text-gray-400 pointer-events-none" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={searchPlaceholder}
+                className="w-full pl-9 pr-3 py-2 text-xs bg-white border border-gray-200 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <div className="max-h-60 overflow-y-auto py-1">
+            {filteredOptions.length > 0 ? (
+              filteredOptions.map((opt) => {
+                const isSelected = opt.value === value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`w-full flex items-center justify-between px-4 py-2.5 text-xs text-left transition-colors cursor-pointer ${
+                      isSelected
+                        ? "bg-purple-50 text-purple-700 font-semibold"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                  >
+                    <span className="truncate">{opt.label}</span>
+                    {isSelected && <Check size={14} className="text-purple-600 shrink-0 ml-2" />}
+                  </button>
+                );
+              })
+            ) : (
+              <div className="px-4 py-6 text-center text-xs text-gray-400">
+                No matching options
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const DIRECT_EXPENSE_CATS = [
-  { value: "material", label: "Material & Fabrics" },
-  { value: "dry cleaning", label: "Dry Cleaning" },
-  { value: "altration", label: "Alteration & Tailoring" },
-  { value: "courier charges", label: "Courier & Inward Freight" },
-  { value: "production expenses", label: "Production & Workshop" },
-  { value: "direct labour", label: "Labour / Direct Wages" },
-  { value: "asset purchase", label: "Asset Purchase (Direct)" },
-  { value: "other direct", label: "Other Direct Expense" },
+  { value: "Dry Cleaning", label: "Dry Cleaning" },
+  { value: "Altration", label: "Altration" },
+  { value: "Material", label: "Material" },
+  { value: "Raw Materials And Consumables", label: "Raw Materials And Consumables" },
+  { value: "Freight Charges", label: "Freight Charges" },
+  { value: "Product expenses", label: "Product expenses" },
+  { value: "Labour Charges - Warehouse", label: "Labour Charges - Warehouse" },
+  { value: "Cost of Goods Sold", label: "Cost of Goods Sold" },
+  { value: "Labor", label: "Labor" },
+  { value: "Materials", label: "Materials" },
+  { value: "Subcontractor", label: "Subcontractor" },
+  { value: "Job Costing", label: "Job Costing" },
+  { value: "Transportation Expenses", label: "Transportation Expenses" },
+  { value: "Freight Expenses", label: "Freight Expenses" },
+  { value: "Dry Cleaning Expenses", label: "Dry Cleaning Expenses" },
+  { value: "Uniform Stitching", label: "Uniform Stitching" },
+  { value: "Alteration Expense", label: "Alteration Expense" },
+  { value: "Raw Materials / Dress Accessories", label: "Raw Materials / Dress Accessories" },
 ];
 
 const INDIRECT_EXPENSE_CATS = [
-  { value: "rent", label: "Store Rent" },
-  { value: "salary", label: "Staff Salary & Advance" },
-  { value: "utility bill", label: "Electricity Charges" },
-  { value: "maintenance expenses", label: "Repairs & Maintenance" },
-  { value: "travel exp", label: "Travel & Fuel Exp" },
-  { value: "petty expenses", label: "Office & Petty Expenses" },
-  { value: "telephone internet", label: "Internet & Phone" },
-  { value: "printing stationary", label: "Printing & Stationary" },
-  { value: "staff welfare", label: "Staff Welfare" },
-  { value: "staff reimbursement", label: "Staff Accommodation" },
-  { value: "asset purchase", label: "Asset & Furniture" },
-  { value: "water charges", label: "Water Charges" },
-  { value: "waste management", label: "Waste Management" },
-  { value: "spot incentive", label: "Incentives & Bonus" },
-  { value: "other expenses", label: "Refund / Compensation" },
-  { value: "bulk amount transfer", label: "Cash to Bank" },
-  { value: "other indirect", label: "Other Indirect Expense" },
+  { value: "Courier Charges", label: "Courier Charges" },
+  { value: "Repairs & Maintenance", label: "Repairs & Maintenance" },
+  { value: "Incentive", label: "Incentive" },
+  { value: "Salary/Salary Advance", label: "Salary/Salary Advance" },
+  { value: "Travel Exp", label: "Travel Exp" },
+  { value: "Fuel Exp", label: "Fuel Exp" },
+  { value: "Office Expense", label: "Office Expense" },
+  { value: "Internet Expense", label: "Internet Expense" },
+  { value: "Electricity Charges", label: "Electricity Charges" },
+  { value: "Water Charges", label: "Water Charges" },
+  { value: "Waste Management", label: "Waste Management" },
+  { value: "Printing & Stationary", label: "Printing & Stationary" },
+  { value: "Staff Welfare", label: "Staff Welfare" },
+  { value: "Staff Accommodation", label: "Staff Accommodation" },
+  { value: "Rent", label: "Rent" },
+  { value: "Asset Purchase", label: "Asset Purchase" },
+  { value: "Refund", label: "Refund" },
+  { value: "Office Supplies", label: "Office Supplies" },
+  { value: "Bank Fees and Charges", label: "Bank Fees and Charges" },
+  { value: "Travel Expense", label: "Travel Expense" },
+  { value: "Directors Travelling Expense", label: "Directors Travelling Expense" },
+  { value: "Employee Travel Expenses", label: "Employee Travel Expenses" },
+  { value: "Cluster Travelling Expense", label: "Cluster Travelling Expense" },
+  { value: "Telephone Expense", label: "Telephone Expense" },
+  { value: "Automobile Expense", label: "Automobile Expense" },
+  { value: "IT and Internet Expenses", label: "IT and Internet Expenses" },
+  { value: "Rent Expense", label: "Rent Expense" },
+  { value: "Janitorial Expense", label: "Janitorial Expense" },
+  { value: "Postage", label: "Postage" },
+  { value: "Bad Debt", label: "Bad Debt" },
+  { value: "Salaries and Employee Wages", label: "Salaries and Employee Wages" },
+  { value: "Meals and Entertainment", label: "Meals and Entertainment" },
+  { value: "Depreciation Expense", label: "Depreciation Expense" },
+  { value: "Consultant Expense", label: "Consultant Expense" },
+  { value: "Repairs and Maintenance", label: "Repairs and Maintenance" },
+  { value: "Other Expenses", label: "Other Expenses" },
+  { value: "Lodging", label: "Lodging" },
+  { value: "Transportation Expense", label: "Transportation Expense" },
+  { value: "Depreciation And Amortisation", label: "Depreciation And Amortisation" },
+  { value: "EPF Contribution-Employer", label: "EPF Contribution-Employer" },
+  { value: "ESI Contribution-Employer", label: "ESI Contribution-Employer" },
+  { value: "Interest and Fine", label: "Interest and Fine" },
+  { value: "Fines and Penalties", label: "Fines and Penalties" },
+  { value: "Rates & Taxes", label: "Rates & Taxes" },
+  { value: "Interest on TDS", label: "Interest on TDS" },
+  { value: "Fine's and penalty-Electricity", label: "Fine's and penalty-Electricity" },
+  { value: "Interest & Late fee", label: "Interest & Late fee" },
+  { value: "Telephone & Internet Expense", label: "Telephone & Internet Expense" },
+  { value: "Office Expenses [parent]", label: "Office Expenses [parent]" },
+  { value: "Printing and Stationery", label: "Printing and Stationery" },
+  { value: "Internet Expenses", label: "Internet Expenses" },
+  { value: "Office Expenses", label: "Office Expenses" },
+  { value: "Printer Consumables", label: "Printer Consumables" },
+  { value: "Petty Expenses", label: "Petty Expenses" },
+  { value: "Fuel Expenses", label: "Fuel Expenses" },
+  { value: "Legal Charges", label: "Legal Charges" },
+  { value: "Charity", label: "Charity" },
+  { value: "Cleaning Expenses", label: "Cleaning Expenses" },
+  { value: "Labour Charges Office", label: "Labour Charges Office" },
+  { value: "Parking charge", label: "Parking charge" },
+  { value: "Subscription Charges", label: "Subscription Charges" },
+  { value: "Marketing & Promotion", label: "Marketing & Promotion" },
+  { value: "Advertising And Marketing", label: "Advertising And Marketing" },
+  { value: "Salary And Wages", label: "Salary And Wages" },
+  { value: "Overtime Payment", label: "Overtime Payment" },
+  { value: "Consultation Charges", label: "Consultation Charges" },
+  { value: "Accounting Charges", label: "Accounting Charges" },
+  { value: "Bank Charges", label: "Bank Charges" },
+  { value: "Finance Charges", label: "Finance Charges" },
+  { value: "Paytm Deductions", label: "Paytm Deductions" },
+  { value: "Car Loan Interest", label: "Car Loan Interest" },
+  { value: "Utility Charges", label: "Utility Charges" },
+  { value: "Staff Welfare Expenses", label: "Staff Welfare Expenses" },
+  { value: "Staff Food And Accomodation", label: "Staff Food And Accomodation" },
+  { value: "Gift Expenses", label: "Gift Expenses" },
+  { value: "Rent Expenses - Warehouse", label: "Rent Expenses - Warehouse" },
+  { value: "Generator Expenses", label: "Generator Expenses" },
+  { value: "Meeting Expenses", label: "Meeting Expenses" },
+  { value: "Vehicle Insurance", label: "Vehicle Insurance" },
+  { value: "Printer Service", label: "Printer Service" },
+  { value: "Domain Purchase", label: "Domain Purchase" },
+  { value: "Filing fees", label: "Filing fees" },
+  { value: "Selling Expenses", label: "Selling Expenses" },
+  { value: "Discount Allowed", label: "Discount Allowed" },
+  { value: "Equipment Rent", label: "Equipment Rent" },
+  { value: "MCA Charges", label: "MCA Charges" },
+  { value: "GST Late fees and interest", label: "GST Late fees and interest" },
+  { value: "Rental Supplies Expense", label: "Rental Supplies Expense" },
+  { value: "Training & Development Expenses", label: "Training & Development Expenses" },
+  { value: "Interior Designing", label: "Interior Designing" },
+  { value: "Audit Fee", label: "Audit Fee" },
+  { value: "Lease Registration Charges", label: "Lease Registration Charges" },
+  { value: "Payment Gateway Charges", label: "Payment Gateway Charges" },
+  { value: "House Rent Allowance", label: "House Rent Allowance" },
+  { value: "Utility Connection / Government Fees", label: "Utility Connection / Government Fees" },
+  { value: "TDS Late fee", label: "TDS Late fee" },
+  { value: "Trademark Expense", label: "Trademark Expense" },
+  { value: "Uniform Expense", label: "Uniform Expense" },
+  { value: "Food expense", label: "Food expense" },
 ];
 
 const fallbackLocations = [
@@ -341,28 +553,13 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
               <label className="block text-sm font-normal text-gray-700 mb-2">
                 Category <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={`w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm transition-all focus:outline-none focus:border-purple-500 pr-10 cursor-pointer ${
-                    category ? "text-gray-800 font-medium" : "text-gray-400"
-                  }`}
-                >
-                  <option value="" disabled className="text-gray-400">
-                    Select Category
-                  </option>
-                  {categories.map((c) => (
-                    <option key={c.value} value={c.value} className="text-gray-800">
-                      {c.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown
-                  size={18}
-                  className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                />
-              </div>
+              <SearchableSelect
+                value={category}
+                onChange={(val) => setCategory(val)}
+                options={categories}
+                placeholder="Select Category"
+                searchPlaceholder="Search category..."
+              />
             </div>
 
             {/* Branch */}
@@ -370,48 +567,17 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
               <label className="block text-sm font-normal text-gray-700 mb-2">
                 Branch <span className="text-red-500">*</span>
               </label>
-              <div className="relative">
-                {canSelectStore ? (
-                  <>
-                    <select
-                      value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
-                      className={`w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-sm transition-all focus:outline-none focus:border-purple-500 pr-10 cursor-pointer ${
-                        branch ? "text-gray-800 font-medium" : "text-gray-400"
-                      }`}
-                    >
-                      <option value="" disabled className="text-gray-400">
-                        Select Branch
-                      </option>
-                      {fallbackLocations.map((loc) => (
-                        <option key={loc.locCode} value={loc.locCode} className="text-gray-800">
-                          {loc.locName}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={18}
-                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                    />
-                  </>
-                ) : (
-                  <>
-                    <select
-                      disabled
-                      value={currentusers.locCode || "759"}
-                      className="w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-sm text-gray-700 cursor-not-allowed pr-10"
-                    >
-                      <option value={currentusers.locCode || "759"}>
-                        {fallbackLocations.find(l => l.locCode === (currentusers.locCode || "759"))?.locName || `Branch #${currentusers.locCode}`}
-                      </option>
-                    </select>
-                    <ChevronDown
-                      size={18}
-                      className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                    />
-                  </>
-                )}
-              </div>
+              <SearchableSelect
+                value={branch || (canSelectStore ? "" : (currentusers.locCode || "759"))}
+                onChange={(val) => setBranch(val)}
+                options={fallbackLocations.map((loc) => ({
+                  value: loc.locCode,
+                  label: loc.locName,
+                }))}
+                placeholder="Select Branch"
+                searchPlaceholder="Search branch..."
+                disabled={!canSelectStore}
+              />
             </div>
 
             {/* Amount */}

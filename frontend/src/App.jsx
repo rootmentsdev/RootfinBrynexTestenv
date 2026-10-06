@@ -227,7 +227,7 @@ const App = () => {
           <Route path="/RentOutReport" element={currentuser ? <DaybookGuard><DayBook /></DaybookGuard> : <Navigate to="/login" />} />
           <Route path="/Income&Expenses" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityReturn /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/income" element={currentuser ? <ClusterGuard><DaybookGuard><Income /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
-          <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
+          <Route path="/expenses" element={currentuser ? <ClusterGuard><DaybookGuard><Expenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/record-expense" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/record-expenses" element={currentuser ? <ClusterGuard><DaybookGuard><RecordExpenses /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/record-expense/new" element={currentuser ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="direct" /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />

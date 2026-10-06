@@ -77,6 +77,7 @@ const ShoeSalesItemGroupCreate = () => {
   const [showBrandModal, setShowBrandModal] = useState(false);
   const [newBrand, setNewBrand] = useState("");
   const [category, setCategory] = useState("other");
+  const [customCategory, setCustomCategory] = useState("");
   const [unit, setUnit] = useState("pcs");
   const [inventoryValuation, setInventoryValuation] = useState("FIFO (First In First Out)");
   const [taxPreference, setTaxPreference] = useState("taxable");
@@ -314,6 +315,13 @@ const ShoeSalesItemGroupCreate = () => {
             setBrands((prev) =>
               prev.includes(data.brand) ? prev : [...prev, data.brand]
             );
+          }
+          const fetchedGroupCat = data.category || "other";
+          if (fetchedGroupCat !== "shirt" && fetchedGroupCat !== "shoe" && fetchedGroupCat !== "other") {
+            setCategory("custom");
+            setCustomCategory(fetchedGroupCat);
+          } else {
+            setCategory(fetchedGroupCat);
           }
           setInventoryValuation(data.inventoryValuationMethod || "FIFO (First In First Out)");
           setTaxPreference(data.taxPreference || "taxable");
@@ -760,7 +768,7 @@ const ShoeSalesItemGroupCreate = () => {
         unit,
         manufacturer: selectedManufacturer || "",
         brand: selectedBrand || "",
-        category: category || "other",
+        category: (category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")) ? (customCategory.trim() || "other") : (category || "other"),
         inventoryValuationMethod: inventoryValuation || "",
         taxPreference,
         exemptionReason: normalizedExemption,
@@ -1047,7 +1055,34 @@ const ShoeSalesItemGroupCreate = () => {
                       />
                       Other
                     </label>
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="category"
+                        value="custom"
+                        checked={category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")}
+                        onChange={(e) => setCategory(e.target.value)}
+                        className="text-[#4285f4]"
+                      />
+                      Custom Category
+                    </label>
                   </div>
+
+                  {(category === "custom" || (category !== "shirt" && category !== "shoe" && category !== "other")) && (
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={customCategory}
+                        onChange={(e) => {
+                          setCustomCategory(e.target.value);
+                          setCategory("custom");
+                        }}
+                        placeholder="Type custom category name (e.g. Perfume, Accessories, Suits)..."
+                        className="w-full h-10 px-3.5 text-xs bg-white border border-[#4285f4] rounded-none text-[#111827] placeholder-[#9CA3AF] focus:outline-none focus:ring-1 focus:ring-[#4285f4]"
+                        autoFocus
+                      />
+                    </div>
+                  )}
                 </fieldset>
                 <fieldset className="space-y-3">
                   <legend className="text-xs font-semibold uppercase tracking-[0.18em] text-[#ef4444]">

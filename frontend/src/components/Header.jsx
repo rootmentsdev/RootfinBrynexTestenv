@@ -233,10 +233,11 @@ const Header = (prop) => {
                 }
 
                 try {
-                    const adjRes = await fetch(`${API_URL}/inventory/adjustments?status=pending_approval`);
+                    const adjRes = await fetch(`${API_URL}/api/inventory/adjustments?status=pending_approval`);
                     if (adjRes.ok) {
                         const adjData = await adjRes.json();
-                        setPendingAdjustmentsCount(adjData.data?.length || 0);
+                        const count = Array.isArray(adjData) ? adjData.length : (adjData.data?.length || 0);
+                        setPendingAdjustmentsCount(count);
                     }
                 } catch (e) {
                     console.error("Error fetching pending adjustments", e);
