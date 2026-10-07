@@ -110,6 +110,8 @@ const App = () => {
   const financialHeadAllowedRoutes = [
     "/",
     "/PendingDaybookClosures",
+    "/CloseReport",
+    "/AdminClose",
     "/datewisedaybook",
     "/income",
     "/expenses",
@@ -130,8 +132,13 @@ const App = () => {
     "/reports/sales-by-group"
   ];
   const FinancialHeadGuard = ({ children }) => {
-    if (isFinancialHead && !financialHeadAllowedRoutes.includes(location.pathname)) {
-      return <Navigate to="/" replace />;
+    if (isFinancialHead) {
+      if (location.pathname.startsWith("/purchase")) {
+        return children;
+      }
+      if (!financialHeadAllowedRoutes.includes(location.pathname)) {
+        return <Navigate to="/" replace />;
+      }
     }
     return children;
   };
@@ -237,8 +244,8 @@ const App = () => {
           <Route path="/indirect-expenses" element={currentuser ? (canAccessRecordExpense ? <ClusterGuard><DaybookGuard><DirectIndirectExpenses initialType="indirect" /></DaybookGuard></ClusterGuard> : <Navigate to="/daybook" replace />) : <Navigate to="/login" />} />
           <Route path="/CashBankLedger" element={currentuser ? <ClusterGuard><DaybookGuard><SecurityPending /></DaybookGuard></ClusterGuard> : <Navigate to="/login" />} />
           <Route path="/securityReport" element={currentuser ? <DaybookGuard><Security /></DaybookGuard> : <Navigate to='/login' />} />
-          <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
-          <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
+          <Route path="/CloseReport" element={currentuser?.power === 'admin' || isFinancialHead ? <CloseReport /> : <Navigate to='/' />} />
+          <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' || isFinancialHead ? <AdminClose /> : <Navigate to='/' />} />
           <Route path="/PendingDaybookClosures" element={currentuser?.power === 'admin' || currentuser?.role === 'superadmin' || isFinancialHead ? <PendingDaybookClosures /> : <Navigate to='/' />} />
           <Route path="/ManageStores" element={currentuser?.power === 'admin' ? <ManageStores /> : <Navigate to='/' />} />
 

@@ -254,11 +254,11 @@ const Datewisedaybook = () => {
   const [apiUrl5, setApiUrl5] = useState("");
   const [preOpen, setPreOpen] = useState([])
 
-  const currentusers = JSON.parse(localStorage.getItem("rootfinuser"));
+  const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
 
-  const showAction = (currentusers.power || "").toLowerCase() === "admin";
   const isClusterManager = (currentusers.role || "").toLowerCase() === "cluster_manager";
   const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
+  const showAction = (currentusers.power || "").toLowerCase() === "admin" || (currentusers.role || "").toLowerCase() === "superadmin" || isFinancialHead;
   const clusterAllowedLocCodes = currentusers.allowedLocCodes || [];
 
   // Admin-level dept loc codes — expenses from these are only visible to admin/superadmin
@@ -1956,7 +1956,7 @@ const Datewisedaybook = () => {
                         ...(((currentusers.power || '').toLowerCase() === 'admin' || isFinancialHead)
                           ? [{ value: "multi", label: "Multiple Branches" }]
                           : []),
-                        ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager) ? [{
+                        ...(((currentusers.power || '').toLowerCase() === 'admin' || (currentusers.role || '').toLowerCase() === 'superadmin' || isClusterManager || isFinancialHead) ? [{
                           label: "Stores",
                           options: (isClusterManager
                             ? AllLoation.filter(s => clusterAllowedLocCodes.includes(s.locCode) && !DEPT_LOC_CODES.includes(s.locCode))

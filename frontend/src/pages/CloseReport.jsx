@@ -51,8 +51,8 @@ const CloseReport = () => {
     if (!fromDate) return alert("Please select a date first.");
 
     setIsLoading(true);
-    const formattedDate = formatDate(fromDate);
-    const updatedApiUrl = `${baseUrl?.baseUrl}user/AdminColseView?date=${formattedDate}&role=${currentuser?.power}`;
+    const roleParam = currentuser?.power === 'admin' ? 'admin' : (currentuser?.role || currentuser?.power || '');
+    const updatedApiUrl = `${baseUrl?.baseUrl}user/AdminColseView?date=${formattedDate}&role=${roleParam}`;
 
     try {
       const response = await fetch(updatedApiUrl);

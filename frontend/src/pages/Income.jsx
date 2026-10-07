@@ -9,7 +9,7 @@ import { useSidebar } from "../hooks/useSidebar.js";
 const baseIncomeCats = [
   { value: "compensation from cancellation", label: "Compensation from Cancellation" },
   { value: "compensation from product damage", label: "Compensation from Product Damage" },
-  { value: "bank to cash",                   label: "Cash to Branch (*Bank to Cash)" },
+  { value: "bank to cash",                   label: "Cash to Branch (Bank to Cash)" },
 ];
 
 const fallbackLocations = [
@@ -47,7 +47,7 @@ const Income = () => {
   const isSuperAdmin = (currentusers.role || "").toLowerCase() === "superadmin";
   const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
   const canSelectStore = isAdmin || isSuperAdmin || isFinancialHead;
-  const cats = isAdmin ? baseIncomeCats : baseIncomeCats.filter(c => c.value !== "bank to cash");
+  const cats = (isAdmin || isSuperAdmin || isFinancialHead) ? baseIncomeCats : baseIncomeCats.filter(c => c.value !== "bank to cash");
 
   const defaultStore = currentusers.locCode || "759";
   const [selectedStore, setSelectedStore] = useState(defaultStore);

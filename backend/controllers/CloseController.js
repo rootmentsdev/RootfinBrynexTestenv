@@ -165,8 +165,9 @@ export const GetAllCloseData = async (req, res) => {
     try {
         const { date, role } = req.query;
 
-        if (role !== 'admin') {
-            return res.status(401).json({ message: "You are not a Admin" });
+        const lowerRole = (role || '').toLowerCase();
+        if (lowerRole !== 'admin' && lowerRole !== 'superadmin' && lowerRole !== 'financial_head') {
+            return res.status(401).json({ message: "You are not an Admin or Financial Head" });
         }
 
         const targetDate = new Date(date);

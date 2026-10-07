@@ -392,7 +392,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
   const [remarks, setRemarks] = useState("");
   
   // Payment Method States
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethod, setPaymentMethod] = useState("bank");
   const [splitPayment, setSplitPayment] = useState(false);
   const [cashAmount, setCashAmount] = useState("");
   const [bankAmount, setBankAmount] = useState("");
@@ -563,7 +563,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
     if (canSelectStore) setBranch("");
     setAmount("");
     setRemarks("");
-    setPaymentMethod("cash");
+    setPaymentMethod("bank");
     setSplitPayment(false);
     setCashAmount("");
     setBankAmount("");
@@ -729,10 +729,10 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                 return (
                   <label 
                     key={id} 
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border ${
                       active 
-                        ? 'border-[#9B48D7] bg-purple-50/50 text-[#9B48D7]' 
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                        ? 'border-[#9B48D7] bg-[#faf5ff] text-[#9B48D7] font-semibold ring-2 ring-purple-500/20 shadow-xs' 
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 font-medium'
                     } cursor-pointer select-none transition-all`}
                   >
                     <input
@@ -743,7 +743,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                       onChange={() => { setPaymentMethod(id); setSplitPayment(false); }}
                       className="w-4 h-4 accent-[#9B48D7]"
                     />
-                    <span className="flex items-center gap-1.5 text-sm font-medium">
+                    <span className="flex items-center gap-1.5 text-sm">
                       {icon} {label}
                     </span>
                   </label>
@@ -751,10 +751,10 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
               })}
 
               <label 
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl border ${
                   splitPayment 
-                    ? 'border-[#9B48D7] bg-purple-50/50 text-[#9B48D7]' 
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                    ? 'border-[#9B48D7] bg-[#faf5ff] text-[#9B48D7] font-semibold ring-2 ring-purple-500/20 shadow-xs' 
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 font-medium'
                 } cursor-pointer select-none transition-all`}
               >
                 <input 
@@ -763,7 +763,7 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
                   onChange={() => setSplitPayment(!splitPayment)}
                   className="w-4 h-4 accent-[#9B48D7]" 
                 />
-                <span className="text-sm font-medium">Split Payment (Cash + Bank + UPI)</span>
+                <span className="text-sm">Split Payment (Cash + Bank + UPI)</span>
               </label>
             </div>
 

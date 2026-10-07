@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CSVLink } from 'react-csv';
 import baseUrl from '../api/api';
 import { 
   Search, 
@@ -10,7 +11,8 @@ import {
   FileText, 
   ExternalLink,
   Menu,
-  X
+  X,
+  Download
 } from 'lucide-react';
 import { useSidebar } from '../hooks/useSidebar.js';
 
@@ -379,11 +381,41 @@ const RecordExpenses = () => {
     return cleaned || "-";
   };
 
+  // CSV Export Configuration
+  const csvHeaders = [
+    { label: "Date", key: "date" },
+    { label: "Expense Category", key: "category" },
+    { label: "Branch", key: "branch" },
+    { label: "Expense Type", key: "expenseType" },
+    { label: "Payment Method", key: "paymentMethod" },
+    { label: "Amount (₹)", key: "amount" },
+    { label: "Remarks", key: "remarks" },
+    { label: "Attachment", key: "attachment" },
+  ];
+
+  const csvData = useMemo(() => {
+    return filteredTransactions.map((tx) => {
+      const isDirect = tx.expenseType === "direct" || (tx.remark || "").includes("[DIRECT");
+      const rawAmount = Math.abs(parseFloat(tx.amount || 0));
+      const attachmentLink = tx.attachmentUrl || (tx._id ? `${baseUrl.baseUrl}user/transaction/${tx._id}/attachment` : (tx.attachment?.filename || "-"));
+      return {
+        date: tx.date ? tx.date.split("T")[0] : "-",
+        category: getCleanCategory(tx.category),
+        branch: getBranchName(tx.locCode),
+        expenseType: isDirect ? "Direct" : "Indirect",
+        paymentMethod: (tx.paymentMethod || "CASH").toUpperCase(),
+        amount: rawAmount,
+        remarks: getCleanRemark(tx.remark),
+        attachment: attachmentLink,
+      };
+    });
+  }, [filteredTransactions]);
+
   return (
     <div className={`min-h-screen bg-[#FAFAFB] transition-all duration-300 ${isSidebarOpen ? 'md:ml-64 ml-0' : 'ml-0'}`}>
       <div className="w-full px-6 sm:px-10 py-8">
         
-        {/* Top Action Bar: Search Input & + New Expense Button */}
+        {/* Top Action Bar: Search Input, CSV Export & + New Expense Button */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <button
@@ -402,14 +434,26 @@ const RecordExpenses = () => {
             />
           </div>
 
-          <button
-            type="button"
-            onClick={() => navigate("/direct-expenses")}
-            className="flex items-center justify-center gap-2 bg-[#18181B] hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-all cursor-pointer shrink-0"
-          >
-            <Plus size={16} />
-            <span>New Expense</span>
-          </button>
+          <div className="flex items-center gap-3">
+            <CSVLink
+              data={csvData}
+              headers={csvHeaders}
+              filename={`direct_indirect_expenses_${dateFrom}_to_${dateTo}.csv`}
+              className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Download size={16} />
+              <span>Download CSV</span>
+            </CSVLink>
+
+            <button
+              type="button"
+              onClick={() => navigate("/direct-expenses")}
+              className="flex items-center justify-center gap-2 bg-[#18181B] hover:bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-xs transition-all cursor-pointer shrink-0"
+            >
+              <Plus size={16} />
+              <span>New Expense</span>
+            </button>
+          </div>
         </div>
 
         {/* Date Filters Row */}
@@ -442,6 +486,16 @@ const RecordExpenses = () => {
           >
             {loading ? "Fetching..." : "Fetch Data"}
           </button>
+
+          <CSVLink
+            data={csvData}
+            headers={csvHeaders}
+            filename={`direct_indirect_expenses_${dateFrom}_to_${dateTo}.csv`}
+            className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-sm font-medium flex items-center gap-1.5 transition-all shadow-xs h-[38px] cursor-pointer"
+          >
+            <Download size={14} className="text-gray-500" />
+            <span>CSV</span>
+          </CSVLink>
 
           <button
             type="button"

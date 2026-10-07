@@ -441,6 +441,18 @@ const Nav = () => {
                                     <span>Record Expense</span>
                                 </Link>
 
+                                {/* Close Report */}
+                                <Link to="/CloseReport" className={singleLinkClasses("/CloseReport")}>
+                                    <FolderClosed size={18} className="shrink-0" />
+                                    <span>Close Report</span>
+                                </Link>
+
+                                {/* Admin Close */}
+                                <Link to="/AdminClose" className={singleLinkClasses("/AdminClose")}>
+                                    <Notebook size={18} className="shrink-0" />
+                                    <span>Admin Close</span>
+                                </Link>
+
                                 {/* Late Closures */}
                                 <Link to="/PendingDaybookClosures" className={singleLinkClasses("/PendingDaybookClosures")}>
                                     <Notebook size={18} className="shrink-0" />
@@ -470,6 +482,24 @@ const Nav = () => {
                                             <Link to="/reports/sales-by-group" className={subLinkClasses('/reports/sales-by-group')}><span>Sales by Group</span></Link>
                                             <Link to="/reports/inventory" className={subLinkClasses('/reports/inventory')}><span>Inventory Report</span></Link>
                                             <Link to="/reports/income-expense" className={subLinkClasses('/reports/income-expense')}><span>Income &amp; Expense</span></Link>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Purchase */}
+                                <div>
+                                    <button onClick={() => setOpenSection(isPurchaseOpen ? null : "purchase")} className={groupButtonClasses(isPurchaseOpen, isPurchaseActive)}>
+                                        <div className="flex w-full items-center gap-3.5">
+                                            <Truck size={18} className="shrink-0" />
+                                            <span className="flex-1 text-left whitespace-nowrap truncate">Purchase</span>
+                                            <ChevronDown size={16} className={`shrink-0 transition-transform ${isPurchaseOpen ? "rotate-180 text-white" : "rotate-0 text-zinc-400"}`} />
+                                        </div>
+                                    </button>
+                                    {isPurchaseOpen && (
+                                        <div className="mt-1 space-y-0.5 border-l border-[#27272a] ml-[25px]">
+                                            {purchaseLinks.map(({ to, label }) => (
+                                                <Link key={to} to={to} className={subLinkClasses(to)}><span>{label}</span></Link>
+                                            ))}
                                         </div>
                                     )}
                                 </div>

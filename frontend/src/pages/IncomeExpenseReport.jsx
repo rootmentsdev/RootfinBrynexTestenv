@@ -1114,7 +1114,7 @@ export default function IncomeExpenseReport() {
                   className="w-full h-[38px] bg-white border border-gray-300 rounded-lg px-3 text-xs font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all shadow-sm cursor-pointer"
                 >
                   <option value="all_stores">{isClusterManager ? "All My Stores" : "All Stores"}</option>
-                  {(isAdmin || isSuperAdmin) && (
+                  {(isAdmin || isSuperAdmin || isFinancialHead) && (
                     <option value="all_depts">All Departments</option>
                   )}
                   
@@ -1129,7 +1129,7 @@ export default function IncomeExpenseReport() {
                     ))}
                   </optgroup>
 
-                  {(isAdmin || isSuperAdmin) && (
+                  {(isAdmin || isSuperAdmin || isFinancialHead) && (
                     <optgroup label="Departments">
                       {STORE_LIST.filter((s) => DEPT_LOC_CODES.includes(s.locCode)).map((s) => (
                         <option key={s.locCode} value={s.locCode}>
