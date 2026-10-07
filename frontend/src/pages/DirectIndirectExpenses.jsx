@@ -15,6 +15,8 @@ import {
   FileText,
   Lock
 } from "lucide-react";
+import { BsBank2 } from "react-icons/bs";
+import { MdCurrencyRupee } from "react-icons/md";
 import { useSidebar } from "../hooks/useSidebar.js";
 import {
   IMAGE_CONFIG,
@@ -389,6 +391,13 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
   const [amount, setAmount] = useState("");
   const [remarks, setRemarks] = useState("");
   
+  // Payment Method States
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [splitPayment, setSplitPayment] = useState(false);
+  const [cashAmount, setCashAmount] = useState("");
+  const [bankAmount, setBankAmount] = useState("");
+  const [upiAmount, setUpiAmount] = useState("");
+  
   // Image Upload States
   const fileInputRef = useRef(null);
   const [images, setImages] = useState([]);
@@ -493,6 +502,14 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
       return;
     }
 
+    if (splitPayment) {
+      const total = parseFloat(cashAmount || 0) + parseFloat(bankAmount || 0) + parseFloat(upiAmount || 0);
+      if (Math.abs(total - parseFloat(amount || 0)) > 0.01) {
+        setStatusMessage({ type: "error", text: "Sum of Cash, Bank, and UPI must equal the total Amount." });
+        return;
+      }
+    }
+
     if (images.length === 0) {
       setStatusMessage({ type: "error", text: "Please upload at least one Attachment." });
       return;
@@ -508,10 +525,10 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
       locCode: targetBranch,
       isAdminLevel: canSelectStore,
       amount: `-${amount}`,
-      cash: `-${amount}`,
-      bank: "0",
-      upi: "0",
-      paymentMethod: "cash",
+      cash: splitPayment ? `-${cashAmount || "0"}` : paymentMethod === "cash" ? `-${amount}` : "0",
+      bank: splitPayment ? `-${bankAmount || "0"}` : paymentMethod === "bank" ? `-${amount}` : "0",
+      upi:  splitPayment ? `-${upiAmount  || "0"}` : paymentMethod === "upi"  ? `-${amount}` : "0",
+      paymentMethod: splitPayment ? "split" : paymentMethod,
       date: new Date().toISOString().split("T")[0],
       attachment: images[0]?.base64 || null,
       attachments: images.map(img => img.base64),
@@ -546,6 +563,11 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
     if (canSelectStore) setBranch("");
     setAmount("");
     setRemarks("");
+    setPaymentMethod("cash");
+    setSplitPayment(false);
+    setCashAmount("");
+    setBankAmount("");
+    setUpiAmount("");
     setImages([]);
     setUploadErrors([]);
     navigate("/record-expense");
@@ -690,6 +712,85 @@ const DirectIndirectExpenses = ({ initialType = "direct" }) => {
               </div>
             </div>
 
+          </div>
+
+          {/* Way of Payment */}
+          <div className="pt-2">
+            <label className="block text-xs font-semibold text-gray-700 tracking-wide mb-3 uppercase">
+              Way of Payment
+            </label>
+            <div className="flex flex-wrap items-center gap-4">
+              {[
+                { id: "cash", label: "Cash", icon: <MdCurrencyRupee size={18} /> },
+                { id: "bank", label: "Bank", icon: <BsBank2 size={16} /> },
+                { id: "upi",  label: "UPI",  icon: <span className="font-bold italic text-sm">UPI</span> },
+              ].map(({ id, label, icon }) => {
+                const active = !splitPayment && paymentMethod === id;
+                return (
+                  <label 
+                    key={id} 
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+                      active 
+                        ? 'border-[#9B48D7] bg-purple-50/50 text-[#9B48D7]' 
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                    } cursor-pointer select-none transition-all`}
+                  >
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value={id}
+                      checked={active}
+                      onChange={() => { setPaymentMethod(id); setSplitPayment(false); }}
+                      className="w-4 h-4 accent-[#9B48D7]"
+                    />
+                    <span className="flex items-center gap-1.5 text-sm font-medium">
+                      {icon} {label}
+                    </span>
+                  </label>
+                );
+              })}
+
+              <label 
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border ${
+                  splitPayment 
+                    ? 'border-[#9B48D7] bg-purple-50/50 text-[#9B48D7]' 
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                } cursor-pointer select-none transition-all`}
+              >
+                <input 
+                  type="checkbox" 
+                  checked={splitPayment} 
+                  onChange={() => setSplitPayment(!splitPayment)}
+                  className="w-4 h-4 accent-[#9B48D7]" 
+                />
+                <span className="text-sm font-medium">Split Payment (Cash + Bank + UPI)</span>
+              </label>
+            </div>
+
+            {splitPayment && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 bg-purple-50/20 p-4 rounded-xl border border-purple-100">
+                {[
+                  ["Cash", cashAmount, setCashAmount], 
+                  ["Bank", bankAmount, setBankAmount], 
+                  ["UPI", upiAmount, setUpiAmount]
+                ].map(([lbl, val, setVal]) => (
+                  <div key={lbl}>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase">{lbl} Amount</label>
+                    <div className="relative flex items-center rounded-xl border border-gray-200 bg-white px-3 h-11 focus-within:border-[#9B48D7] focus-within:ring-2 focus-within:ring-purple-500/10">
+                      <span className="text-gray-400 text-sm mr-1.5">₹</span>
+                      <input 
+                        type="number" 
+                        step="any"
+                        value={val} 
+                        onChange={e => setVal(e.target.value)} 
+                        placeholder="0.00"
+                        className="w-full bg-transparent text-sm font-medium text-gray-900 focus:outline-none" 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Row 2: Attachment (Left) and Remarks (Right) (2 Columns) */}
