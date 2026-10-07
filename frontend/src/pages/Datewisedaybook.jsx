@@ -274,15 +274,9 @@ const Datewisedaybook = () => {
     "printing stationary", "staff welfare", "staff accommodation", "incentive", "write off",
   ]);
 
-  // Returns true if a transaction is an admin-entered expense that should be hidden from store/cluster users
+  // Returns true if a transaction is an admin-entered expense/income that should be hidden from store-level daybook & financial summary
   const isAdminExpense = (tx) => {
-    if (isAdminOrSuperAdmin) return false; // admins always see everything
-    const type = (tx.Category || tx.type || "").toLowerCase();
-    const cat  = (tx.SubCategory || tx.category || "").toLowerCase().trim();
-    const txLocCode = String(tx.locCode || "");
-    const isExpense = type === "expense" || EXPENSE_CATEGORIES_SET.has(type) || EXPENSE_CATEGORIES_SET.has(cat);
-    const isFromAdminDept = ADMIN_DEPT_LOC_CODES.has(txLocCode);
-    return isExpense && (isFromAdminDept || tx.isAdminLevel);
+    return !!tx.isAdminLevel;
   };
 
   // For cluster managers, filter AllLoation to only their allowed stores
@@ -498,7 +492,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      const mongoList = (mongoData?.data || []).map(tx => {
+      const mongoList = (mongoData?.data || []).filter(tx => !tx.isAdminLevel).map(tx => {
         const isReturn = (tx.type || "").toLowerCase() === "return" || (tx.subCategory || "").toLowerCase().includes("return") || (tx.category || "").toLowerCase().includes("return") || (tx.invoiceNo || "").toUpperCase().startsWith("RTN-") || (tx.invoiceNo || "").toUpperCase().startsWith("RET-");
         const sign = isReturn ? -1 : 1;
         const cash = Number(tx.cash || 0) * sign;
@@ -787,7 +781,7 @@ const Datewisedaybook = () => {
             };
           });
 
-          const mList = (mongoData?.data || []).map(tx => {
+          const mList = (mongoData?.data || []).filter(tx => !tx.isAdminLevel).map(tx => {
             const isReturn = (tx.type || "").toLowerCase() === "return" || (tx.subCategory || "").toLowerCase().includes("return") || (tx.category || "").toLowerCase().includes("return") || (tx.invoiceNo || "").toUpperCase().startsWith("RTN-") || (tx.invoiceNo || "").toUpperCase().startsWith("RET-");
             const sign = isReturn ? -1 : 1;
             const cash = Number(tx.cash || 0) * sign;
@@ -1036,7 +1030,7 @@ const Datewisedaybook = () => {
         };
       });
 
-      const mongoList = (mongoData?.data || []).map(tx => {
+      const mongoList = (mongoData?.data || []).filter(tx => !tx.isAdminLevel).map(tx => {
         const cash = Number(tx.cash || 0);
         const rbl = Number(tx.rbl || tx.rblRazorPay || 0); // ✅ Added RBL mapping
         const bank = Number(tx.bank || 0);

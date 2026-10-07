@@ -36,7 +36,8 @@ const Expenses = () => {
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
   const isAdmin = (currentusers.power || "").toLowerCase() === "admin" || (currentusers.role || "").toLowerCase() === "admin";
   const isSuperAdmin = (currentusers.role || "").toLowerCase() === "superadmin";
-  const canSelectStore = isAdmin || isSuperAdmin;
+  const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
+  const canSelectStore = isAdmin || isSuperAdmin || isFinancialHead;
   const cats = baseExpenseCats;
 
   const fallbackLocations = [

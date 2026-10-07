@@ -218,10 +218,10 @@ const Header = (prop) => {
 
         fetchStores();
 
-        // Fetch notifications for admins
+        // Fetch notifications for admins & financial head
         const fetchNotifications = async () => {
             const user = getInitialUser();
-            if (user?.power === 'admin' || user?.role === 'superadmin') {
+            if (user?.power === 'admin' || user?.role === 'superadmin' || (user?.role || '').toLowerCase() === 'financial_head') {
                 try {
                     const closuresRes = await fetch(`${API_URL}/user/pendingClosures`);
                     if (closuresRes.ok) {
@@ -366,7 +366,7 @@ const Header = (prop) => {
                 
                 <div className="flex items-center gap-4 shrink-0">
                     {/* Notification Bell */}
-                    {(isAdmin || currentUser?.role === 'superadmin') && (
+                    {(isAdmin || currentUser?.role === 'superadmin' || isFinancialHead) && (
                         <div className="relative" ref={notificationRef}>
                             <button
                                 type="button"

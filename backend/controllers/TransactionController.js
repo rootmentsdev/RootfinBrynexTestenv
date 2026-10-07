@@ -179,9 +179,9 @@ export const CreatePayment = async (req, res) => {
       attachment: attachmentObj                     // 🔺 ADDED
     });
 
-    // ✅ Propagate cash to CloseTransaction for date >= txDate
+    // ✅ Propagate cash to CloseTransaction for date >= txDate (only for store-level entries)
     const cashAmount = Number(cash) || 0;
-    if (cashAmount !== 0 && locCode && date) {
+    if (cashAmount !== 0 && locCode && date && !isAdminLevel) {
       await propagateCashDiff(locCode, date, cashAmount, true);
     }
 

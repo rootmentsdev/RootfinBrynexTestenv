@@ -209,7 +209,8 @@ const CATEGORY_LABEL_MAP = {
   "materials":                          "Materials",
   "subcontractor":                      "Subcontractor",
   "job costing":                        "Job Costing",
-  "dry cleaning expenses":              "Dry Cleaning Expenses",
+  "dry cleaning expenses":              "Dry Cleaning",
+  "dry cleaning expense":               "Dry Cleaning",
   "uniform stitching":                  "Uniform Stitching",
   "alteration expense":                 "Alteration Expense",
   "raw materials / dress accessories":  "Raw Materials / Dress Accessories",
@@ -542,10 +543,11 @@ export default function IncomeExpenseReport() {
   const buildGrouped = (rows) => {
     const map = {};
     rows.forEach(t => {
-      const cat = t.category || "Uncategorized";
+      const rawCat = t.category || "Uncategorized";
+      const cat = getCategoryLabel(rawCat);
       const sub = t.subCategory || cat;
       // Filter: if categories are selected, only include if cat is in the selected array
-      if (filterCategories.length > 0 && !filterCategories.includes(cat)) return;
+      if (filterCategories.length > 0 && !filterCategories.includes(cat) && !filterCategories.includes(rawCat)) return;
       if (!map[cat]) map[cat] = { subCategories: {}, cash: 0, rbl: 0, bank: 0, upi: 0 };
       if (!map[cat].subCategories[sub]) map[cat].subCategories[sub] = { transactions: [], cash: 0, rbl: 0, bank: 0, upi: 0 };
 
@@ -643,7 +645,7 @@ export default function IncomeExpenseReport() {
       ...holdedSecurityRefundRows,
       ...cashToBankRows,
       ...bankToCashRows
-    ].map(t => t.category || "Uncategorized"))];
+    ].map(t => getCategoryLabel(t.category || "Uncategorized")))];
     
     // If no data fetched yet, use predefined categories
     if (fromRows.length === 0) {
@@ -657,7 +659,8 @@ export default function IncomeExpenseReport() {
         "Sales Return",
         "Bank to Cash",
         "Cash to Bank",
-        "Return Invoice"
+        "Return Invoice",
+        "Dry Cleaning"
       ];
     }
     
