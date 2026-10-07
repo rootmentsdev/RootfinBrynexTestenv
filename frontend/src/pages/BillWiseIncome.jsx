@@ -557,7 +557,7 @@ const DayBookInc = () => {
 
         const mongoTransactions = (dayBookData || []).filter(transaction => {
             const cat = (transaction.category || transaction.Category || "").toLowerCase();
-            if (transaction.isAdminLevel && !userCanSeeAdminExpenses) return false;
+            if (transaction.isAdminLevel) return false;
             return allowedMongoCategories.includes(cat);
         }).map(transaction => {
             const isReturn = (transaction.type || "").toLowerCase() === "return";

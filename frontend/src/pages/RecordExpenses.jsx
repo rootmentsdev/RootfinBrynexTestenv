@@ -307,8 +307,14 @@ const RecordExpenses = () => {
       const json = await res.json();
       const list = json.data || json || [];
       
-      // Filter out only Expense transactions
-      const expenseList = list.filter(item => (item.type || "").toLowerCase() === "expense");
+      // Filter out only Direct and Indirect Expense transactions (exclude standard expenses from Expenses.jsx)
+      const expenseList = list.filter(item => {
+        const isExpense = (item.type || "").toLowerCase() === "expense";
+        if (!isExpense) return false;
+        const isDirect = item.expenseType === "direct" || (item.remark || "").includes("[DIRECT");
+        const isIndirect = item.expenseType === "indirect" || (item.remark || "").includes("[INDIRECT");
+        return isDirect || isIndirect;
+      });
       setTransactions(expenseList);
     } catch (err) {
       console.error("Error fetching expense data:", err);
@@ -326,6 +332,11 @@ const RecordExpenses = () => {
   // Filtered expenses based on client filters
   const filteredTransactions = useMemo(() => {
     return transactions.filter(tx => {
+      // Must be direct or indirect expense
+      const isDirect = tx.expenseType === "direct" || (tx.remark || "").includes("[DIRECT");
+      const isIndirect = tx.expenseType === "indirect" || (tx.remark || "").includes("[INDIRECT");
+      if (!isDirect && !isIndirect) return false;
+
       // Search filter (category or remarks)
       if (searchTerm.trim()) {
         const term = searchTerm.toLowerCase();
@@ -342,11 +353,8 @@ const RecordExpenses = () => {
 
       // Expense Type filter (direct vs indirect)
       if (selectedExpenseType !== "all") {
-        const isDirect = tx.expenseType === "direct" || (tx.remark || "").includes("[DIRECT");
-        const isIndirect = tx.expenseType === "indirect" || (tx.remark || "").includes("[INDIRECT");
-
         if (selectedExpenseType === "direct" && !isDirect) return false;
-        if (selectedExpenseType === "indirect" && !isIndirect && isDirect) return false;
+        if (selectedExpenseType === "indirect" && !isIndirect) return false;
       }
 
       // Payment Type filter

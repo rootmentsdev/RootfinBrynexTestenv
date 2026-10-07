@@ -109,7 +109,7 @@ const App = () => {
   // Allowed routes for financial head
   const financialHeadAllowedRoutes = [
     "/",
-    "/daybook",
+    "/PendingDaybookClosures",
     "/datewisedaybook",
     "/income",
     "/expenses",
@@ -131,7 +131,7 @@ const App = () => {
   ];
   const FinancialHeadGuard = ({ children }) => {
     if (isFinancialHead && !financialHeadAllowedRoutes.includes(location.pathname)) {
-      return <Navigate to="/daybook" replace />;
+      return <Navigate to="/" replace />;
     }
     return children;
   };
@@ -222,7 +222,7 @@ const App = () => {
             <Route path="/login" element={!currentuser ? <Login /> : <Navigate to="/" />} />
 
             {/* Protected Routes (Redirect to Login if Not Authenticated) */}
-            <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : (isFinancialHead ? <Navigate to="/daybook" /> : ((currentuser?.power === 'admin' || currentuser?.role === 'superadmin') ? <Home /> : <Navigate to="/daybook" />))) : <Navigate to="/login" />} />
+            <Route path="/" element={currentuser ? (isClusterManager ? <Navigate to="/datewisedaybook" /> : ((currentuser?.power === 'admin' || currentuser?.role === 'superadmin' || isFinancialHead) ? <Home /> : <Navigate to="/daybook" />)) : <Navigate to="/login" />} />
           <Route path="/daybook" element={currentuser ? <DayBookInc /> : <Navigate to="/login" />} />
           <Route path="/datewisedaybook" element={currentuser ? <Datewisedaybook /> : <Navigate to="/login" />} />
           <Route path="/BookingReport" element={currentuser ? <DaybookGuard><Booking /></DaybookGuard> : <Navigate to="/login" />} />
@@ -239,7 +239,7 @@ const App = () => {
           <Route path="/securityReport" element={currentuser ? <DaybookGuard><Security /></DaybookGuard> : <Navigate to='/login' />} />
           <Route path="/CloseReport" element={currentuser?.power === 'admin' ? <CloseReport /> : <Navigate to='/' />} />
           <Route path="/AdminClose" element={currentuser?.power === 'admin' || currentuser?.locCode === '102' ? <AdminClose /> : <Navigate to='/' />} />
-          <Route path="/PendingDaybookClosures" element={currentuser?.power === 'admin' || currentuser?.role === 'superadmin' ? <PendingDaybookClosures /> : <Navigate to='/' />} />
+          <Route path="/PendingDaybookClosures" element={currentuser?.power === 'admin' || currentuser?.role === 'superadmin' || isFinancialHead ? <PendingDaybookClosures /> : <Navigate to='/' />} />
           <Route path="/ManageStores" element={currentuser?.power === 'admin' ? <ManageStores /> : <Navigate to='/' />} />
 
           {/* Manage Users Routes */}

@@ -423,10 +423,10 @@ const Nav = () => {
                             </>
                         ) : isFinancialHead ? (
                             <>
-                                {/* Day Book */}
-                                <Link to="/daybook" className={singleLinkClasses("/daybook")}>
-                                    <FileText size={18} className="shrink-0" />
-                                    <span>Day Book</span>
+                                {/* Dashboard */}
+                                <Link to="/" className={singleLinkClasses("/")}>
+                                    <LineChart size={18} className="shrink-0" />
+                                    <span>Dashboard</span>
                                 </Link>
 
                                 {/* Financial Summary */}
@@ -439,6 +439,12 @@ const Nav = () => {
                                 <Link to="/record-expense" className={singleLinkClasses("/record-expense")}>
                                     <Wallet size={18} className="shrink-0" />
                                     <span>Record Expense</span>
+                                </Link>
+
+                                {/* Late Closures */}
+                                <Link to="/PendingDaybookClosures" className={singleLinkClasses("/PendingDaybookClosures")}>
+                                    <Notebook size={18} className="shrink-0" />
+                                    <span>Late Closures</span>
                                 </Link>
 
                                 {/* Reports */}

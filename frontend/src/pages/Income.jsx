@@ -12,11 +12,45 @@ const baseIncomeCats = [
   { value: "bank to cash",                   label: "Cash to Branch (*Bank to Cash)" },
 ];
 
+const fallbackLocations = [
+  { "locName": "Z-Edapally1", "locCode": "144" },
+  { "locName": "Warehouse", "locCode": "858" },
+  { "locName": "G-Edappally", "locCode": "702" },
+  { "locName": "HEAD OFFICE01", "locCode": "759" },
+  { "locName": "SG-Trivandrum", "locCode": "700" },
+  { "locName": "Z- Edappal", "locCode": "100" },
+  { "locName": "Z.Perinthalmanna", "locCode": "133" },
+  { "locName": "Z.Kottakkal", "locCode": "122" },
+  { "locName": "G.Kottayam", "locCode": "701" },
+  { "locName": "G.Perumbavoor", "locCode": "703" },
+  { "locName": "G.Thrissur", "locCode": "704" },
+  { "locName": "G.Chavakkad", "locCode": "706" },
+  { "locName": "G.Calicut ", "locCode": "712" },
+  { "locName": "G.Vadakara", "locCode": "708" },
+  { "locName": "G.Edappal", "locCode": "707" },
+  { "locName": "G.Perinthalmanna", "locCode": "709" },
+  { "locName": "G.Kottakkal", "locCode": "711" },
+  { "locName": "G.Manjeri", "locCode": "710" },
+  { "locName": "G.Palakkad ", "locCode": "705" },
+  { "locName": "G.Kalpetta", "locCode": "717" },
+  { "locName": "G.Kannur", "locCode": "716" },
+  { "locName": "G.Mg Road", "locCode": "718" },
+  { "locName": "Production", "locCode": "101" },
+  { "locName": "Office", "locCode": "102" },
+  { "locName": "WAREHOUSE", "locCode": "103" }
+];
+
 const Income = () => {
   const isSidebarOpen = useSidebar();
   const currentusers = JSON.parse(localStorage.getItem("rootfinuser")) || {};
-  const isAdmin = (currentusers.power || "").toLowerCase() === "admin";
+  const isAdmin = (currentusers.power || "").toLowerCase() === "admin" || (currentusers.role || "").toLowerCase() === "admin";
+  const isSuperAdmin = (currentusers.role || "").toLowerCase() === "superadmin";
+  const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
+  const canSelectStore = isAdmin || isSuperAdmin || isFinancialHead;
   const cats = isAdmin ? baseIncomeCats : baseIncomeCats.filter(c => c.value !== "bank to cash");
+
+  const defaultStore = currentusers.locCode || "759";
+  const [selectedStore, setSelectedStore] = useState(defaultStore);
 
   const [selectedCategory, setSelectedCategory] = useState(cats[0]);
   const [amount, setAmount] = useState("");
@@ -47,7 +81,8 @@ const Income = () => {
       type: "income",
       category: selectedCategory.value,
       remark,
-      locCode: currentusers.locCode,
+      locCode: canSelectStore ? selectedStore : currentusers.locCode,
+      isAdminLevel: canSelectStore,
       amount,
       cash: splitPayment ? (cashAmount || "0") : paymentMethod === "cash" ? amount : "0",
       bank: splitPayment ? (bankAmount || "0") : paymentMethod === "bank" ? amount : "0",
@@ -103,6 +138,27 @@ const Income = () => {
         {/* Card */}
         <div className="rounded-2xl bg-white shadow-sm border border-[#e6ebfa] p-8">
           <form onSubmit={handleSubmit}>
+
+            {/* Store selection for Admin / SuperAdmin / Financial Head */}
+            {canSelectStore && (
+              <div className="mb-6">
+                <label className="block text-[11px] font-semibold uppercase text-gray-500 mb-2">Store / Branch</label>
+                <div className="relative">
+                  <select
+                    value={selectedStore}
+                    onChange={(e) => setSelectedStore(e.target.value)}
+                    className="w-full appearance-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-[15px] text-gray-900 focus:outline-none focus:border-[#a855f7] focus:ring-1 focus:ring-[#a855f7] pr-10"
+                  >
+                    {fallbackLocations.map(loc => (
+                      <option key={loc.locCode} value={loc.locCode}>
+                        {loc.locName} ({loc.locCode})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={18} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+            )}
 
             {/* Row 1: Category + Amount */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
