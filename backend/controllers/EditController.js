@@ -185,9 +185,10 @@ export const editTransaction = async (req, res) => {
     updates.totalTransaction = amount;
 
     // ✅ Preserve original bill value — never change it
+    const discountAmount = Number(originalTransaction.discountAmount || updates.discountAmount || 0);
     updates.billValue =
       originalTransaction.billValue ??
-      originalTransaction.invoiceAmount ??
+      (Number(originalTransaction.invoiceAmount || 0) + discountAmount) ??
       0;
 
     // ✅ Keep invoiceNo and customer name
@@ -307,7 +308,8 @@ export const getEditedTransactions = async (req, res) => {
 
         // ✅ Safe fallback: Only show Balance Payable for RentOut
         subCategory1: isRentOut ? (tx.subCategory1 || "Balance Payable") : "",
-        billValue: Number(tx.billValue ?? tx.invoiceAmount ?? 0),
+        discountAmount: Number(tx.discountAmount || 0),
+        billValue: Number(tx.billValue ?? (Number(tx.invoiceAmount || 0) + Number(tx.discountAmount || 0))),
 
         amount: typeof tx.amount !== "undefined" ? Number(tx.amount) : computedTotal,
         totalTransaction: typeof tx.totalTransaction !== "undefined" ? Number(tx.totalTransaction) : computedTotal,

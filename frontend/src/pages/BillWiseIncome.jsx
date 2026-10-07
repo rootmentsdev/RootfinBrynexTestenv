@@ -409,7 +409,7 @@ const DayBookInc = () => {
                 customerName: transaction?.customerName || transaction?.customer || "Customer",
                 bookingCashAmount,
                 bookingBankAmount,
-                billValue: transaction.invoiceAmount,
+                billValue: invoiceAmount + discountAmount,
                 discountAmount: discountAmount,
                 invoiceAmount,
                 bookingBank1: bookingBankAmount,
@@ -434,6 +434,7 @@ const DayBookInc = () => {
             const rentoutUPIAmount = parseInt(transaction?.rentoutUPIAmount ?? 0, 10);
             const rblAmount = parseInt(transaction?.rblRazorPay ?? 0, 10);
             const securityAmount = parseInt(transaction?.securityAmount ?? 0, 10);
+            const discountAmount = parseInt(transaction?.discountAmount || 0, 10);
 
             const totalAmount = rentoutCashAmount + rentoutBankAmount + rentoutUPIAmount + rblAmount;
 
@@ -445,8 +446,8 @@ const DayBookInc = () => {
                 rentoutCashAmount,
                 rentoutBankAmount,
                 invoiceAmount,
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: transaction.invoiceAmount,
+                discountAmount: discountAmount,
+                billValue: invoiceAmount + discountAmount,
                 securityAmount,
                 advanceAmount,
                 Balance: invoiceAmount - advanceAmount,
@@ -472,6 +473,7 @@ const DayBookInc = () => {
             const invoiceAmount = parseInt(transaction?.invoiceAmount || 0, 10);
             const advanceAmount = parseInt(transaction?.advanceAmount || 0, 10);
             const RsecurityAmount = -(parseInt(transaction?.securityAmount || 0, 10));
+            const discountAmount = parseInt(transaction?.discountAmount || 0, 10);
 
             const totalAmount = returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount;
 
@@ -485,8 +487,8 @@ const DayBookInc = () => {
                 returnUPIAmount,
                 invoiceAmount,
                 advanceAmount,
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: invoiceAmount,
+                discountAmount: discountAmount,
+                billValue: invoiceAmount + discountAmount,
                 amount: totalAmount,
                 totalTransaction: totalAmount,
                 RsecurityAmount,
@@ -506,6 +508,8 @@ const DayBookInc = () => {
             const originalRblAmount = parseInt(transaction.rblRazorPay || 0);
             const deleteBankAmount = originalRblAmount !== 0 ? 0 : -Math.abs(parseInt(transaction.deleteBankAmount || 0));
             const deleteUPIAmount = originalRblAmount !== 0 ? 0 : -Math.abs(parseInt(transaction.deleteUPIAmount || 0));
+            const discountAmount = parseInt(transaction.discountAmount || 0, 10);
+            const invoiceAmount = parseInt(transaction.invoiceAmount || 0, 10);
 
             const totalAmount = deleteCashAmount + deleteRblAmount + deleteBankAmount + deleteUPIAmount;
 
@@ -516,8 +520,8 @@ const DayBookInc = () => {
                 customerName: transaction?.customerName || transaction?.customer || "Customer",
                 Category: "Cancel",
                 SubCategory: "cancellation Refund",
-                discountAmount: parseInt(transaction.discountAmount || 0),
-                billValue: transaction.invoiceAmount,
+                discountAmount: discountAmount,
+                billValue: invoiceAmount + discountAmount,
                 amount: totalAmount,
                 totalTransaction: totalAmount,
                 cash: deleteCashAmount,
@@ -578,7 +582,7 @@ const DayBookInc = () => {
                 cash1: transaction.cash,
                 bank1: transaction.bank,
                 discountAmount: parseInt(transaction.discountAmount || 0, 10),
-                billValue: Number(transaction.billValue || transaction.subTotal || transaction.invoiceAmount || Math.abs(Number(transaction.amount) || 0)),
+                billValue: Number(transaction.billValue || transaction.subTotal || (Number(transaction.invoiceAmount || Math.abs(Number(transaction.amount) || 0)) + parseInt(transaction.discountAmount || 0, 10))),
                 Tupi: transaction.upi,
                 rbl: rbl,
                 cash: cash,

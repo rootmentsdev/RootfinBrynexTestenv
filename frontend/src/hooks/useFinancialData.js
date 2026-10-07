@@ -37,22 +37,27 @@ export const useFinancialData = (currentUser, baseUrl) => {
 
   // Optimized data processors
   const processBookingData = useCallback((rawData) => {
-    return (rawData?.dataSet?.data || []).map(item => ({
-      ...item,
-      date: item.bookingDate?.split("T")[0],
-      invoiceNo: item.invoiceNo,
-      customerName: item.customerName,
-      Category: "Booking",
-      SubCategory: "Advance",
-      billValue: Number(item.invoiceAmount || 0),
-      cash: Number(item.bookingCashAmount || 0),
-      rbl: Number(item.rblRazorPay || 0),
-      bank: Number(item.bookingBankAmount || 0),
-      upi: Number(item.bookingUPIAmount || 0),
-      amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + 
-              Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-      source: "booking"
-    }));
+    return (rawData?.dataSet?.data || []).map(item => {
+      const discountAmount = Number(item.discountAmount || 0);
+      const billValue = Number(item.invoiceAmount || 0) + discountAmount;
+      return {
+        ...item,
+        date: item.bookingDate?.split("T")[0],
+        invoiceNo: item.invoiceNo,
+        customerName: item.customerName,
+        Category: "Booking",
+        SubCategory: "Advance",
+        discountAmount: discountAmount,
+        billValue: billValue,
+        cash: Number(item.bookingCashAmount || 0),
+        rbl: Number(item.rblRazorPay || 0),
+        bank: Number(item.bookingBankAmount || 0),
+        upi: Number(item.bookingUPIAmount || 0),
+        amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + 
+                Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
+        source: "booking"
+      };
+    });
   }, []);
 
   const processRentoutData = useCallback((rawData) => {
@@ -61,6 +66,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
       const security = Number(item.securityAmount || 0);
       const balancePayable = Number(item.invoiceAmount || 0) - advance;
       const totalSplit = security + balancePayable;
+      const discountAmount = Number(item.discountAmount || 0);
+      const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
       return {
         ...item,
@@ -72,7 +79,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
         SubCategory1: "Balance Payable",
         securityAmount: security,
         Balance: balancePayable,
-        billValue: Number(item.invoiceAmount || 0),
+        discountAmount: discountAmount,
+        billValue: billValue,
         cash: Number(item.rentoutCashAmount || 0),
         rbl: Number(item.rblRazorPay || 0),
         bank: Number(item.rentoutBankAmount || 0),
@@ -90,6 +98,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
       const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
       const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
       const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
+      const discountAmount = Number(item.discountAmount || 0);
+      const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
       return {
         ...item,
@@ -98,7 +108,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
         invoiceNo: item.invoiceNo,
         Category: "Return",
         SubCategory: "Security Refund",
-        billValue: Number(item.invoiceAmount || 0),
+        discountAmount: discountAmount,
+        billValue: billValue,
         cash: returnCashAmount,
         rbl: returnRblAmount,
         bank: returnBankAmount,
@@ -115,6 +126,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
       const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
       const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
       const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
+      const discountAmount = Number(item.discountAmount || 0);
+      const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
       return {
         ...item,
@@ -123,7 +136,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
         customerName: item.customerName,
         Category: "Cancel",
         SubCategory: "Cancellation Refund",
-        billValue: Number(item.invoiceAmount || 0),
+        discountAmount: discountAmount,
+        billValue: billValue,
         cash: deleteCashAmount,
         rbl: deleteRblAmount,
         bank: deleteBankAmount,
@@ -141,6 +155,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
       const bank = Number(tx.bank || 0);
       const upi = Number(tx.upi || 0);
       const total = cash + rbl + bank + upi;
+      const discountAmount = Number(tx.discountAmount || 0);
 
       return {
         ...tx,
@@ -148,7 +163,8 @@ export const useFinancialData = (currentUser, baseUrl) => {
         Category: tx.type,
         SubCategory: tx.subCategory || tx.category,
         customerName: tx.customerName || "",
-        billValue: Number(tx.billValue ?? tx.invoiceAmount ?? tx.amount),
+        discountAmount: discountAmount,
+        billValue: Number(tx.billValue ?? (Number(tx.invoiceAmount ?? tx.amount ?? 0) + discountAmount)),
         cash,
         rbl,
         bank,

@@ -21,8 +21,9 @@ const DayBook = () => {
     const processData = (rentoutData) => {
         const rentoutList = (rentoutData?.dataSet?.data || []).map(item => {
             const advance = Number(item.advanceAmount || 0);
-            const billVal = Number(item.invoiceAmount || 0);
-            const balPayable = Math.max(0, billVal - advance);
+            const discount = Number(item.discountAmount || 0);
+            const billVal = Number(item.invoiceAmount || 0) + discount;
+            const balPayable = Math.max(0, Number(item.invoiceAmount || 0) - advance);
 
             return {
                 ...item,
@@ -32,6 +33,7 @@ const DayBook = () => {
                 quantity: item.quantity || 1,
                 Category: "RentOut",
                 SubCategory: "Balance Payable",
+                discountAmount: discount,
                 billValue: billVal,
                 balancePayable: balPayable,
                 cash: Number(item.rentoutCashAmount || 0),

@@ -376,31 +376,38 @@ const Datewisedaybook = () => {
         ]);
       } catch { }
 
-      const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
-        ...item,
-        date: item.bookingDate?.split("T")[0],
-        time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
-        invoiceNo: item.invoiceNo,
-        customerName: item.customerName,
-        quantity: item.quantity || 1,
-        Category: "Booking",
-        SubCategory: "Advance",
-        billValue: Number(item.invoiceAmount || 0),
-        cash: Number(item.bookingCashAmount || 0),
-        rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-        bank: Number(item.bookingBankAmount || 0),
-        upi: Number(item.bookingUPIAmount || 0),
-        amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-        totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-        remark: "",
-        source: "booking"
-      }));
+      const bookingList = (bookingData?.dataSet?.data || []).map(item => {
+        const discountAmount = Number(item.discountAmount || 0);
+        const billVal = Number(item.invoiceAmount || 0) + discountAmount;
+        return {
+          ...item,
+          date: item.bookingDate?.split("T")[0],
+          time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+          invoiceNo: item.invoiceNo,
+          customerName: item.customerName,
+          quantity: item.quantity || 1,
+          Category: "Booking",
+          SubCategory: "Advance",
+          discountAmount: discountAmount,
+          billValue: billVal,
+          cash: Number(item.bookingCashAmount || 0),
+          rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
+          bank: Number(item.bookingBankAmount || 0),
+          upi: Number(item.bookingUPIAmount || 0),
+          amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
+          totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
+          remark: "",
+          source: "booking"
+        };
+      });
 
       const rentoutList = (rentoutData?.dataSet?.data || []).map(item => {
         const advance = Number(item.advanceAmount || 0);
         const security = Number(item.securityAmount || 0);
         const balancePayable = Number(item.invoiceAmount || 0) - advance;
         const totalSplit = security + balancePayable;
+        const discountAmount = Number(item.discountAmount || 0);
+        const billVal = Number(item.invoiceAmount || 0) + discountAmount;
         return {
           ...item,
           date: (item.rentOutDate || "").split("T")[0],
@@ -413,7 +420,8 @@ const Datewisedaybook = () => {
           SubCategory1: "Balance Payable",
           securityAmount: security,
           Balance: balancePayable,
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billVal,
           cash: Number(item.rentoutCashAmount || 0),
           rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
           bank: Number(item.rentoutBankAmount || 0),
@@ -433,6 +441,8 @@ const Datewisedaybook = () => {
         // ✅ Only process bank/UPI if no RBL value
         const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
         const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
+        const discountAmount = Number(item.discountAmount || 0);
+        const billVal = Number(item.invoiceAmount || 0) + discountAmount;
 
         return {
           ...item,
@@ -443,7 +453,8 @@ const Datewisedaybook = () => {
           Category: "Return",
           SubCategory: "Security Refund",
           securityAmount: Math.abs(returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount),
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billVal,
           cash: returnCashAmount,
           rbl: returnRblAmount,
           bank: returnBankAmount,
@@ -463,6 +474,8 @@ const Datewisedaybook = () => {
         // ✅ Only process bank/UPI if no RBL value
         const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
         const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
+        const discountAmount = Number(item.discountAmount || 0);
+        const billVal = Number(item.invoiceAmount || 0) + discountAmount;
 
         return {
           ...item,
@@ -472,7 +485,8 @@ const Datewisedaybook = () => {
           customerName: item.customerName,
           Category: "Cancel",
           SubCategory: "Cancellation Refund",
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billVal,
           cash: deleteCashAmount,
           rbl: deleteRblAmount,
           bank: deleteBankAmount,
@@ -495,6 +509,8 @@ const Datewisedaybook = () => {
         const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
           ? `${rawSubCat} Return`
           : rawSubCat;
+        const discountAmount = Number(tx.discountAmount || 0);
+        const billValue = (Number(tx.billValue || tx.subTotal || 0) || (Number(tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) + discountAmount)) * sign;
         return {
           ...tx,
           date: tx.date?.split("T")[0] || "",
@@ -504,7 +520,8 @@ const Datewisedaybook = () => {
           SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
           customerName: tx.customerName || "",
           remark: (() => { const r = tx.remark || tx.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
-          billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) * sign,
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash: cash,
           rbl: rbl, // ✅ Added RBL
           bank: bank,
@@ -652,37 +669,43 @@ const Datewisedaybook = () => {
             ]);
           } catch { }
 
-          const bList = (bookingData?.dataSet?.data || []).map(item => ({
-            ...item,
-            date: item.bookingDate?.split("T")[0],
-        time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
-            invoiceNo: item.invoiceNo,
-            customerName: item.customerName,
-            quantity: item.quantity || 1,
-            Category: "Booking",
-            SubCategory: "Advance",
-            discountAmount: Number(item.discountAmount || 0),
-            billValue: Number(item.invoiceAmount || 0),
-            cash: Number(item.bookingCashAmount || 0),
-            rbl: Number(item.rblRazorPay || 0),
-            bank: Number(item.bookingBankAmount || 0),
-            upi: Number(item.bookingUPIAmount || 0),
-            amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-            totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
-            remark: "",
-            source: "booking",
-            branch: locName,
-          }));
+          const bList = (bookingData?.dataSet?.data || []).map(item => {
+            const discountAmount = Number(item.discountAmount || 0);
+            const billValue = Number(item.invoiceAmount || 0) + discountAmount;
+            return {
+              ...item,
+              date: item.bookingDate?.split("T")[0],
+              time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+              invoiceNo: item.invoiceNo,
+              customerName: item.customerName,
+              quantity: item.quantity || 1,
+              Category: "Booking",
+              SubCategory: "Advance",
+              discountAmount: discountAmount,
+              billValue: billValue,
+              cash: Number(item.bookingCashAmount || 0),
+              rbl: Number(item.rblRazorPay || 0),
+              bank: Number(item.bookingBankAmount || 0),
+              upi: Number(item.bookingUPIAmount || 0),
+              amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
+              totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0),
+              remark: "",
+              source: "booking",
+              branch: locName,
+            };
+          });
 
           const rList = (rentoutData?.dataSet?.data || []).map(item => {
             const advance = Number(item.advanceAmount || 0);
             const security = Number(item.securityAmount || 0);
             const balancePayable = Number(item.invoiceAmount || 0) - advance;
             const totalSplit = security + balancePayable;
+            const discountAmount = Number(item.discountAmount || 0);
+            const billValue = Number(item.invoiceAmount || 0) + discountAmount;
             return {
               ...item,
               date: (item.rentOutDate || "").split("T")[0],
-          time: item?.time || item?.rentOutTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.rentOutDate && item.rentOutDate.includes("T") ? new Date(item.rentOutDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+              time: item?.time || item?.rentOutTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.rentOutDate && item.rentOutDate.includes("T") ? new Date(item.rentOutDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
               invoiceNo: item.invoiceNo,
               customerName: item.customerName,
               quantity: item.quantity || 1,
@@ -691,8 +714,8 @@ const Datewisedaybook = () => {
               SubCategory1: "Balance Payable",
               securityAmount: security,
               Balance: balancePayable,
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
+              discountAmount: discountAmount,
+              billValue: billValue,
               cash: Number(item.rentoutCashAmount || 0),
               rbl: Number(item.rblRazorPay || 0),
               bank: Number(item.rentoutBankAmount || 0),
@@ -710,17 +733,19 @@ const Datewisedaybook = () => {
             const returnRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
             const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
             const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
+            const discountAmount = Number(item.discountAmount || 0);
+            const billValue = Number(item.invoiceAmount || 0) + discountAmount;
             return {
               ...item,
               date: (item.returnedDate || item.returnDate || item.createdDate || "").split("T")[0],
-          time: item?.time || item?.returnedTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.returnedDate && item.returnedDate.includes("T") ? new Date(item.returnedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+              time: item?.time || item?.returnedTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.returnedDate && item.returnedDate.includes("T") ? new Date(item.returnedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
               customerName: item.customerName || item.custName || item.customer || "",
               invoiceNo: item.invoiceNo,
               Category: "Return",
               SubCategory: "Security Refund",
               securityAmount: Math.abs(returnCashAmount + returnRblAmount + returnBankAmount + returnUPIAmount),
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
+              discountAmount: discountAmount,
+              billValue: billValue,
               cash: returnCashAmount,
               rbl: returnRblAmount,
               bank: returnBankAmount,
@@ -738,16 +763,18 @@ const Datewisedaybook = () => {
             const deleteRblAmount = -Math.abs(Number(item.rblRazorPay || 0));
             const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
             const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
+            const discountAmount = Number(item.discountAmount || 0);
+            const billValue = Number(item.invoiceAmount || 0) + discountAmount;
             return {
               ...item,
               date: item.cancelDate?.split("T")[0],
-          time: item?.time || item?.cancelTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.cancelDate && item.cancelDate.includes("T") ? new Date(item.cancelDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+              time: item?.time || item?.cancelTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.cancelDate && item.cancelDate.includes("T") ? new Date(item.cancelDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
               invoiceNo: item.invoiceNo,
               customerName: item.customerName,
               Category: "Cancel",
               SubCategory: "Cancellation Refund",
-              discountAmount: Number(item.discountAmount || 0),
-              billValue: Number(item.invoiceAmount || 0),
+              discountAmount: discountAmount,
+              billValue: billValue,
               cash: deleteCashAmount,
               rbl: deleteRblAmount,
               bank: deleteBankAmount,
@@ -772,17 +799,19 @@ const Datewisedaybook = () => {
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
               ? `${rawSubCat} Return`
               : rawSubCat;
+            const discountAmount = Number(tx.discountAmount || 0);
+            const billValue = (Number(tx.billValue || tx.subTotal || 0) || (Number(tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) + discountAmount)) * sign;
             return {
               ...tx,
               date: tx.date?.split("T")[0] || "",
-          time: tx?.time || (tx?.createdAt ? new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (tx?.date && tx.date.includes("T") ? new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+              time: tx?.time || (tx?.createdAt ? new Date(tx.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (tx?.date && tx.date.includes("T") ? new Date(tx.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
               Category: tx.type,
               SubCategory: subCatLabel,
               SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
               customerName: tx.customerName || "",
               remark: (() => { const r = tx.remark || tx.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
-              discountAmount: Number(tx.discountAmount || 0),
-              billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) * sign,
+              discountAmount: discountAmount,
+              billValue: billValue,
               cash, rbl, bank, upi,
               amount: total,
               totalTransaction: total,
@@ -803,13 +832,16 @@ const Datewisedaybook = () => {
             const bank = Number(row.bank || 0);
             const upi = Number(row.upi || 0);
             const total = cash + rbl + bank + upi;
+            const discountAmount = Number(row.discountAmount || 0);
+            const billValue = Number(row.billValue ?? (Number(row.invoiceAmount || 0) + discountAmount));
             editedMapMulti.set(uniqueKey, {
               ...row,
               invoiceNo: key,
               Category: row.type,
               SubCategory: row.category,
               SubCategory1: row.subCategory1 || row.SubCategory1 || "Balance Payable",
-              billValue: Number(row.billValue ?? row.invoiceAmount ?? 0),
+              discountAmount: discountAmount,
+              billValue: billValue,
               cash, rbl, bank, upi,
               amount: total,
               totalTransaction: total,
@@ -834,7 +866,7 @@ const Datewisedaybook = () => {
                 SubCategory1: override.SubCategory1 || override.subCategory1 || t.SubCategory1 || t.subCategory1 || "",
                 customerName: override.customerName || t.customerName || "",
                 date: override.date || t.date || "",
-            time: override.time || t.time || "",
+                time: override.time || t.time || "",
                 securityAmount: isRentOutMulti ? Number(override.securityAmount ?? t.securityAmount ?? 0) : 0,
                 Balance: isRentOutMulti ? Number(override.Balance ?? t.Balance ?? 0) : 0,
                 amount: Number(override.amount ?? t.amount),
@@ -882,32 +914,38 @@ const Datewisedaybook = () => {
         bookingRes.json(), rentoutRes.json(), returnRes.json(), deleteRes.json(), mongoRes.json()
       ]);
 
-      const bookingList = (bookingData?.dataSet?.data || []).map(item => ({
-        ...item,
-        date: item.bookingDate?.split("T")[0],
-        time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
-        invoiceNo: item.invoiceNo,
-        customerName: item.customerName,
-        quantity: item.quantity || 1,
-        Category: "Booking",
-        SubCategory: "Advance",
-        discountAmount: Number(item.discountAmount || 0),
-        billValue: Number(item.invoiceAmount || 0),
-        cash: Number(item.bookingCashAmount || 0),
-        rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
-        bank: Number(item.bookingBankAmount || 0),
-        upi: Number(item.bookingUPIAmount || 0),
-        amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
-        totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
-        remark: "",
-        source: "booking"
-      }));
+      const bookingList = (bookingData?.dataSet?.data || []).map(item => {
+        const discountAmount = Number(item.discountAmount || 0);
+        const billValue = Number(item.invoiceAmount || 0) + discountAmount;
+        return {
+          ...item,
+          date: item.bookingDate?.split("T")[0],
+          time: item?.time || item?.bookingTime || (item?.createdAt ? new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : (item?.bookingDate && item.bookingDate.includes("T") ? new Date(item.bookingDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase() : "")),
+          invoiceNo: item.invoiceNo,
+          customerName: item.customerName,
+          quantity: item.quantity || 1,
+          Category: "Booking",
+          SubCategory: "Advance",
+          discountAmount: discountAmount,
+          billValue: billValue,
+          cash: Number(item.bookingCashAmount || 0),
+          rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
+          bank: Number(item.bookingBankAmount || 0),
+          upi: Number(item.bookingUPIAmount || 0),
+          amount: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
+          totalTransaction: Number(item.bookingCashAmount || 0) + Number(item.rblRazorPay || 0) + Number(item.bookingBankAmount || 0) + Number(item.bookingUPIAmount || 0), // ✅ Added rbl
+          remark: "",
+          source: "booking"
+        };
+      });
 
       const rentoutList = (rentoutData?.dataSet?.data || []).map(item => {
         const advance = Number(item.advanceAmount || 0);
         const security = Number(item.securityAmount || 0);
         const balancePayable = Number(item.invoiceAmount || 0) - advance;
         const totalSplit = security + balancePayable;
+        const discountAmount = Number(item.discountAmount || 0);
+        const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
         return {
           ...item,
@@ -921,8 +959,8 @@ const Datewisedaybook = () => {
           SubCategory1: "Balance Payable",
           securityAmount: security,
           Balance: balancePayable,
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash: Number(item.rentoutCashAmount || 0),
           rbl: Number(item.rblRazorPay || 0), // ✅ Added RBL mapping
           bank: Number(item.rentoutBankAmount || 0),
@@ -942,6 +980,8 @@ const Datewisedaybook = () => {
         // ✅ Only process bank/UPI if no RBL value
         const returnBankAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnBankAmount || 0));
         const returnUPIAmount = returnRblAmount !== 0 ? 0 : -Math.abs(Number(item.returnUPIAmount || 0));
+        const discountAmount = Number(item.discountAmount || 0);
+        const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
         return {
           ...item,
@@ -951,8 +991,8 @@ const Datewisedaybook = () => {
           invoiceNo: item.invoiceNo,
           Category: "Return",
           SubCategory: "Security Refund",
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash: returnCashAmount,
           rbl: returnRblAmount,
           bank: returnBankAmount,
@@ -972,6 +1012,8 @@ const Datewisedaybook = () => {
         // ✅ Only process bank/UPI if no RBL value
         const deleteBankAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteBankAmount || 0));
         const deleteUPIAmount = deleteRblAmount !== 0 ? 0 : -Math.abs(Number(item.deleteUPIAmount || 0));
+        const discountAmount = Number(item.discountAmount || 0);
+        const billValue = Number(item.invoiceAmount || 0) + discountAmount;
 
         return {
           ...item,
@@ -981,8 +1023,8 @@ const Datewisedaybook = () => {
           customerName: item.customerName,
           Category: "Cancel",
           SubCategory: "Cancellation Refund",
-          discountAmount: Number(item.discountAmount || 0),
-          billValue: Number(item.invoiceAmount || 0),
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash: deleteCashAmount,
           rbl: deleteRblAmount,
           bank: deleteBankAmount,
@@ -1005,6 +1047,8 @@ const Datewisedaybook = () => {
         const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
           ? `${rawSubCat} Return`
           : rawSubCat;
+        const discountAmount = Number(tx.discountAmount || 0);
+        const billValue = Number(tx.billValue || tx.subTotal || (Number(tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)) + discountAmount));
         return {
           ...tx,
           date: tx.date?.split("T")[0] || "",
@@ -1014,8 +1058,8 @@ const Datewisedaybook = () => {
           SubCategory1: tx.subCategory1 || tx.SubCategory1 || "",
           customerName: tx.customerName || "",
           remark: (() => { const r = tx.remark || tx.remarks || ""; return (r === "Thanks for your business." || r === "Thanks for your business") ? "" : r; })(),
-          discountAmount: Number(tx.discountAmount || 0),
-          billValue: Number(tx.billValue || tx.subTotal || tx.invoiceAmount || Math.abs(Number(tx.amount) || 0)),
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash: Number(tx.cash),
           rbl: rbl, // ✅ Added RBL
           bank: Number(tx.bank),
@@ -1051,6 +1095,8 @@ const Datewisedaybook = () => {
         const bank = Number(row.bank || 0);
         const upi = Number(row.upi || 0);
         const total = cash + rbl + bank + upi; // ✅ Added rbl
+        const discountAmount = Number(row.discountAmount || 0);
+        const billValue = Number(row.billValue ?? (Number(row.invoiceAmount || 0) + discountAmount));
 
         editedMap.set(uniqueKey, {
           ...row,
@@ -1058,7 +1104,8 @@ const Datewisedaybook = () => {
           Category: row.type,
           SubCategory: row.category,
           SubCategory1: row.subCategory1 || row.SubCategory1 || "Balance Payable",
-          billValue: Number(row.billValue ?? row.invoiceAmount ?? 0),
+          discountAmount: discountAmount,
+          billValue: billValue,
           cash, rbl, bank, upi, // ✅ Added rbl
           amount: total,
           totalTransaction: total,
