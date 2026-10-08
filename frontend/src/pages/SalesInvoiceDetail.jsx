@@ -1036,7 +1036,7 @@ const SalesInvoiceDetail = () => {
                     </div>
                     <div className="pt-1">
                       <span className="inline-flex items-center px-2 py-0.5 bg-[#F3F4F6] border border-[#E5E7EB] text-[#111827] text-[11px] font-bold tracking-wider font-mono">
-                        GSTIN: 32AEHCR4208L1ZS
+                        GSTIN: 32AANCB8936G1ZG
                       </span>
                     </div>
                   </div>

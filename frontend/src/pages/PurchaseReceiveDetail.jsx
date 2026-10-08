@@ -149,7 +149,7 @@ const PurchaseReceiveDetail = () => {
   // Get company details (you may need to fetch this from user/organization settings)
   const companyName = "Rootements GOOD"; // This should come from user/organization settings
   const companyAddress = "Illath, Kurathikadu, Mavelikara, Assam, 690107"; // This should come from user/organization settings
-  const companyGSTIN = "45678"; // This should come from user/organization settings
+  const companyGSTIN = "32AANCB8936G1ZG"; // This should come from user/organization settings
   const companyCountry = "India";
 
   // Get vendor details

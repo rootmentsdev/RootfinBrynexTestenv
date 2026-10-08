@@ -356,7 +356,7 @@ const BillDetail = () => {
   // Get company details (you may need to fetch this from user/organization settings)
   const companyName = "Grooms Wedding Hub"; // This should come from user/organization settings
   const companyAddress = "Kerala"; // This should come from user/organization settings
-  const companyGSTIN = "32ABCFR1426N129"; // This should come from user/organization settings
+  const companyGSTIN = "32AANCB8936G1ZG"; // This should come from user/organization settings
   const companyEmail = "brynexoffice@gmail.com"; // This should come from user/organization settings
   const companyCountry = "India";
 
