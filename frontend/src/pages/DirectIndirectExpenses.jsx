@@ -303,7 +303,7 @@ const INDIRECT_EXPENSE_CATS = [
   { value: "Bank Charges", label: "Bank Charges" },
   { value: "Finance Charges", label: "Finance Charges" },
   { value: "Paytm Deductions", label: "Paytm Deductions" },
-  { value: "Car Loan Interest", label: "Car Loan Interest" },
+  { value: "EMI", label: "EMI" },
   { value: "Utility Charges", label: "Utility Charges" },
   { value: "Staff Welfare Expenses", label: "Staff Welfare Expenses" },
   { value: "Staff Food And Accomodation", label: "Staff Food And Accomodation" },

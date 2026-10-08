@@ -38,7 +38,9 @@ const Expenses = () => {
   const isSuperAdmin = (currentusers.role || "").toLowerCase() === "superadmin";
   const isFinancialHead = (currentusers.role || "").toLowerCase() === "financial_head";
   const canSelectStore = isAdmin || isSuperAdmin || isFinancialHead;
-  const cats = baseExpenseCats;
+  const cats = canSelectStore
+    ? baseExpenseCats
+    : baseExpenseCats.filter(c => c.value !== "other expenses" && c.label !== "Refund");
 
   const fallbackLocations = [
     { "locName": "Z-Edapally1", "locCode": "144" },
