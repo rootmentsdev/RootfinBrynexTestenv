@@ -6,12 +6,6 @@ import ReorderAlert from "../model/ReorderAlert.js";
 import PurchaseOrder from "../model/PurchaseOrder.js";
 import ExpenseTarget from "../model/ExpenseTarget.js";
 
-const httpsAgent = new https.Agent({
-  keepAlive: true,
-  maxSockets: 60,
-  timeout: 10000,
-});
-
 const STORE_LIST = [
   { locName: "G-Edappal", locCode: "707" },
   { locName: "G-Edappally", locCode: "702" },
@@ -89,26 +83,14 @@ const EXPENSE_CATS = new Set([
   "write off",
 ]);
 
-const fetchTwsJson = (url) => {
-  return new Promise((resolve) => {
-    https
-      .get(url, { agent: httpsAgent, timeout: 8000 }, (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch {
-            resolve({});
-          }
-        });
-      })
-      .on("error", () => resolve({}))
-      .on("timeout", function () {
-        this.destroy();
-        resolve({});
-      });
-  });
+const fetchTwsJson = async (url) => {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(20000) });
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    return {};
+  }
 };
 
 export const getDashboardSummary = async (req, res) => {
@@ -273,8 +255,11 @@ export const getDashboardSummary = async (req, res) => {
       });
     });
 
-    // 5. Process Mongo Txns
+    // 5. Process Mongo Txns (Store Level only)
+    const DEPT_CODES = new Set(["759", "102", "101", "858", "103"]);
     (mongoTxns || []).forEach((t) => {
+      if (t.isAdminLevel) return;
+      if (DEPT_CODES.has(t.locCode)) return;
       const tp = (t.type || "").toLowerCase();
       const sub = (t.subCategory || "").toLowerCase().trim();
       const cat = (t.category || "").toLowerCase().trim();
@@ -366,7 +351,7 @@ export const getDashboardSummary = async (req, res) => {
       const shortName = SHORT_NAME_MAP[storeName] || storeName;
 
       const sData = twsByStore[lc] || { booking: [], rentout: [], delete: [] };
-      const sMgTxns = (mongoTxns || []).filter((t) => t.locCode === lc);
+      const sMgTxns = (mongoTxns || []).filter((t) => t.locCode === lc && !t.isAdminLevel);
 
       let sInc = 0,
         sExp = 0;
@@ -383,11 +368,14 @@ export const getDashboardSummary = async (req, res) => {
         sInc += balancePayable;
       });
       sData.delete.forEach((i) => {
+        const rbl = Math.abs(Number(i.rblRazorPay || 0));
+        const bank = rbl !== 0 ? 0 : Math.abs(Number(i.deleteBankAmount || 0));
+        const upi = rbl !== 0 ? 0 : Math.abs(Number(i.deleteUPIAmount || 0));
         sExp +=
           Math.abs(Number(i.deleteCashAmount || 0)) +
-          Math.abs(Number(i.rblRazorPay || 0)) +
-          Math.abs(Number(i.deleteBankAmount || 0)) +
-          Math.abs(Number(i.deleteUPIAmount || 0));
+          rbl +
+          bank +
+          upi;
       });
       sMgTxns.forEach((t) => {
         const tp = (t.type || "").toLowerCase(),

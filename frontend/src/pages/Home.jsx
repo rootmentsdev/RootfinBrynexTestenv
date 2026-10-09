@@ -308,6 +308,8 @@ const Dashboard = ({ isSidebarOpen }) => {
         });
 
         mongoTxns.forEach(t => {
+          if (t.isAdminLevel) return;
+          if (DEPT_CODES.has(t.locCode)) return;
           const tp = (t.type || "").toLowerCase();
           const sub = (t.subCategory || "").toLowerCase().trim();
           const cat = (t.category || "").toLowerCase().trim();
@@ -360,7 +362,7 @@ const Dashboard = ({ isSidebarOpen }) => {
           const shortName = getShortName(storeName);
 
           const sData = twsByStore[lc] || { booking: [], rentout: [], delete: [] };
-          const sMgTxns = mongoTxns.filter(t => t.locCode === lc);
+          const sMgTxns = mongoTxns.filter(t => t.locCode === lc && !t.isAdminLevel);
 
           let sInc = 0, sExp = 0;
           sData.booking.forEach(i => { sInc += Number(i.bookingCashAmount || 0) + Number(i.rblRazorPay || 0) + Number(i.bookingBankAmount || 0) + Number(i.bookingUPIAmount || 0); });
@@ -368,7 +370,12 @@ const Dashboard = ({ isSidebarOpen }) => {
             const advance = Number(i.advanceAmount || 0);
             sInc += Number(i.invoiceAmount || 0) - advance;
           });
-          sData.delete.forEach(i => { sExp += Math.abs(Number(i.deleteCashAmount || 0)) + Math.abs(Number(i.rblRazorPay || 0)) + Math.abs(Number(i.deleteBankAmount || 0)) + Math.abs(Number(i.deleteUPIAmount || 0)); });
+          sData.delete.forEach(i => {
+            const rbl = Math.abs(Number(i.rblRazorPay || 0));
+            const bank = rbl !== 0 ? 0 : Math.abs(Number(i.deleteBankAmount || 0));
+            const upi = rbl !== 0 ? 0 : Math.abs(Number(i.deleteUPIAmount || 0));
+            sExp += Math.abs(Number(i.deleteCashAmount || 0)) + rbl + bank + upi;
+          });
           sMgTxns.forEach(t => {
             const tp = (t.type || "").toLowerCase(), cat = (t.category || "").toLowerCase().trim();
             const inv = (t.invoiceNo || "").toUpperCase();

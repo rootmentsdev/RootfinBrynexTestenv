@@ -491,7 +491,7 @@ export default function IncomeExpenseReport() {
         const originalSubCategory = normalizedSubCategory;
 
         if (isExpenseCategory && userCanSeeAdminExpenses && !isReturnInvoice) {
-          normalizedSubCategory = t.isAdminLevel ? "Admin Level Expense" : "Store Level Expense";
+          normalizedSubCategory = t.isAdminLevel ? "Admin Entry" : "Store Entry";
         }
 
         const row = {
