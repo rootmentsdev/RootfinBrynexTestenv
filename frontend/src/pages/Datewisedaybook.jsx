@@ -261,8 +261,8 @@ const Datewisedaybook = () => {
   const showAction = (currentusers.power || "").toLowerCase() === "admin" || (currentusers.role || "").toLowerCase() === "superadmin" || isFinancialHead;
   const clusterAllowedLocCodes = currentusers.allowedLocCodes || [];
 
-  // Admin-level dept loc codes — expenses from these are only visible to admin/superadmin
   const ADMIN_DEPT_LOC_CODES = new Set(["759", "102", "101", "858", "103"]);
+  const DEPT_LOC_CODES = ["759", "102", "101", "858", "103"];
   const isAdminOrSuperAdmin = (currentusers.power || "").toLowerCase() === "admin" || (currentusers.role || "").toLowerCase() === "superadmin";
   // Expense categories that should be hidden from store/cluster users when entered by admin depts
   const EXPENSE_CATEGORIES_SET = new Set([
@@ -499,7 +499,8 @@ const Datewisedaybook = () => {
         const rbl = Number(tx.rbl || tx.rblRazorPay || 0) * sign; // ✅ Added RBL mapping
         const bank = Number(tx.bank || 0) * sign;
         const upi = Number(tx.upi || 0) * sign;
-        const rawSubCat = tx.subCategory || tx.category || "";
+        const isExpense = (tx.type || "").toLowerCase() === "expense";
+        const rawSubCat = isExpense ? (tx.category || tx.subCategory || "") : (tx.subCategory || tx.category || "");
         const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
           ? `${rawSubCat} Return`
           : rawSubCat;
@@ -632,7 +633,37 @@ const Datewisedaybook = () => {
       locCodesToFetch = [currentusers.locCode];
     }
 
-    if (selectedStore === "multi" || selectedStore === "all" || selectedStore === "all_departments") {
+    if (selectedStore === "all") {
+      setMultiBranchFetching(true);
+      const storesToFetch = visibleLocations.filter(loc => !DEPT_LOC_CODES.includes(loc.locCode));
+      const summaryList = await Promise.all(
+        storesToFetch.map(async ({ locCode, locName }) => {
+          const totals = await getStoreFooterTotals(locCode, fromDate, toDate);
+          return {
+            store: locName,
+            locCode,
+            ...totals
+          };
+        })
+      );
+      setAllStoresSummary(summaryList);
+      const grandTotals = summaryList.reduce(
+        (acc, s) => ({
+          cash: acc.cash + Number(s.cash || 0),
+          rbl: acc.rbl + Number(s.rbl || 0),
+          bank: acc.bank + Number(s.bank || 0),
+          upi: acc.upi + Number(s.upi || 0),
+          amount: acc.amount + Number(s.amount || 0),
+        }),
+        { cash: 0, rbl: 0, bank: 0, upi: 0, amount: 0 }
+      );
+      setAllStoresTotals(grandTotals);
+      setMultiBranchFetching(false);
+      setIsFetching(false);
+      return;
+    }
+
+    if (selectedStore === "multi" || selectedStore === "all_departments") {
       setMultiBranchFetching(true);
       const storesToFetch = visibleLocations.filter(loc => locCodesToFetch.includes(loc.locCode));
       const allResults = await Promise.all(
@@ -789,7 +820,8 @@ const Datewisedaybook = () => {
             const bank = Number(tx.bank || 0) * sign;
             const upi = Number(tx.upi || 0) * sign;
             const total = cash + rbl + bank + upi;
-            const rawSubCat = tx.subCategory || tx.category || "";
+            const isExpense = (tx.type || "").toLowerCase() === "expense";
+            const rawSubCat = isExpense ? (tx.category || tx.subCategory || "") : (tx.subCategory || tx.category || "");
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
               ? `${rawSubCat} Return`
               : rawSubCat;
@@ -1037,7 +1069,8 @@ const Datewisedaybook = () => {
         const upi = Number(tx.upi || 0);
         const total = cash + rbl + bank + upi; // ✅ Added rbl
         const isReturn = (tx.type || "").toLowerCase() === "return";
-        const rawSubCat = tx.subCategory || tx.category || "";
+        const isExpense = (tx.type || "").toLowerCase() === "expense";
+        const rawSubCat = isExpense ? (tx.category || tx.subCategory || "") : (tx.subCategory || tx.category || "");
         const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
           ? `${rawSubCat} Return`
           : rawSubCat;
@@ -1430,6 +1463,89 @@ const Datewisedaybook = () => {
     }
   ];
 
+  const multiFilteredRows = multiBranchData.filter(filterTransaction);
+  const multiTotals = multiFilteredRows.reduce(
+    (acc, r) => ({
+      amount: acc.amount + Number(r.amount || 0),
+      totalTransaction: acc.totalTransaction + Number(r.totalTransaction || 0),
+      discountAmount: acc.discountAmount + Number(r.discountAmount || 0),
+      billValue: acc.billValue + Number(r.billValue || 0),
+      cash: acc.cash + Number(r.cash || 0),
+      rbl: acc.rbl + Number(r.rbl || 0),
+      bank: acc.bank + Number(r.bank || 0),
+      upi: acc.upi + Number(r.upi || 0),
+    }),
+    { amount: 0, totalTransaction: 0, discountAmount: 0, billValue: 0, cash: 0, rbl: 0, bank: 0, upi: 0 }
+  );
+
+  const multiExportData = [
+    ...multiFilteredRows.map((t) => ({
+      date: t.date,
+      invoiceNo: t.invoiceNo || t.locCode || "",
+      customerName: t.customerName || "",
+      quantity: t.quantity || 1,
+      Category: t.Category || t.type || "",
+      SubCategory: getCatLabel(t.SubCategory || t.category || "-"),
+      SubCategory1: t.SubCategory1 || "",
+      amount: Number(t.amount || 0),
+      totalTransaction: Number(t.totalTransaction || 0),
+      securityAmount: Number(t.securityAmount || 0),
+      Balance: Number(t.Balance || 0),
+      remark: t.remark || "",
+      discountAmount: Number(t.discountAmount || 0),
+      billValue: Number(t.billValue || 0),
+      cash: Number(t.cash || 0),
+      rbl: Number(t.rbl || 0),
+      bank: Number(t.bank || 0),
+      upi: Number(t.upi || 0),
+      attachment: t.hasAttachment ? "Yes" : "No",
+      branch: t.branch || "",
+    })),
+    {
+      date: "TOTAL",
+      invoiceNo: "",
+      customerName: "",
+      quantity: "",
+      Category: "",
+      SubCategory: "",
+      SubCategory1: "",
+      amount: multiTotals.amount,
+      totalTransaction: multiTotals.totalTransaction,
+      securityAmount: "",
+      Balance: "",
+      remark: "",
+      discountAmount: multiTotals.discountAmount,
+      billValue: multiTotals.billValue,
+      cash: multiTotals.cash,
+      rbl: multiTotals.rbl,
+      bank: multiTotals.bank,
+      upi: multiTotals.upi,
+      attachment: "",
+      branch: "",
+    }
+  ];
+
+  const allStoresExportData = [
+    ...allStoresSummary.map((s) => ({
+      store: s.store,
+      locCode: s.locCode,
+      cash: Math.round(Number(s.cash || 0)),
+      rbl: Math.round(Number(s.rbl || 0)),
+      bank: Math.round(Number(s.bank || 0)),
+      upi: Math.round(Number(s.upi || 0)),
+      amount: Math.round(Number(s.amount || 0)),
+    })),
+    {
+      store: "TOTAL",
+      locCode: "",
+      cash: Math.round(Number(allStoresTotals.cash || 0)),
+      rbl: Math.round(Number(allStoresTotals.rbl || 0)),
+      bank: Math.round(Number(allStoresTotals.bank || 0)),
+      upi: Math.round(Number(allStoresTotals.upi || 0)),
+      amount: Math.round(Number(allStoresTotals.amount || 0)),
+    }
+  ];
+
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedTransaction, setEditedTransaction] = useState({});
   const [isSyncing, setIsSyncing] = useState(false);
@@ -1686,76 +1802,6 @@ const Datewisedaybook = () => {
     }
   }, editingIndex === null);
 
-  const multiExportData = [
-    ...multiBranchData.filter(filterTransaction).map(t => {
-      const isReturn = (t.Category || t.type || "").toLowerCase() === "return";
-      const isCancel = (t.Category || t.type || "").toLowerCase() === "cancel";
-      const isRent = (t.Category || t.type || "").toLowerCase() === "rentout";
-      
-      let cash = Number(t.cash || 0);
-      let rbl = Number(t.rbl || 0);
-      let bank = Number(t.bank || 0);
-      let upi = Number(t.upi || 0);
-
-      if (isReturn || isCancel) {
-        cash = -Math.abs(cash);
-        rbl = -Math.abs(rbl);
-        bank = -Math.abs(bank);
-        upi = -Math.abs(upi);
-      }
-
-      const securityAmount = Number(t.securityAmount || 0);
-      const balance = Number(t.Balance || 0);
-      const amount = isRent ? securityAmount + balance : (cash + rbl + bank + upi);
-      const rowBranch = t.branch || (AllLoation.find(loc => loc.locCode === t.locCode)?.locName) || (t.locCode || "");
-      
-      return {
-        date: t.date || "",
-        invoiceNo: t.invoiceNo || t.locCode || "",
-        customerName: t.customerName || "",
-        quantity: t.quantity || 1,
-        Category: t.Category || t.type || "",
-        SubCategory: isRent ? (t.SubCategory || "Security") : getCatLabel(t.SubCategory || t.category || "-"),
-        SubCategory1: isRent ? (t.SubCategory1 || "Balance Payable") : "",
-        amount,
-        totalTransaction: t.totalTransaction ?? amount,
-        securityAmount: isRent ? securityAmount : (t.securityAmount ? Number(t.securityAmount) : ""),
-        Balance: isRent ? balance : (t.Balance ? Number(t.Balance) : ""),
-        remark: t.remark || "",
-        discountAmount: Number(t.discountAmount || 0),
-        billValue: Number(t.billValue || t.invoiceAmount || t.amount || amount),
-        cash,
-        rbl,
-        bank,
-        upi,
-        attachment: t.hasAttachment ? "Yes" : "No",
-        branch: rowBranch,
-      };
-    }),
-    {
-      date: "TOTAL",
-      invoiceNo: "",
-      customerName: "",
-      quantity: "",
-      Category: "",
-      SubCategory: "",
-      SubCategory1: "",
-      amount: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.amount || 0)), 0),
-      totalTransaction: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.totalTransaction || 0)), 0),
-      securityAmount: "",
-      Balance: "",
-      remark: "",
-      discountAmount: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.discountAmount || 0)), 0),
-      billValue: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.billValue || 0)), 0),
-      cash: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.cash || 0)), 0),
-      rbl: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.rbl || 0)), 0),
-      bank: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.bank || 0)), 0),
-      upi: multiBranchData.filter(filterTransaction).reduce((s, t) => s + Math.round(Number(t.upi || 0)), 0),
-      attachment: "",
-      branch: "",
-    }
-  ];
-
   return (
     <>
       <Helmet>
@@ -1951,7 +1997,7 @@ const Datewisedaybook = () => {
                       options={[
                         { value: "current", label: `Current Store (${currentusers.locCode})` },
                         ...(((currentusers.power || '').toLowerCase() === 'admin' || isClusterManager || isFinancialHead)
-                          ? [{ value: "all", label: "All Stores" }]
+                          ? [{ value: "all", label: "All Stores (Totals)" }]
                           : []),
                         ...(((currentusers.power || '').toLowerCase() === 'admin' || isFinancialHead)
                           ? [{ value: "multi", label: "Multiple Branches" }]
@@ -1975,7 +2021,7 @@ const Datewisedaybook = () => {
                       ]}
                       value={(() => {
                         if (selectedStore === "current") return { value: "current", label: `Current Store (${currentusers.locCode})` };
-                        if (selectedStore === "all") return { value: "all", label: "All Stores" };
+                        if (selectedStore === "all") return { value: "all", label: "All Stores (Totals)" };
                         if (selectedStore === "all_departments") return { value: "all_departments", label: "All Departments" };
                         if (selectedStore === "multi") return { value: "multi", label: "Multiple Branches" };
                         const found = AllLoation.find(s => s.locCode === selectedStore);
@@ -2161,9 +2207,9 @@ const Datewisedaybook = () => {
                   {/* Action Buttons Right Side */}
                   <div className="flex items-center gap-3">
                     <CSVLink
-                      data={(selectedStore === "all" || selectedStore === "all_departments") ? multiExportData : selectedStore === "multi" ? multiExportData : exportData}
-                      headers={(selectedStore === "all" || selectedStore === "all_departments") ? multiBranchCsvHeaders : selectedStore === "multi" ? multiBranchCsvHeaders : headers}
-                      filename={`financial_summary_${selectedStore === "all" ? "All_Branches" : selectedStore === "all_departments" ? "All_Departments" : selectedStore === "multi" ? "Multiple_Branches" : (AllLoation.find(loc => loc.locCode === currentusers.locCode)?.locName || currentusers.locCode || "Store").replace(/[^a-zA-Z0-9]/g, "_")}_${fromDate === toDate ? fromDate : fromDate + "_to_" + toDate}.csv`}
+                      data={selectedStore === "all" ? allStoresExportData : (selectedStore === "multi" || selectedStore === "all_departments") ? multiExportData : exportData}
+                      headers={selectedStore === "all" ? allStoresCsvHeaders : (selectedStore === "multi" || selectedStore === "all_departments") ? multiBranchCsvHeaders : headers}
+                      filename={`financial_summary_${selectedStore === "all" ? "All_Branches_Totals" : selectedStore === "all_departments" ? "All_Departments" : selectedStore === "multi" ? "Multiple_Branches" : (AllLoation.find(loc => loc.locCode === currentusers.locCode)?.locName || currentusers.locCode || "Store").replace(/[^a-zA-Z0-9]/g, "_")}_${fromDate === toDate ? fromDate : fromDate + "_to_" + toDate}.csv`}
                     >
                       <button
                         type="button"
@@ -2191,7 +2237,55 @@ const Datewisedaybook = () => {
             <div ref={printRef}>
               {/* Loading Screen */}
 
-              {(selectedStore === "multi" || selectedStore === "all" || selectedStore === "all_departments") ? (
+              {selectedStore === "all" ? (
+                <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
+                  <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
+                    <table className="w-full border-collapse text-xs" style={{ minWidth: '800px' }}>
+                      <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+                        <tr className="bg-[#1e1e1e] text-white text-xs uppercase tracking-wide font-bold">
+                          <th className="px-3 py-3 text-left font-bold whitespace-nowrap border-r border-[#333333] text-xs">STORE</th>
+                          <th className="px-3 py-3 text-left font-bold whitespace-nowrap border-r border-[#333333] text-xs">LOCCODE</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">CASH</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">RAZORPAY</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">CARD/BANK</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">UPI</th>
+                          <th className="px-3 py-3 text-right font-bold whitespace-nowrap border-r border-[#333333] text-xs">TOTAL AMOUNT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {allStoresSummary.map((s, idx) => (
+                          <tr key={s.locCode || idx} className="border-b border-gray-100 hover:bg-gray-50/80 transition-colors">
+                            <td className="px-3 py-2 text-gray-700 border-r border-gray-100 text-xs font-medium">{s.store}</td>
+                            <td className="px-3 py-2 text-gray-500 border-r border-gray-100 text-xs">{s.locCode}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(s.cash || 0)).toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(s.rbl || 0)).toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(s.bank || 0)).toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right text-gray-700 border-r border-gray-100 text-xs">{Math.round(Number(s.upi || 0)).toLocaleString()}</td>
+                            <td className="px-3 py-2 text-right font-bold text-gray-900 text-xs">{Math.round(Number(s.amount || 0)).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                        {allStoresSummary.length === 0 && (
+                          <tr>
+                            <td colSpan={7} className="text-center py-8 text-gray-400 text-sm">
+                              No stores found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-[#e2e8f0] font-bold border-t-2 border-gray-300" style={{ position: "sticky", bottom: 0, zIndex: 2 }}>
+                          <td colSpan={2} className="px-3 py-2.5 text-gray-800 uppercase tracking-wide text-xs font-bold">TOTAL</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Math.round(Number(allStoresTotals.cash || 0)).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Math.round(Number(allStoresTotals.rbl || 0)).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Math.round(Number(allStoresTotals.bank || 0)).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Math.round(Number(allStoresTotals.upi || 0)).toLocaleString()}</td>
+                          <td className="px-3 py-2.5 text-right text-gray-900 text-xs font-bold">{Math.round(Number(allStoresTotals.amount || 0)).toLocaleString()}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              ) : (selectedStore === "multi" || selectedStore === "all_departments") ? (
                 <div className="bg-white shadow-sm rounded-none border border-gray-200 overflow-hidden">
                   <div style={{ maxHeight: "600px", overflowY: "auto", overflowX: "auto" }}>
                     <table className="w-full border-collapse text-xs" style={{ minWidth: '1700px' }}>

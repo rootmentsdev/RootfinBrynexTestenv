@@ -161,7 +161,7 @@ export const useFinancialData = (currentUser, baseUrl) => {
         ...tx,
         date: tx.date?.split("T")[0] || "",
         Category: tx.type,
-        SubCategory: tx.subCategory || tx.category,
+        SubCategory: (tx.type || "").toLowerCase() === "expense" ? (tx.category || tx.subCategory) : (tx.subCategory || tx.category),
         customerName: tx.customerName || "",
         discountAmount: discountAmount,
         billValue: Number(tx.billValue ?? (Number(tx.invoiceAmount ?? tx.amount ?? 0) + discountAmount)),

@@ -561,7 +561,10 @@ const DayBookInc = () => {
             return allowedMongoCategories.includes(cat);
         }).map(transaction => {
             const isReturn = (transaction.type || "").toLowerCase() === "return";
-            const rawSubCat = transaction.subCategory || transaction.SubCategory || transaction.category || "";
+            const isExpense = (transaction.type || "").toLowerCase() === "expense" || inferType(transaction) === "expense";
+            const rawSubCat = isExpense
+                ? (transaction.category || transaction.subCategory || "")
+                : (transaction.subCategory || transaction.SubCategory || transaction.category || "");
             const subCatLabel = isReturn && rawSubCat && !rawSubCat.toLowerCase().endsWith("return")
                 ? `${rawSubCat} Return`
                 : rawSubCat;
